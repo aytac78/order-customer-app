@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Search, MapPin, Star, X, SlidersHorizontal, List, Map as MapIcon, Navigation, Loader2, Package } from 'lucide-react'
 import { createClient } from '@supabase/supabase-js'
@@ -49,7 +49,7 @@ const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: numbe
   return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)) * 10) / 10
 }
 
-export default function DiscoverPage() {
+function DiscoverContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const mode = searchParams.get('mode') // 'takeaway' or null
@@ -375,5 +375,13 @@ export default function DiscoverPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function DiscoverPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-orange-500" /></div>}>
+      <DiscoverContent />
+    </Suspense>
   )
 }
