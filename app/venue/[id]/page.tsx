@@ -29,10 +29,6 @@ interface Venue {
   lat?: number
   lon?: number
   spending_limit?: number
-  instagram_url?: string
-  photos?: string[]
-  features?: string[]
-  cuisine_type?: string
 }
 
 // Feature definitions
@@ -54,32 +50,22 @@ const featureConfig: Record<string, { icon: any; label: string; color: string }>
   reservation_required: { icon: Calendar, label: 'Rezervasyon Önerilir', color: 'text-orange-500 bg-orange-500/20' },
 }
 
-// Demo data generator based on venue category
-const getDemoFeatures = (category?: string): string[] => {
-  const baseFeatures = ['wifi', 'credit_card', 'air_conditioning']
-  
-  switch (category) {
-    case 'restaurant':
-      return [...baseFeatures, 'turkish_cuisine', 'parking', 'reservation_required']
-    case 'cafe':
-      return [...baseFeatures, 'outdoor_seating', 'pet_friendly']
-    case 'bar':
-      return [...baseFeatures, 'cocktails', 'live_music', 'smoking_area']
-    case 'beach_club':
-      return [...baseFeatures, 'outdoor_seating', 'cocktails', 'parking']
-    case 'night_club':
-      return [...baseFeatures, 'live_music', 'cocktails']
-    default:
-      return baseFeatures
-  }
+// Demo data - venue specific
+const venueInstagramMap: Record<string, string> = {
+  "nihal's break point": 'nbpoint',
+  "starbucks": 'starbucks',
 }
 
-const getDemoPhotos = (mainImage?: string): string[] => {
-  // Eğer ana görsel varsa onu kullan, yoksa placeholder
-  if (mainImage) {
-    return [mainImage]
+const getDemoFeatures = (category?: string): string[] => {
+  const baseFeatures = ['wifi', 'credit_card', 'air_conditioning']
+  switch (category) {
+    case 'restaurant': return [...baseFeatures, 'turkish_cuisine', 'parking', 'reservation_required']
+    case 'cafe': return [...baseFeatures, 'outdoor_seating', 'pet_friendly', 'fast_service']
+    case 'bar': return [...baseFeatures, 'cocktails', 'live_music', 'smoking_area']
+    case 'beach_club': return [...baseFeatures, 'outdoor_seating', 'cocktails', 'parking']
+    case 'night_club': return [...baseFeatures, 'live_music', 'cocktails']
+    default: return [...baseFeatures, 'family_friendly']
   }
-  return []
 }
 
 export default function VenuePage() {
@@ -110,15 +96,12 @@ export default function VenuePage() {
         .single()
 
       if (error) {
-        console.error('Venue load error:', error)
         setError('Mekan bulunamadı')
         setLoading(false)
         return
       }
-
       setVenue(data)
     } catch (err) {
-      console.error('Venue error:', err)
       setError('Bir hata oluştu')
     } finally {
       setLoading(false)
@@ -139,15 +122,16 @@ export default function VenuePage() {
     }
   }
 
-  const openInstagram = () => {
-    // Demo Instagram - mekan adından username oluştur
-    const username = venue?.name?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'orderapp'
-    window.open(`https://instagram.com/${username}`, '_blank')
+  const getInstagramUsername = () => {
+    const nameLower = venue?.name?.toLowerCase() || ''
+    return venueInstagramMap[nameLower] || venue?.name?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'orderapp'
   }
 
-  const toggleFavorite = () => {
-    setIsFavorite(!isFavorite)
+  const openInstagram = () => {
+    window.open(`https://instagram.com/${getInstagramUsername()}`, '_blank')
   }
+
+  const toggleFavorite = () => setIsFavorite(!isFavorite)
 
   const shareVenue = async () => {
     if (navigator.share) {
@@ -157,9 +141,7 @@ export default function VenuePage() {
           text: `${venue?.name} - ORDER'da keşfet!`,
           url: window.location.href,
         })
-      } catch (err) {
-        console.log('Share cancelled')
-      }
+      } catch (err) {}
     }
   }
 
@@ -192,21 +174,16 @@ export default function VenuePage() {
       <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col items-center justify-center p-6">
         <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
         <h2 className="text-xl font-bold mb-2">Mekan Bulunamadı</h2>
-        <p className="text-gray-400 mb-6">{error || 'Bu mekan mevcut değil'}</p>
-        <button
-          onClick={() => router.back()}
-          className="px-6 py-3 bg-orange-500 rounded-xl font-semibold"
-        >
+        <p className="text-gray-400 mb-6">{error}</p>
+        <button onClick={() => router.back()} className="px-6 py-3 bg-orange-500 rounded-xl font-semibold">
           Geri Dön
         </button>
       </div>
     )
   }
 
-  // Demo veriler - veritabanında yoksa bunları kullan
-  const features = venue.features?.length ? venue.features : getDemoFeatures(venue.category)
-  const photos = getDemoPhotos(venue.image_url)
-  const hasInstagram = true // Demo için her zaman göster
+  const features = getDemoFeatures(venue.category)
+  const photos = venue.image_url ? [venue.image_url] : []
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white pb-24">
@@ -217,31 +194,19 @@ export default function VenuePage() {
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-black/30" />
         
-        {/* Back Button */}
-        <button
-          onClick={() => router.back()}
-          className="absolute top-4 left-4 p-2 bg-black/50 rounded-full backdrop-blur-sm"
-        >
+        <button onClick={() => router.back()} className="absolute top-4 left-4 p-2 bg-black/50 rounded-full backdrop-blur-sm">
           <ArrowLeft className="w-6 h-6" />
         </button>
 
-        {/* Actions */}
         <div className="absolute top-4 right-4 flex gap-2">
-          <button
-            onClick={toggleFavorite}
-            className={`p-2 rounded-full backdrop-blur-sm ${isFavorite ? 'bg-red-500' : 'bg-black/50'}`}
-          >
+          <button onClick={toggleFavorite} className={`p-2 rounded-full backdrop-blur-sm ${isFavorite ? 'bg-red-500' : 'bg-black/50'}`}>
             <Heart className={`w-6 h-6 ${isFavorite ? 'fill-white' : ''}`} />
           </button>
-          <button 
-            onClick={shareVenue}
-            className="p-2 bg-black/50 rounded-full backdrop-blur-sm"
-          >
+          <button onClick={shareVenue} className="p-2 bg-black/50 rounded-full backdrop-blur-sm">
             <Share2 className="w-6 h-6" />
           </button>
         </div>
 
-        {/* Category Badge */}
         <div className="absolute bottom-4 left-4">
           <span className="px-3 py-1.5 bg-black/50 backdrop-blur-sm rounded-full text-sm">
             {getCategoryEmoji(venue.category)} {getCategoryLabel(venue.category)}
@@ -249,7 +214,7 @@ export default function VenuePage() {
         </div>
       </div>
 
-      {/* Venue Info */}
+      {/* Venue Info Card */}
       <div className="px-4 -mt-6 relative">
         <div className="bg-[#1a1a1a] rounded-2xl p-4">
           <div className="flex items-start gap-4">
@@ -269,22 +234,14 @@ export default function VenuePage() {
                     {venue.rating.toFixed(1)}
                   </span>
                 )}
-                <span className="text-sm text-gray-400">
-                  {getCategoryLabel(venue.category)}
-                </span>
-                {venue.address && (
-                  <span className="flex items-center gap-1 text-sm text-gray-400">
-                    <MapPin className="w-4 h-4" />
-                    <span className="truncate max-w-[120px]">{venue.address.split(',')[0]}</span>
-                  </span>
-                )}
+                <span className="text-sm text-gray-400">{getCategoryLabel(venue.category)}</span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Spending Limit Info */}
+      {/* Spending Limit */}
       {venue.spending_limit && (
         <div className="px-4 mt-4">
           <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-500/30 rounded-2xl p-4">
@@ -293,8 +250,8 @@ export default function VenuePage() {
                 <CreditCard className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-sm text-purple-300">Minimum Harcama Limiti</p>
-                <p className="text-xl font-bold text-white">₺{venue.spending_limit.toLocaleString()}</p>
+                <p className="text-sm text-purple-300">Minimum Harcama</p>
+                <p className="text-xl font-bold">₺{venue.spending_limit.toLocaleString()}</p>
               </div>
             </div>
           </div>
@@ -303,113 +260,69 @@ export default function VenuePage() {
 
       {/* Quick Actions - 4 Buttons */}
       <div className="px-4 mt-4 grid grid-cols-4 gap-3">
-        <button
-          onClick={() => router.push(`/reservations/new?venue=${venueId}`)}
-          className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-xl active:scale-95 transition-transform"
-        >
+        <button onClick={() => router.push(`/reservations/new?venue=${venueId}`)} className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-xl active:scale-95 transition-transform">
           <Calendar className="w-5 h-5 text-orange-500" />
           <span className="text-xs">Rezervasyon</span>
         </button>
-        <button
-          onClick={() => router.push(`/venue/${venueId}/menu`)}
-          className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-xl active:scale-95 transition-transform"
-        >
+        <button onClick={() => router.push(`/venue/${venueId}/menu`)} className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-xl active:scale-95 transition-transform">
           <UtensilsCrossed className="w-5 h-5 text-green-500" />
           <span className="text-xs">Menü</span>
         </button>
-        <button
-          onClick={callVenue}
-          disabled={!venue.phone}
-          className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-xl disabled:opacity-50 active:scale-95 transition-transform"
-        >
+        <button onClick={callVenue} disabled={!venue.phone} className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-xl disabled:opacity-50 active:scale-95 transition-transform">
           <Phone className="w-5 h-5 text-blue-500" />
           <span className="text-xs">Ara</span>
         </button>
-        <button
-          onClick={openMaps}
-          className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-xl active:scale-95 transition-transform"
-        >
+        <button onClick={openMaps} className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-xl active:scale-95 transition-transform">
           <Navigation className="w-5 h-5 text-purple-500" />
           <span className="text-xs">Yol Tarifi</span>
         </button>
       </div>
 
-      {/* About Venue Section */}
+      {/* About Section */}
       <div className="px-4 mt-6">
         <h2 className="text-lg font-semibold mb-3">Mekan Hakkında</h2>
         
-        {/* Description */}
-        {venue.description ? (
-          <p className="text-gray-400 text-sm mb-4 leading-relaxed">
-            {venue.description}
-          </p>
-        ) : (
-          <p className="text-gray-400 text-sm mb-4 leading-relaxed">
-            {venue.name}, {getCategoryLabel(venue.category).toLowerCase()} kategorisinde hizmet veren bir mekandır. 
-            Keyifli bir deneyim için sizi bekliyoruz.
-          </p>
-        )}
+        <p className="text-gray-400 text-sm mb-4 leading-relaxed">
+          {venue.description || `${venue.name}, ${getCategoryLabel(venue.category).toLowerCase()} kategorisinde hizmet veren kaliteli bir mekandır. Keyifli vakit geçirmek için sizi bekliyoruz.`}
+        </p>
 
-        {/* Features Grid */}
-        {features.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-4">
-            {features.map((feature) => {
-              const config = featureConfig[feature]
-              if (!config) return null
-              const Icon = config.icon
-              return (
-                <div
-                  key={feature}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-xl ${config.color}`}
-                >
-                  <Icon className="w-4 h-4" />
-                  <span className="text-xs font-medium">{config.label}</span>
-                </div>
-              )
-            })}
-          </div>
-        )}
+        {/* Features */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          {features.map((feature) => {
+            const config = featureConfig[feature]
+            if (!config) return null
+            const Icon = config.icon
+            return (
+              <div key={feature} className={`flex items-center gap-2 px-3 py-2 rounded-xl ${config.color}`}>
+                <Icon className="w-4 h-4" />
+                <span className="text-xs font-medium">{config.label}</span>
+              </div>
+            )
+          })}
+        </div>
 
-        {/* Instagram & Website Links */}
+        {/* Instagram & Website */}
         <div className="flex gap-3 mb-4">
-          {hasInstagram && (
-            <button
-              onClick={openInstagram}
-              className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex-1"
-            >
-              <Instagram className="w-5 h-5" />
-              <span className="text-sm font-medium">Instagram</span>
-            </button>
-          )}
+          <button onClick={openInstagram} className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex-1">
+            <Instagram className="w-5 h-5" />
+            <span className="text-sm font-medium">@{getInstagramUsername()}</span>
+          </button>
           {venue.website && (
-            <button
-              onClick={() => window.open(venue.website, '_blank')}
-              className="flex items-center gap-2 px-4 py-3 bg-[#1a1a1a] rounded-xl flex-1"
-            >
+            <button onClick={() => window.open(venue.website, '_blank')} className="flex items-center gap-2 px-4 py-3 bg-[#1a1a1a] rounded-xl flex-1">
               <Globe className="w-5 h-5 text-blue-400" />
               <span className="text-sm font-medium">Website</span>
             </button>
           )}
         </div>
 
-        {/* Photo Gallery */}
+        {/* Photos */}
         {photos.length > 0 && (
           <div className="mb-4">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-medium">Fotoğraflar</h3>
-            </div>
+            <h3 className="font-medium mb-3">Fotoğraflar</h3>
             <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4">
               {photos.map((photo, index) => (
-                <button
-                  key={index}
-                  onClick={() => { setGalleryIndex(index); setShowGallery(true); }}
-                  className="flex-shrink-0 relative"
-                >
-                  <img
-                    src={photo}
-                    alt={`${venue.name} ${index + 1}`}
-                    className="w-28 h-28 rounded-xl object-cover"
-                  />
+                <button key={index} onClick={() => { setGalleryIndex(index); setShowGallery(true); }} className="flex-shrink-0">
+                  <img src={photo} alt={`${venue.name}`} className="w-28 h-28 rounded-xl object-cover" />
                 </button>
               ))}
             </div>
@@ -417,13 +330,10 @@ export default function VenuePage() {
         )}
       </div>
 
-      {/* Address Card */}
+      {/* Address */}
       {venue.address && (
         <div className="px-4 mt-2">
-          <button
-            onClick={openMaps}
-            className="w-full bg-[#1a1a1a] rounded-2xl p-4 text-left"
-          >
+          <button onClick={openMaps} className="w-full bg-[#1a1a1a] rounded-2xl p-4 text-left">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center">
@@ -440,71 +350,17 @@ export default function VenuePage() {
         </div>
       )}
 
-      {/* Working Hours */}
-      {venue.working_hours && typeof venue.working_hours === 'object' && Object.keys(venue.working_hours).length > 0 && (
-        <div className="px-4 mt-4">
-          <div className="bg-[#1a1a1a] rounded-2xl p-4">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-10 h-10 bg-green-500/20 rounded-xl flex items-center justify-center">
-                <Clock className="w-5 h-5 text-green-500" />
-              </div>
-              <div>
-                <p className="font-medium">Çalışma Saatleri</p>
-                <p className="text-sm text-green-500">Şu an açık</p>
-              </div>
-            </div>
-            <div className="space-y-2 text-sm">
-              {Object.entries(venue.working_hours).map(([day, hours]: [string, any]) => (
-                <div key={day} className="flex justify-between">
-                  <span className="text-gray-400 capitalize">{day}</span>
-                  <span>{hours?.open || '09:00'} - {hours?.close || '22:00'}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Full Screen Gallery Modal */}
+      {/* Gallery Modal */}
       {showGallery && photos.length > 0 && (
         <div className="fixed inset-0 bg-black z-50 flex flex-col">
-          {/* Header */}
           <div className="flex items-center justify-between p-4">
-            <button onClick={() => setShowGallery(false)}>
-              <X className="w-6 h-6" />
-            </button>
+            <button onClick={() => setShowGallery(false)}><X className="w-6 h-6" /></button>
             <span className="text-sm">{galleryIndex + 1} / {photos.length}</span>
             <div className="w-6" />
           </div>
-
-          {/* Image */}
           <div className="flex-1 flex items-center justify-center p-4">
-            <img
-              src={photos[galleryIndex]}
-              alt={`${venue.name} ${galleryIndex + 1}`}
-              className="max-w-full max-h-full object-contain rounded-xl"
-            />
+            <img src={photos[galleryIndex]} alt="" className="max-w-full max-h-full object-contain rounded-xl" />
           </div>
-
-          {/* Navigation */}
-          {photos.length > 1 && (
-            <div className="flex items-center justify-center gap-4 p-4">
-              <button
-                onClick={() => setGalleryIndex(Math.max(0, galleryIndex - 1))}
-                disabled={galleryIndex === 0}
-                className="p-3 bg-white/10 rounded-full disabled:opacity-30"
-              >
-                <ChevronLeft className="w-6 h-6" />
-              </button>
-              <button
-                onClick={() => setGalleryIndex(Math.min(photos.length - 1, galleryIndex + 1))}
-                disabled={galleryIndex === photos.length - 1}
-                className="p-3 bg-white/10 rounded-full disabled:opacity-30"
-              >
-                <ChevronRight className="w-6 h-6" />
-              </button>
-            </div>
-          )}
         </div>
       )}
     </div>
