@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, Suspense, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Search, MapPin, Star, X, Loader2, Package, RefreshCw } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
@@ -47,14 +47,17 @@ function DiscoverContent() {
   const searchParams = useSearchParams()
   const mode = searchParams.get('mode')
   
-  const [places, setPlaces] = useState<Place[]>([])
+  const [allPlaces, setAllPlaces] = useState<Place[]>([]) // Tüm ORDER mekanları
+  const [places, setPlaces] = useState<Place[]>([]) // Gösterilen mekanlar
   const [loading, setLoading] = useState(true)
   const [loadingGoogle, setLoadingGoogle] = useState(false)
+  const [searching, setSearching] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number, address: string}>({ 
     lat: 40.9662, lng: 29.0751, address: 'Konum alınıyor...' 
   })
+  const searchTimeoutRef = useRef<NodeJS.Timeout>()
 
   useEffect(() => {
     if (mode === 'takeaway') localStorage.setItem('order_mode', 'takeaway')
@@ -63,6 +66,34 @@ function DiscoverContent() {
   useEffect(() => {
     getLocation()
   }, [])
+
+  // Debounced search - arama terimi değiştiğinde
+  useEffect(() => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current)
+    }
+
+    if (!searchTerm || searchTerm.length < 2) {
+      // Arama boşsa normal listeye dön
+      applyFilters(allPlaces, '', selectedCategory)
+      return
+    }
+
+    searchTimeoutRef.current = setTimeout(() => {
+      searchPlaces(searchTerm)
+    }, 500)
+
+    return () => {
+      if (searchTimeoutRef.current) {
+        clearTimeout(searchTimeoutRef.current)
+      }
+    }
+  }, [searchTerm])
+
+  // Kategori değiştiğinde filtrele
+  useEffect(() => {
+    applyFilters(allPlaces, searchTerm, selectedCategory)
+  }, [selectedCategory])
 
   const getLocation = () => {
     if (navigator.geolocation) {
@@ -93,7 +124,7 @@ function DiscoverContent() {
   const loadPlaces = async (lat: number, lng: number) => {
     setLoading(true)
     
-    // 1. ORDER mekanları - HIZLI
+    // 1. ORDER mekanları
     const { data: venues } = await supabase.from('venues').select('*').eq('is_active', true)
     
     const orderPlaces: Place[] = (venues || []).map(v => ({
@@ -109,10 +140,11 @@ function DiscoverContent() {
       isOrderEnabled: true,
     }))
 
+    setAllPlaces(orderPlaces)
     setPlaces(orderPlaces.sort((a, b) => (a.distance || 999) - (b.distance || 999)))
     setLoading(false)
 
-    // 2. Google Places - ARKA PLANDA (sadece restaurant)
+    // 2. Google Places - arka planda
     setLoadingGoogle(true)
     try {
       const res = await fetch(`/api/places?lat=${lat}&lng=${lng}&radius=3000&type=restaurant`)
@@ -138,11 +170,14 @@ function DiscoverContent() {
             isOpen: p.opening_hours?.open_now
           }))
 
-        setPlaces(prev => [...prev, ...googlePlaces].sort((a, b) => {
+        const combined = [...orderPlaces, ...googlePlaces].sort((a, b) => {
           if (a.isOrderEnabled && !b.isOrderEnabled) return -1
           if (!a.isOrderEnabled && b.isOrderEnabled) return 1
           return (a.distance || 999) - (b.distance || 999)
-        }))
+        })
+        
+        setAllPlaces(combined)
+        setPlaces(combined)
       }
     } catch (err) {
       console.error('Google Places error:', err)
@@ -150,14 +185,79 @@ function DiscoverContent() {
     setLoadingGoogle(false)
   }
 
-  const filteredPlaces = places.filter(p => {
-    if (searchTerm && !p.name.toLowerCase().includes(searchTerm.toLowerCase())) return false
-    if (selectedCategory !== 'all') {
-      if (selectedCategory === 'beach_club') return p.category === 'beach_club' || p.name.toLowerCase().includes('beach')
-      return p.category === selectedCategory
+  // Google API ile arama
+  const searchPlaces = async (query: string) => {
+    setSearching(true)
+    
+    try {
+      const res = await fetch(`/api/places?lat=${userLocation.lat}&lng=${userLocation.lng}&radius=5000&type=restaurant&keyword=${encodeURIComponent(query)}`)
+      const data = await res.json()
+      
+      if (data.results && data.results.length > 0) {
+        const googlePlaces: Place[] = data.results.map((p: any) => ({
+          id: `google-${p.place_id}`,
+          name: p.name,
+          category: 'restaurant',
+          emoji: '🍽️',
+          lat: p.geometry.location.lat,
+          lon: p.geometry.location.lng,
+          address: p.formatted_address || p.vicinity,
+          rating: p.rating,
+          distance: calculateDistance(userLocation.lat, userLocation.lng, p.geometry.location.lat, p.geometry.location.lng),
+          isOrderEnabled: false,
+          isOpen: p.opening_hours?.open_now
+        }))
+        
+        // ORDER mekanlarından eşleşenler
+        const orderMatches = allPlaces.filter(p => 
+          p.isOrderEnabled && p.name.toLowerCase().includes(query.toLowerCase())
+        )
+        
+        // Birleştir ve sırala
+        const combined = [...orderMatches, ...googlePlaces].sort((a, b) => {
+          if (a.isOrderEnabled && !b.isOrderEnabled) return -1
+          if (!a.isOrderEnabled && b.isOrderEnabled) return 1
+          return (a.distance || 999) - (b.distance || 999)
+        })
+        
+        setPlaces(combined)
+      } else {
+        // Google sonuç bulamadıysa sadece local'de ara
+        const localMatches = allPlaces.filter(p => 
+          p.name.toLowerCase().includes(query.toLowerCase())
+        )
+        setPlaces(localMatches)
+      }
+    } catch (err) {
+      console.error('Search error:', err)
+      // Hata durumunda local'de ara
+      const localMatches = allPlaces.filter(p => 
+        p.name.toLowerCase().includes(query.toLowerCase())
+      )
+      setPlaces(localMatches)
     }
-    return true
-  })
+    
+    setSearching(false)
+  }
+
+  // Filtre uygula
+  const applyFilters = (placesToFilter: Place[], search: string, category: string) => {
+    let filtered = placesToFilter
+    
+    if (search && search.length >= 2) {
+      filtered = filtered.filter(p => p.name.toLowerCase().includes(search.toLowerCase()))
+    }
+    
+    if (category !== 'all') {
+      if (category === 'beach_club') {
+        filtered = filtered.filter(p => p.category === 'beach_club' || p.name.toLowerCase().includes('beach'))
+      } else {
+        filtered = filtered.filter(p => p.category === category)
+      }
+    }
+    
+    setPlaces(filtered)
+  }
 
   const handlePlaceClick = (place: Place) => {
     if (place.isOrderEnabled) {
@@ -166,6 +266,12 @@ function DiscoverContent() {
     } else {
       window.open(`https://www.google.com/maps/search/?api=1&query=${place.lat},${place.lon}`, '_blank')
     }
+  }
+
+  const clearSearch = () => {
+    setSearchTerm('')
+    setSelectedCategory('all')
+    applyFilters(allPlaces, '', 'all')
   }
 
   return (
@@ -198,14 +304,21 @@ function DiscoverContent() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
           <input 
             type="text" 
-            placeholder="Mekan ara..." 
+            placeholder="Döner, pizza, cafe ara..." 
             value={searchTerm} 
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full pl-10 pr-10 py-3 bg-[#1a1a1a] rounded-xl text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-orange-500" 
           />
-          {searchTerm && (
-            <button onClick={() => setSearchTerm('')} className="absolute right-3 top-1/2 -translate-y-1/2">
-              <X className="w-4 h-4 text-gray-500" />
+          {(searchTerm || searching) && (
+            <button 
+              onClick={() => setSearchTerm('')} 
+              className="absolute right-3 top-1/2 -translate-y-1/2"
+            >
+              {searching ? (
+                <Loader2 className="w-4 h-4 text-orange-500 animate-spin" />
+              ) : (
+                <X className="w-4 h-4 text-gray-500" />
+              )}
             </button>
           )}
         </div>
@@ -233,16 +346,24 @@ function DiscoverContent() {
             <Loader2 className="w-8 h-8 text-orange-500 animate-spin mb-4" />
             <p className="text-gray-400">Mekanlar yükleniyor...</p>
           </div>
-        ) : filteredPlaces.length === 0 ? (
+        ) : places.length === 0 ? (
           <div className="text-center py-10">
-            <p className="text-gray-400 mb-2">Mekan bulunamadı</p>
-            <button onClick={() => { setSearchTerm(''); setSelectedCategory('all'); }} className="text-orange-500 text-sm">
+            <p className="text-gray-400 mb-2">
+              {searchTerm ? `"${searchTerm}" için sonuç bulunamadı` : 'Mekan bulunamadı'}
+            </p>
+            <button onClick={clearSearch} className="text-orange-500 text-sm">
               Filtreleri temizle
             </button>
           </div>
         ) : (
           <>
-            {filteredPlaces.map(place => (
+            {searchTerm && (
+              <p className="text-sm text-gray-400 mb-2">
+                "{searchTerm}" için <span className="text-orange-500 font-medium">{places.length}</span> sonuç
+              </p>
+            )}
+            
+            {places.map(place => (
               <button 
                 key={place.id} 
                 onClick={() => handlePlaceClick(place)} 
@@ -286,12 +407,14 @@ function DiscoverContent() {
               </div>
             )}
             
-            <p className="text-center text-sm text-gray-500 pt-2">
-              <span className="text-orange-500 font-medium">{filteredPlaces.filter(p => p.isOrderEnabled).length}</span> ORDER
-              {filteredPlaces.filter(p => !p.isOrderEnabled).length > 0 && (
-                <> • <span className="text-gray-300">{filteredPlaces.filter(p => !p.isOrderEnabled).length}</span> çevredeki</>
-              )}
-            </p>
+            {!searchTerm && (
+              <p className="text-center text-sm text-gray-500 pt-2">
+                <span className="text-orange-500 font-medium">{places.filter(p => p.isOrderEnabled).length}</span> ORDER
+                {places.filter(p => !p.isOrderEnabled).length > 0 && (
+                  <> • <span className="text-gray-300">{places.filter(p => !p.isOrderEnabled).length}</span> çevredeki</>
+                )}
+              </p>
+            )}
           </>
         )}
       </div>

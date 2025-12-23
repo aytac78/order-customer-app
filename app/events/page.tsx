@@ -25,6 +25,8 @@ interface Event {
 }
 
 const typeConfig: Record<string, { icon: any; label: string; color: string }> = {
+  dj: { icon: Music, label: 'DJ', color: 'bg-pink-500' },
+  entertainment: { icon: Star, label: 'Eğlence', color: 'bg-cyan-500' },
   music: { icon: Music, label: 'Müzik', color: 'bg-purple-500' },
   food: { icon: Utensils, label: 'Yemek', color: 'bg-orange-500' },
   party: { icon: PartyPopper, label: 'Parti', color: 'bg-pink-500' },

@@ -4,7 +4,7 @@ const GOOGLE_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || process.en
 
 // Simple in-memory cache (5 dakika)
 const cache = new Map<string, { data: any; timestamp: number }>()
-const CACHE_DURATION = 5 * 60 * 1000 // 5 dakika
+const CACHE_DURATION = 5 * 60 * 1000
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
   const lng = searchParams.get('lng')
   const radius = searchParams.get('radius') || '3000'
   const type = searchParams.get('type') || 'restaurant'
+  const keyword = searchParams.get('keyword') || ''
 
   if (!lat || !lng) {
     return NextResponse.json({ error: 'lat and lng required' }, { status: 400 })
@@ -21,10 +22,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Google API key not configured' }, { status: 500 })
   }
 
-  // Cache key - koordinatları yuvarla (yakın konumlar aynı cache'i kullanır)
+  // Cache key
   const roundedLat = Math.round(parseFloat(lat) * 100) / 100
   const roundedLng = Math.round(parseFloat(lng) * 100) / 100
-  const cacheKey = `${roundedLat},${roundedLng},${radius},${type}`
+  const cacheKey = `${roundedLat},${roundedLng},${radius},${type},${keyword}`
 
   // Cache kontrolü
   const cached = cache.get(cacheKey)
@@ -35,7 +36,15 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&type=${type}&key=${GOOGLE_API_KEY}`
+    let url: string
+    
+    if (keyword) {
+      // Text Search API - arama için
+      url = `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(keyword)}&location=${lat},${lng}&radius=${radius}&type=${type}&key=${GOOGLE_API_KEY}`
+    } else {
+      // Nearby Search API - normal listeleme için
+      url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=${radius}&type=${type}&key=${GOOGLE_API_KEY}`
+    }
     
     const response = await fetch(url)
     const data = await response.json()
@@ -43,7 +52,7 @@ export async function GET(request: NextRequest) {
     // Cache'e kaydet
     cache.set(cacheKey, { data, timestamp: Date.now() })
 
-    // Eski cache'leri temizle (max 100 entry)
+    // Eski cache'leri temizle
     if (cache.size > 100) {
       const oldestKey = cache.keys().next().value
       if (oldestKey) cache.delete(oldestKey)
