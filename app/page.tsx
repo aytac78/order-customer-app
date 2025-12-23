@@ -1,16 +1,14 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { 
-  Search, QrCode, Package, 
-  TrendingUp, Clock, Star, Heart, ChevronRight,
+  Search, QrCode, Package, Coffee,
+  Clock, Star, Heart, ChevronRight,
   Flame, Award, Users, ArrowRight, Loader2, MapPin, Calendar
 } from 'lucide-react'
 import { useAuth } from '@/lib/AuthContext'
-import CoffeestarHomeCard from '@/components/coffeestar/CoffeestarHomeCard'
-import { CoffeestarProvider } from '@/lib/coffeestar-context'
 
 interface PopularVenue {
   id: string
@@ -160,41 +158,40 @@ export default function HomePage() {
         </button>
       </div>
 
-      {/* Quick Actions */}
+      {/* Quick Actions - 5 buton */}
       <div className="px-4 mb-6">
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-5 gap-2">
           <button onClick={() => router.push('/scan')} className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-2xl">
             <div className="w-11 h-11 bg-gradient-to-br from-red-500 to-orange-500 rounded-xl flex items-center justify-center">
               <QrCode className="w-5 h-5" />
             </div>
-            <span className="text-xs font-medium">QR Okut</span>
+            <span className="text-[10px] font-medium">QR Okut</span>
           </button>
           <button onClick={() => router.push('/discover')} className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-2xl">
             <div className="w-11 h-11 bg-gradient-to-br from-orange-500 to-yellow-500 rounded-xl flex items-center justify-center">
               <Search className="w-5 h-5" />
             </div>
-            <span className="text-xs font-medium">Keşfet</span>
+            <span className="text-[10px] font-medium">Keşfet</span>
           </button>
           <button onClick={() => router.push('/orders')} className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-2xl">
             <div className="w-11 h-11 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
               <Package className="w-5 h-5" />
             </div>
-            <span className="text-xs font-medium">Paket</span>
+            <span className="text-[10px] font-medium">Paket</span>
+          </button>
+          <button onClick={() => router.push('/coffeestar')} className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-2xl">
+            <div className="w-11 h-11 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center">
+              <Coffee className="w-5 h-5" />
+            </div>
+            <span className="text-[10px] font-medium">Coffeestar</span>
           </button>
           <button onClick={() => router.push('/here')} className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-2xl">
             <div className="w-11 h-11 bg-gradient-to-br from-pink-500 to-orange-500 rounded-xl flex items-center justify-center">
               <Users className="w-5 h-5" />
             </div>
-            <span className="text-xs font-medium">HERE</span>
+            <span className="text-[10px] font-medium">HERE</span>
           </button>
         </div>
-      </div>
-
-      {/* COFFEESTAR */}
-      <div className="px-4 mb-6">
-        <CoffeestarProvider userId={user?.id}>
-          <CoffeestarHomeCard />
-        </CoffeestarProvider>
       </div>
 
       {/* Etkinlikler */}
