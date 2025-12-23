@@ -1,12 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { 
-  Search, QrCode, Package, Sparkles, 
+  Search, QrCode, Package, 
   TrendingUp, Clock, Star, Heart, ChevronRight,
-  Flame, Award, Users, ArrowRight, Loader2, User, MapPin, Calendar, Ticket
+  Flame, Award, Users, ArrowRight, Loader2, MapPin, Calendar
 } from 'lucide-react'
 import { useAuth } from '@/lib/AuthContext'
 
@@ -17,9 +17,6 @@ interface PopularVenue {
   emoji: string
   rating: number
   order_count: number
-  lat: number
-  lon: number
-  district: string
 }
 
 interface PopularDish {
@@ -29,7 +26,6 @@ interface PopularDish {
   venue_id: string
   price: number
   order_count: number
-  image_url: string | null
 }
 
 interface Event {
@@ -39,10 +35,7 @@ interface Event {
   type: string
   start_date: string
   start_time: string
-  end_time: string
-  image_url: string | null
   is_featured: boolean
-  venue_id: string | null
 }
 
 export default function HomePage() {
@@ -53,116 +46,71 @@ export default function HomePage() {
   const [popularVenues, setPopularVenues] = useState<PopularVenue[]>([])
   const [popularDishes, setPopularDishes] = useState<PopularDish[]>([])
   const [events, setEvents] = useState<Event[]>([])
-  const [userLocation, setUserLocation] = useState<{ lat: number; lon: number } | null>(null)
-  const [lastUpdateTime, setLastUpdateTime] = useState<string>('')
-  const [nextUpdateTime, setNextUpdateTime] = useState<string>('')
   const [profile, setProfile] = useState<any>(null)
 
+  // Sayfa yüklendiğinde bir kere çalışır
   useEffect(() => {
     setMounted(true)
-    getUserLocation()
-    calculateUpdateTimes()
-    loadEvents()
-    if (user) {
+    loadAllData()
+  }, [])
+
+  // User değiştiğinde profil yükle
+  useEffect(() => {
+    if (user?.id) {
       loadProfile()
     }
-  }, [user])
-
-  useEffect(() => {
-    if (userLocation) {
-      loadPopularData()
-    }
-  }, [userLocation])
+  }, [user?.id])
 
   const loadProfile = async () => {
-    if (!user) return
-    const { data } = await supabase
-      .from('user_profiles')
-      .select('full_name, avatar_url')
-      .eq('id', user.id)
-      .single()
-    if (data) setProfile(data)
-  }
-
-  const loadEvents = async () => {
-    const { data } = await supabase
-      .from('events')
-      .select('*')
-      .eq('is_active', true)
-      .gte('start_date', new Date().toISOString().split('T')[0])
-      .order('start_date', { ascending: true })
-      .limit(5)
-    
-    if (data) setEvents(data)
-  }
-
-  const calculateUpdateTimes = () => {
-    const now = new Date()
-    const today15 = new Date(now)
-    today15.setHours(15, 0, 0, 0)
-    
-    if (now >= today15) {
-      setLastUpdateTime(today15.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }))
-      setNextUpdateTime('Yarın 15:00')
-    } else {
-      setLastUpdateTime('Dün 15:00')
-      setNextUpdateTime('Bugün 15:00')
+    if (!user?.id) return
+    try {
+      const { data } = await supabase
+        .from('user_profiles')
+        .select('full_name, avatar_url')
+        .eq('id', user.id)
+        .single()
+      if (data) setProfile(data)
+    } catch (err) {
+      console.log('Profil yüklenemedi')
     }
   }
 
-  const getUserLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserLocation({
-            lat: position.coords.latitude,
-            lon: position.coords.longitude
-          })
-        },
-        (error) => {
-          console.log('Konum alınamadı, varsayılan kullanılıyor')
-          setUserLocation({ lat: 37.0344, lon: 27.4305 })
-        }
-      )
-    } else {
-      setUserLocation({ lat: 37.0344, lon: 27.4305 })
-    }
-  }
-
-  const loadPopularData = async () => {
+  const loadAllData = async () => {
     setLoading(true)
     try {
-      // Popüler mekanları yükle
-      const { data: venues } = await supabase
-        .from('venues')
-        .select('id, name, category, emoji, rating, order_count, lat, lon, district')
-        .order('order_count', { ascending: false })
-        .limit(10)
-      
-      if (venues) setPopularVenues(venues)
+      // Paralel yükleme
+      const [venuesRes, dishesRes, eventsRes] = await Promise.all([
+        supabase
+          .from('venues')
+          .select('id, name, category, emoji, rating, order_count')
+          .order('order_count', { ascending: false })
+          .limit(10),
+        supabase
+          .from('menu_items')
+          .select('id, name, price, order_count, venue_id, venues(name)')
+          .order('order_count', { ascending: false })
+          .limit(5),
+        supabase
+          .from('events')
+          .select('id, title, description, type, start_date, start_time, is_featured')
+          .eq('is_active', true)
+          .gte('start_date', new Date().toISOString().split('T')[0])
+          .order('start_date', { ascending: true })
+          .limit(5)
+      ])
 
-      // Popüler yemekleri yükle
-      const { data: dishes } = await supabase
-        .from('menu_items')
-        .select(`
-          id, name, price, order_count, image_url,
-          venues!inner(id, name)
-        `)
-        .order('order_count', { ascending: false })
-        .limit(5)
-      
-      if (dishes) {
-        const formattedDishes = dishes.map((d: any) => ({
+      if (venuesRes.data) setPopularVenues(venuesRes.data)
+      if (dishesRes.data) {
+        setPopularDishes(dishesRes.data.map((d: any) => ({
           id: d.id,
           name: d.name,
           venue_name: d.venues?.name || 'Mekan',
-          venue_id: d.venues?.id || '',
+          venue_id: d.venue_id,
           price: d.price,
-          order_count: d.order_count || 0,
-          image_url: d.image_url
-        }))
-        setPopularDishes(formattedDishes)
+          order_count: d.order_count || 0
+        })))
       }
+      if (eventsRes.data) setEvents(eventsRes.data)
     } catch (err) {
       console.error('Veri yükleme hatası:', err)
     }
@@ -177,19 +125,7 @@ export default function HomePage() {
     
     if (date.toDateString() === today.toDateString()) return 'Bugün'
     if (date.toDateString() === tomorrow.toDateString()) return 'Yarın'
-    
     return date.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })
-  }
-
-  const getEventEmoji = (type: string) => {
-    const emojis: Record<string, string> = {
-      'music': '🎵',
-      'food': '🍽️',
-      'party': '🎉',
-      'entertainment': '🎤',
-      'other': '✨'
-    }
-    return emojis[type] || '✨'
   }
 
   if (!mounted) return null
@@ -204,10 +140,10 @@ export default function HomePage() {
         </div>
         <button 
           onClick={() => router.push(user ? '/profile' : '/login')}
-          className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center"
+          className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center overflow-hidden"
         >
           {profile?.avatar_url ? (
-            <img src={profile.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover" />
+            <img src={profile.avatar_url} alt="" className="w-10 h-10 object-cover" />
           ) : (
             <span className="text-lg font-bold">{profile?.full_name?.[0] || user?.email?.[0]?.toUpperCase() || 'A'}</span>
           )}
@@ -228,37 +164,25 @@ export default function HomePage() {
       {/* Quick Actions */}
       <div className="px-4 mb-6">
         <div className="grid grid-cols-4 gap-3">
-          <button 
-            onClick={() => router.push('/scan')}
-            className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-2xl"
-          >
+          <button onClick={() => router.push('/scan')} className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-2xl">
             <div className="w-11 h-11 bg-gradient-to-br from-red-500 to-orange-500 rounded-xl flex items-center justify-center">
               <QrCode className="w-5 h-5" />
             </div>
             <span className="text-xs font-medium">QR Okut</span>
           </button>
-          <button 
-            onClick={() => router.push('/discover')}
-            className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-2xl"
-          >
+          <button onClick={() => router.push('/discover')} className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-2xl">
             <div className="w-11 h-11 bg-gradient-to-br from-orange-500 to-yellow-500 rounded-xl flex items-center justify-center">
               <Search className="w-5 h-5" />
             </div>
             <span className="text-xs font-medium">Keşfet</span>
           </button>
-          <button 
-            onClick={() => router.push('/orders')}
-            className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-2xl"
-          >
+          <button onClick={() => router.push('/orders')} className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-2xl">
             <div className="w-11 h-11 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
               <Package className="w-5 h-5" />
             </div>
             <span className="text-xs font-medium">Paket</span>
           </button>
-          <button 
-            onClick={() => router.push('/here')}
-            className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-2xl"
-          >
+          <button onClick={() => router.push('/here')} className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-2xl">
             <div className="w-11 h-11 bg-gradient-to-br from-pink-500 to-orange-500 rounded-xl flex items-center justify-center">
               <Users className="w-5 h-5" />
             </div>
@@ -288,7 +212,7 @@ export default function HomePage() {
                 className="flex-shrink-0 w-64 bg-gradient-to-br from-purple-900/50 to-pink-900/50 border border-purple-500/30 rounded-2xl overflow-hidden"
               >
                 <div className="h-20 bg-gradient-to-br from-purple-500/30 to-pink-500/30 flex items-center justify-center relative">
-                  <span className="text-4xl">{event.title.match(/^\p{Emoji}/u)?.[0] || getEventEmoji(event.type)}</span>
+                  <span className="text-4xl">{event.title.match(/^\p{Emoji}/u)?.[0] || '✨'}</span>
                   {event.is_featured && (
                     <div className="absolute top-2 right-2 px-2 py-0.5 bg-purple-500 rounded-full text-[10px] font-bold">
                       ÖNE ÇIKAN
@@ -315,19 +239,13 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Günün Popülerleri - Section Header */}
+      {/* Günün Popülerleri */}
       <div className="px-4 mt-4">
-        <div className="flex items-center justify-between mb-1">
-          <div className="flex items-center gap-2">
-            <Flame className="w-5 h-5 text-orange-500" />
-            <h2 className="text-lg font-bold">Günün Popülerleri</h2>
-          </div>
-          <div className="flex items-center gap-1 text-xs text-gray-500">
-            <Clock className="w-3 h-3" />
-            <span>Dün {lastUpdateTime}</span>
-          </div>
+        <div className="flex items-center gap-2 mb-1">
+          <Flame className="w-5 h-5 text-orange-500" />
+          <h2 className="text-lg font-bold">Günün Popülerleri</h2>
         </div>
-        <p className="text-xs text-gray-500 mb-4">Her gün 15:00'te güncellenir • Sonraki: {nextUpdateTime}</p>
+        <p className="text-xs text-gray-500 mb-4">Her gün 15:00'te güncellenir</p>
       </div>
 
       {loading ? (
@@ -365,11 +283,6 @@ export default function HomePage() {
                           {index + 1}
                         </div>
                       )}
-                      {venue.order_count > 50 && (
-                        <div className="absolute top-2 right-2 px-2 py-0.5 bg-red-500 rounded-full text-[10px] font-bold flex items-center gap-1">
-                          <TrendingUp className="w-3 h-3" /> HOT
-                        </div>
-                      )}
                     </div>
                     <div className="p-3">
                       <h4 className="font-semibold text-sm truncate">{venue.name}</h4>
@@ -379,7 +292,7 @@ export default function HomePage() {
                           <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
                           <span className="text-xs">{venue.rating?.toFixed(1) || '4.5'}</span>
                         </div>
-                        <span className="text-xs text-gray-500">{venue.order_count} sipariş</span>
+                        <span className="text-xs text-gray-500">{venue.order_count || 0} sipariş</span>
                       </div>
                     </div>
                   </button>
@@ -388,7 +301,7 @@ export default function HomePage() {
             ) : (
               <div className="text-center py-8 text-gray-500">
                 <MapPin className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">Yakınında henüz sipariş yok</p>
+                <p className="text-sm">Henüz mekan yok</p>
               </div>
             )}
           </div>
@@ -398,13 +311,13 @@ export default function HomePage() {
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold flex items-center gap-2">
                 <Heart className="w-4 h-4 text-red-500" />
-                Bugün En Çok Sipariş Edilenler
+                En Çok Sipariş Edilenler
               </h3>
             </div>
             
             {popularDishes.length > 0 ? (
               <div className="space-y-3">
-                {popularDishes.slice(0, 5).map((dish, index) => (
+                {popularDishes.map((dish, index) => (
                   <button
                     key={dish.id}
                     onClick={() => router.push(`/venue/${dish.venue_id}/menu`)}
@@ -425,11 +338,7 @@ export default function HomePage() {
                     <div className="flex-1 min-w-0">
                       <h4 className="font-semibold">{dish.name}</h4>
                       <p className="text-sm text-gray-400 truncate">{dish.venue_name}</p>
-                      <div className="flex items-center gap-3 mt-1">
-                        <span className="text-xs text-gray-500 flex items-center gap-1">
-                          <Package className="w-3 h-3" /> {dish.order_count} sipariş
-                        </span>
-                      </div>
+                      <span className="text-xs text-gray-500">{dish.order_count} sipariş</span>
                     </div>
                     <div className="text-right">
                       <p className="font-bold text-orange-500">₺{dish.price}</p>
@@ -441,14 +350,13 @@ export default function HomePage() {
             ) : (
               <div className="text-center py-8 text-gray-500">
                 <Flame className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">Bugün henüz sipariş yok</p>
+                <p className="text-sm">Henüz sipariş yok</p>
               </div>
             )}
           </div>
         </>
       )}
 
-      {/* Bottom spacing */}
       <div className="h-4" />
     </div>
   )

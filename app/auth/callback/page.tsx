@@ -12,44 +12,67 @@ function CallbackContent() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    let isMounted = true
+    
     const handleCallback = async () => {
       try {
         const redirectTo = searchParams.get('redirect') || '/'
         const errorParam = searchParams.get('error')
         
         if (errorParam) {
-          setStatus('error')
-          setError(searchParams.get('error_description') || errorParam)
+          if (isMounted) {
+            setStatus('error')
+            setError(searchParams.get('error_description') || errorParam)
+          }
           return
         }
 
         const { data, error } = await supabase.auth.getSession()
         if (error) {
-          setStatus('error')
-          setError(error.message)
+          if (isMounted) {
+            setStatus('error')
+            setError(error.message)
+          }
           return
         }
 
         if (data.session) {
-          await supabase.from('user_profiles').upsert({
-            id: data.session.user.id,
-            full_name: data.session.user.user_metadata?.full_name || '',
-            avatar_url: data.session.user.user_metadata?.avatar_url || '',
-            updated_at: new Date().toISOString()
-          }, { onConflict: 'id' })
+          // Profil var mı kontrol et, yoksa oluştur
+          const { data: existingProfile } = await supabase
+            .from('user_profiles')
+            .select('id')
+            .eq('id', data.session.user.id)
+            .single()
+          
+          if (!existingProfile) {
+            await supabase.from('user_profiles').insert({
+              id: data.session.user.id,
+              full_name: data.session.user.user_metadata?.full_name || '',
+              avatar_url: data.session.user.user_metadata?.avatar_url || ''
+            })
+          }
 
-          setStatus('success')
-          setTimeout(() => router.replace(redirectTo), 500)
+          if (isMounted) {
+            setStatus('success')
+            setTimeout(() => router.replace(redirectTo), 500)
+          }
         } else {
-          setStatus('error')
-          setError('Oturum oluşturulamadı')
+          if (isMounted) {
+            setStatus('error')
+            setError('Oturum oluşturulamadı')
+          }
         }
       } catch (err: any) {
-        setStatus('error')
-        setError(err.message || 'Bir hata oluştu')
+        if (isMounted) {
+          setStatus('error')
+          setError(err.message || 'Bir hata oluştu')
+        }
       }
     }
+    
     handleCallback()
+    
+    return () => { isMounted = false }
   }, [router, searchParams])
 
   if (status === 'loading') {
