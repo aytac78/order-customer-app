@@ -352,7 +352,7 @@ export const tr = {
     completed: 'Tamamlandı',
     cancelled: 'İptal Edildi',
     bill_requested: 'Hesap İstendi',
-    paid: 'Ödendi',
+    paid: 'Ödendi', orders: 'sipariş',
     // Status with prefix (for compatibility)
     statusConfirmed: 'Onaylandı',
     statusPending: 'Onay Bekliyor',

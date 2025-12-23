@@ -179,7 +179,7 @@ export const ar: TranslationKeys = {
     completed: 'مكتمل',
     cancelled: 'ملغي',
     bill_requested: 'تم طلب الفاتورة',
-    paid: 'مدفوع',
+    paid: 'مدفوع', orders: 'طلب',
   },
 
   reservations: {

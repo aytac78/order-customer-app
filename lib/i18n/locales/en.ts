@@ -345,7 +345,7 @@ export const en: TranslationKeys = {
     completed: 'Completed',
     cancelled: 'Cancelled',
     bill_requested: 'Bill Requested',
-    paid: 'Paid',
+    paid: 'Paid', orders: 'orders',
     statusConfirmed: 'Confirmed',
     statusPending: 'Pending',
     statusCancelled: 'Cancelled',
