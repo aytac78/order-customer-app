@@ -40,15 +40,8 @@ interface Place {
   cuisine_type?: string
 }
 
-interface DrinkFilter {
-  type: string
-  maxPrice: number
-}
-
-interface FoodFilter {
-  type: string
-  maxPrice: number
-}
+interface DrinkFilter { type: string; maxPrice: number }
+interface FoodFilter { type: string; maxPrice: number }
 
 interface Filters {
   categories: string[]
@@ -181,9 +174,7 @@ function DiscoverContent() {
     if (mode === 'takeaway') localStorage.setItem('order_mode', 'takeaway')
   }, [mode])
 
-  useEffect(() => {
-    getLocation()
-  }, [])
+  useEffect(() => { getLocation() }, [])
 
   useEffect(() => {
     applyFilters()
@@ -192,10 +183,7 @@ function DiscoverContent() {
 
   useEffect(() => {
     if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current)
-    if (!filters.searchQuery || filters.searchQuery.length < 2) {
-      applyFilters()
-      return
-    }
+    if (!filters.searchQuery || filters.searchQuery.length < 2) { applyFilters(); return }
     searchTimeoutRef.current = setTimeout(() => searchPlaces(filters.searchQuery), 500)
     return () => { if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current) }
   }, [filters.searchQuery])
@@ -217,8 +205,7 @@ function DiscoverContent() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          const lat = pos.coords.latitude
-          const lng = pos.coords.longitude
+          const lat = pos.coords.latitude, lng = pos.coords.longitude
           setUserLocation(prev => ({ ...prev, lat, lng }))
           fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
             .then(res => res.json())
@@ -226,51 +213,25 @@ function DiscoverContent() {
             .catch(() => {})
           loadPlaces(lat, lng)
         },
-        () => {
-          setUserLocation(prev => ({ ...prev, address: 'Varsayılan konum' }))
-          loadPlaces(40.9662, 29.0751)
-        },
+        () => { setUserLocation(prev => ({ ...prev, address: 'Varsayılan konum' })); loadPlaces(40.9662, 29.0751) },
         { timeout: 5000 }
       )
-    } else {
-      loadPlaces(40.9662, 29.0751)
-    }
+    } else { loadPlaces(40.9662, 29.0751) }
   }
 
   const loadPlaces = async (lat: number, lng: number) => {
     setLoading(true)
     const { data: venues } = await supabase.from('venues').select('*').eq('is_active', true)
-    
     const orderPlaces: Place[] = (venues || []).map(v => ({
-      id: `order-${v.id}`,
-      name: v.name,
-      category: v.category || 'restaurant',
-      emoji: categoryToEmoji[v.category] || '🍽️',
-      lat: parseFloat(String(v.lat)) || lat,
-      lon: parseFloat(String(v.lon)) || lng,
-      address: v.address,
-      rating: v.rating,
+      id: `order-${v.id}`, name: v.name, category: v.category || 'restaurant', emoji: categoryToEmoji[v.category] || '🍽️',
+      lat: parseFloat(String(v.lat)) || lat, lon: parseFloat(String(v.lon)) || lng, address: v.address, rating: v.rating,
       distance: v.lat && v.lon ? calculateDistance(lat, lng, parseFloat(String(v.lat)), parseFloat(String(v.lon))) : 0,
-      isOrderEnabled: true,
-      price_level: v.price_level,
-      beer_price_max: v.beer_price_max,
-      cocktail_price_max: v.cocktail_price_max,
-      has_gluten_free: v.has_gluten_free,
-      has_vegan: v.has_vegan,
-      has_vegetarian: v.has_vegetarian,
-      has_pool: v.has_pool,
-      has_beach_access: v.has_beach_access,
-      has_dj: v.has_dj,
-      has_live_music: v.has_live_music,
-      has_kids_area: v.has_kids_area,
-      has_parking: v.has_parking,
-      has_valet: v.has_valet,
-      has_reservation: v.has_reservation,
-      reservation_available_today: v.reservation_available_today,
-      features: v.features,
-      cuisine_type: v.cuisine_type,
+      isOrderEnabled: true, price_level: v.price_level, beer_price_max: v.beer_price_max, cocktail_price_max: v.cocktail_price_max,
+      has_gluten_free: v.has_gluten_free, has_vegan: v.has_vegan, has_vegetarian: v.has_vegetarian, has_pool: v.has_pool,
+      has_beach_access: v.has_beach_access, has_dj: v.has_dj, has_live_music: v.has_live_music, has_kids_area: v.has_kids_area,
+      has_parking: v.has_parking, has_valet: v.has_valet, has_reservation: v.has_reservation,
+      reservation_available_today: v.reservation_available_today, features: v.features, cuisine_type: v.cuisine_type,
     }))
-
     setAllPlaces(orderPlaces.sort((a, b) => (a.distance || 999) - (b.distance || 999)))
     setPlaces(orderPlaces.sort((a, b) => (a.distance || 999) - (b.distance || 999)))
     setLoading(false)
@@ -281,21 +242,12 @@ function DiscoverContent() {
       const data = await res.json()
       if (data.results) {
         const orderCoords = new Set(orderPlaces.map(v => `${v.lat.toFixed(3)},${v.lon.toFixed(3)}`))
-        const googlePlaces: Place[] = data.results
-          .filter((p: any) => !orderCoords.has(`${p.geometry.location.lat.toFixed(3)},${p.geometry.location.lng.toFixed(3)}`))
-          .slice(0, 20)
-          .map((p: any) => ({
-            id: `google-${p.place_id}`,
-            name: p.name,
-            category: 'restaurant',
-            emoji: '🍽️',
-            lat: p.geometry.location.lat,
-            lon: p.geometry.location.lng,
-            address: p.vicinity,
-            rating: p.rating,
+        const googlePlaces: Place[] = data.results.filter((p: any) => !orderCoords.has(`${p.geometry.location.lat.toFixed(3)},${p.geometry.location.lng.toFixed(3)}`))
+          .slice(0, 20).map((p: any) => ({
+            id: `google-${p.place_id}`, name: p.name, category: 'restaurant', emoji: '🍽️',
+            lat: p.geometry.location.lat, lon: p.geometry.location.lng, address: p.vicinity, rating: p.rating,
             distance: calculateDistance(lat, lng, p.geometry.location.lat, p.geometry.location.lng),
-            isOrderEnabled: false,
-            isOpen: p.opening_hours?.open_now
+            isOrderEnabled: false, isOpen: p.opening_hours?.open_now
           }))
         const combined = [...orderPlaces, ...googlePlaces].sort((a, b) => {
           if (a.isOrderEnabled && !b.isOrderEnabled) return -1
@@ -316,17 +268,10 @@ function DiscoverContent() {
       const data = await res.json()
       if (data.results && data.results.length > 0) {
         const googlePlaces: Place[] = data.results.map((p: any) => ({
-          id: `google-${p.place_id}`,
-          name: p.name,
-          category: 'restaurant',
-          emoji: '🍽️',
-          lat: p.geometry.location.lat,
-          lon: p.geometry.location.lng,
-          address: p.formatted_address || p.vicinity,
-          rating: p.rating,
+          id: `google-${p.place_id}`, name: p.name, category: 'restaurant', emoji: '🍽️',
+          lat: p.geometry.location.lat, lon: p.geometry.location.lng, address: p.formatted_address || p.vicinity, rating: p.rating,
           distance: calculateDistance(userLocation.lat, userLocation.lng, p.geometry.location.lat, p.geometry.location.lng),
-          isOrderEnabled: false,
-          isOpen: p.opening_hours?.open_now
+          isOrderEnabled: false, isOpen: p.opening_hours?.open_now
         }))
         const orderMatches = allPlaces.filter(p => p.isOrderEnabled && p.name.toLowerCase().includes(query.toLowerCase()))
         const combined = [...orderMatches, ...googlePlaces].sort((a, b) => {
@@ -335,12 +280,8 @@ function DiscoverContent() {
           return (a.distance || 999) - (b.distance || 999)
         })
         setPlaces(combined)
-      } else {
-        setPlaces(allPlaces.filter(p => p.name.toLowerCase().includes(query.toLowerCase())))
-      }
-    } catch (err) {
-      setPlaces(allPlaces.filter(p => p.name.toLowerCase().includes(query.toLowerCase())))
-    }
+      } else { setPlaces(allPlaces.filter(p => p.name.toLowerCase().includes(query.toLowerCase()))) }
+    } catch (err) { setPlaces(allPlaces.filter(p => p.name.toLowerCase().includes(query.toLowerCase()))) }
     setSearching(false)
   }
 
@@ -372,45 +313,25 @@ function DiscoverContent() {
   }
 
   const applyDrinkFilter = () => {
-    if (selectedDrinkType && drinkMaxPrice) {
-      setFilters(prev => ({ ...prev, drinkFilter: { type: selectedDrinkType, maxPrice: parseInt(drinkMaxPrice) } }))
-    }
+    if (selectedDrinkType && drinkMaxPrice) setFilters(prev => ({ ...prev, drinkFilter: { type: selectedDrinkType, maxPrice: parseInt(drinkMaxPrice) } }))
     setShowDrinkModal(false)
   }
 
   const applyFoodFilter = () => {
-    if (selectedFoodType && foodMaxPrice) {
-      setFilters(prev => ({ ...prev, foodFilter: { type: selectedFoodType, maxPrice: parseInt(foodMaxPrice) } }))
-    }
+    if (selectedFoodType && foodMaxPrice) setFilters(prev => ({ ...prev, foodFilter: { type: selectedFoodType, maxPrice: parseInt(foodMaxPrice) } }))
     setShowFoodModal(false)
   }
 
-  const clearDrinkFilter = () => {
-    setFilters(prev => ({ ...prev, drinkFilter: null }))
-    setSelectedDrinkType('')
-    setDrinkMaxPrice('')
-  }
-
-  const clearFoodFilter = () => {
-    setFilters(prev => ({ ...prev, foodFilter: null }))
-    setSelectedFoodType('')
-    setFoodMaxPrice('')
-  }
-
+  const clearDrinkFilter = () => { setFilters(prev => ({ ...prev, drinkFilter: null })); setSelectedDrinkType(''); setDrinkMaxPrice('') }
+  const clearFoodFilter = () => { setFilters(prev => ({ ...prev, foodFilter: null })); setSelectedFoodType(''); setFoodMaxPrice('') }
   const clearFilters = () => {
     setFilters({ categories: [], priceLevel: [], drinkFilter: null, foodFilter: null, features: [], dietary: [], entertainment: [], reservationToday: false, searchQuery: '' })
-    setSelectedDrinkType('')
-    setDrinkMaxPrice('')
-    setSelectedFoodType('')
-    setFoodMaxPrice('')
+    setSelectedDrinkType(''); setDrinkMaxPrice(''); setSelectedFoodType(''); setFoodMaxPrice('')
   }
 
   const handlePlaceClick = (place: Place) => {
-    if (place.isOrderEnabled) {
-      router.push(`/venue/${place.id.replace('order-', '')}`)
-    } else {
-      window.open(`https://www.google.com/maps/search/?api=1&query=${place.lat},${place.lon}`, '_blank')
-    }
+    if (place.isOrderEnabled) router.push(`/venue/${place.id.replace('order-', '')}`)
+    else window.open(`https://www.google.com/maps/search/?api=1&query=${place.lat},${place.lon}`, '_blank')
   }
 
   return (
@@ -431,9 +352,7 @@ function DiscoverContent() {
             )}
             <button onClick={() => setShowFilterModal(true)} className="relative p-2 hover:bg-white/10 rounded-full">
               <SlidersHorizontal className="w-5 h-5 text-gray-400" />
-              {activeFilterCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-orange-500 rounded-full text-xs flex items-center justify-center font-bold">{activeFilterCount}</span>
-              )}
+              {activeFilterCount > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-orange-500 rounded-full text-xs flex items-center justify-center font-bold">{activeFilterCount}</span>}
             </button>
             <button onClick={() => loadPlaces(userLocation.lat, userLocation.lng)} disabled={loading} className="p-2 hover:bg-white/10 rounded-full disabled:opacity-50">
               <RefreshCw className={`w-4 h-4 text-gray-400 ${loading ? 'animate-spin' : ''}`} />
@@ -468,32 +387,27 @@ function DiscoverContent() {
           <span className="text-xs text-gray-400">Filtreler:</span>
           {filters.categories.map(c => (
             <span key={c} className="px-2 py-1 bg-orange-500/20 text-orange-400 rounded-full text-xs flex items-center gap-1">
-              {categories.find(cat => cat.id === c)?.label}
-              <button onClick={() => toggleArrayFilter('categories', c)}><X className="w-3 h-3" /></button>
+              {categories.find(cat => cat.id === c)?.label}<button onClick={() => toggleArrayFilter('categories', c)}><X className="w-3 h-3" /></button>
             </span>
           ))}
           {filters.foodFilter && (
             <span className="px-2 py-1 bg-red-500/20 text-red-400 rounded-full text-xs flex items-center gap-1">
-              {foodTypes.find(f => f.id === filters.foodFilter?.type)?.label}: max {filters.foodFilter.maxPrice}₺
-              <button onClick={clearFoodFilter}><X className="w-3 h-3" /></button>
+              {foodTypes.find(f => f.id === filters.foodFilter?.type)?.label}: max {filters.foodFilter.maxPrice}₺<button onClick={clearFoodFilter}><X className="w-3 h-3" /></button>
             </span>
           )}
           {filters.drinkFilter && (
             <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded-full text-xs flex items-center gap-1">
-              {drinkTypes.find(d => d.id === filters.drinkFilter?.type)?.label}: max {filters.drinkFilter.maxPrice}₺
-              <button onClick={clearDrinkFilter}><X className="w-3 h-3" /></button>
+              {drinkTypes.find(d => d.id === filters.drinkFilter?.type)?.label}: max {filters.drinkFilter.maxPrice}₺<button onClick={clearDrinkFilter}><X className="w-3 h-3" /></button>
             </span>
           )}
           {filters.dietary.map(d => (
             <span key={d} className="px-2 py-1 bg-green-500/20 text-green-400 rounded-full text-xs flex items-center gap-1">
-              {dietaryOptions.find(opt => opt.id === d)?.label}
-              <button onClick={() => toggleArrayFilter('dietary', d)}><X className="w-3 h-3" /></button>
+              {dietaryOptions.find(opt => opt.id === d)?.label}<button onClick={() => toggleArrayFilter('dietary', d)}><X className="w-3 h-3" /></button>
             </span>
           ))}
           {filters.reservationToday && (
             <span className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs flex items-center gap-1">
-              Bugün Müsait
-              <button onClick={() => setFilters(prev => ({ ...prev, reservationToday: false }))}><X className="w-3 h-3" /></button>
+              Bugün Müsait<button onClick={() => setFilters(prev => ({ ...prev, reservationToday: false }))}><X className="w-3 h-3" /></button>
             </span>
           )}
           <button onClick={clearFilters} className="text-xs text-red-400 underline ml-2">Temizle</button>
@@ -503,10 +417,7 @@ function DiscoverContent() {
       {/* Content */}
       <div className="p-4 space-y-3">
         {loading ? (
-          <div className="flex flex-col items-center py-20">
-            <Loader2 className="w-8 h-8 text-orange-500 animate-spin mb-4" />
-            <p className="text-gray-400">Mekanlar yükleniyor...</p>
-          </div>
+          <div className="flex flex-col items-center py-20"><Loader2 className="w-8 h-8 text-orange-500 animate-spin mb-4" /><p className="text-gray-400">Mekanlar yükleniyor...</p></div>
         ) : places.length === 0 ? (
           <div className="text-center py-10">
             <p className="text-gray-400 mb-2">{filters.searchQuery ? `"${filters.searchQuery}" için sonuç bulunamadı` : 'Mekan bulunamadı'}</p>
@@ -545,10 +456,7 @@ function DiscoverContent() {
               </button>
             ))}
             {loadingGoogle && (
-              <div className="flex items-center justify-center py-4">
-                <Loader2 className="w-5 h-5 text-orange-500 animate-spin mr-2" />
-                <span className="text-sm text-gray-400">Daha fazla mekan yükleniyor...</span>
-              </div>
+              <div className="flex items-center justify-center py-4"><Loader2 className="w-5 h-5 text-orange-500 animate-spin mr-2" /><span className="text-sm text-gray-400">Daha fazla mekan yükleniyor...</span></div>
             )}
             {!filters.searchQuery && (
               <p className="text-center text-sm text-gray-500 pt-2">
@@ -560,15 +468,21 @@ function DiscoverContent() {
         )}
       </div>
 
-      {/* Filter Modal */}
+      {/* Filter Modal - Fixed Layout */}
       {showFilterModal && (
-        <div className="fixed inset-0 z-50 bg-black/80">
-          <div className="absolute inset-x-0 bottom-0 bg-[#1a1a1a] rounded-t-3xl flex flex-col" style={{ maxHeight: '85vh' }}>
-            <div className="flex-shrink-0 border-b border-white/10 px-4 py-4 flex items-center justify-between">
+        <div className="fixed inset-0 z-50 bg-black/80 flex flex-col">
+          {/* Backdrop - closes modal */}
+          <div className="flex-1" onClick={() => setShowFilterModal(false)} />
+          
+          {/* Modal Content */}
+          <div className="bg-[#1a1a1a] rounded-t-3xl" style={{ height: '70vh', display: 'flex', flexDirection: 'column' }}>
+            {/* Header - Fixed */}
+            <div className="px-4 py-4 border-b border-white/10 flex items-center justify-between flex-shrink-0">
               <h2 className="text-lg font-bold">Tüm Filtreler</h2>
               <button onClick={() => setShowFilterModal(false)}><X className="w-6 h-6" /></button>
             </div>
 
+            {/* Scrollable Content */}
             <div className="flex-1 overflow-y-auto p-4 space-y-6">
               {/* Kategori */}
               <div>
@@ -576,7 +490,7 @@ function DiscoverContent() {
                 <div className="flex flex-wrap gap-2">
                   {categories.filter(c => c.id !== 'all').map(cat => (
                     <button key={cat.id} onClick={() => toggleArrayFilter('categories', cat.id)}
-                      className={`px-4 py-2 rounded-xl text-sm transition-colors flex items-center gap-2 ${filters.categories.includes(cat.id) ? 'bg-orange-500 text-white' : 'bg-[#242424] text-gray-300'}`}>
+                      className={`px-4 py-2 rounded-xl text-sm flex items-center gap-2 ${filters.categories.includes(cat.id) ? 'bg-orange-500 text-white' : 'bg-[#242424] text-gray-300'}`}>
                       <span>{cat.emoji}</span>{cat.label}
                     </button>
                   ))}
@@ -589,7 +503,7 @@ function DiscoverContent() {
                 <div className="flex flex-wrap gap-2">
                   {priceLevels.map(p => (
                     <button key={p.level} onClick={() => toggleArrayFilter('priceLevel', p.level)}
-                      className={`px-4 py-2 rounded-xl text-sm transition-colors ${filters.priceLevel.includes(p.level) ? 'bg-green-500 text-white' : 'bg-[#242424] text-gray-300'}`}>
+                      className={`px-4 py-2 rounded-xl text-sm ${filters.priceLevel.includes(p.level) ? 'bg-green-500 text-white' : 'bg-[#242424] text-gray-300'}`}>
                       {p.label} <span className="text-xs opacity-70">({p.desc})</span>
                     </button>
                   ))}
@@ -600,24 +514,13 @@ function DiscoverContent() {
               <div>
                 <h3 className="font-semibold mb-3 flex items-center gap-2"><Pizza className="w-4 h-4 text-orange-500" />Yiyecek Fiyatı</h3>
                 {filters.foodFilter ? (
-                  <div className="bg-red-500/20 border border-red-500 rounded-xl p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-red-400">{foodTypes.find(f => f.id === filters.foodFilter?.type)?.label}</p>
-                        <p className="text-sm text-gray-400">Max {filters.foodFilter.maxPrice}₺</p>
-                      </div>
-                      <button onClick={clearFoodFilter} className="p-2 hover:bg-white/10 rounded-lg"><X className="w-5 h-5 text-red-400" /></button>
-                    </div>
+                  <div className="bg-red-500/20 border border-red-500 rounded-xl p-4 flex items-center justify-between">
+                    <div><p className="font-medium text-red-400">{foodTypes.find(f => f.id === filters.foodFilter?.type)?.label}</p><p className="text-sm text-gray-400">Max {filters.foodFilter.maxPrice}₺</p></div>
+                    <button onClick={clearFoodFilter} className="p-2 hover:bg-white/10 rounded-lg"><X className="w-5 h-5 text-red-400" /></button>
                   </div>
                 ) : (
                   <button onClick={() => setShowFoodModal(true)} className="w-full px-4 py-4 rounded-xl bg-[#242424] text-gray-300 flex items-center justify-between">
-                    <span className="flex items-center gap-3">
-                      <Beef className="w-5 h-5" />
-                      <div className="text-left">
-                        <p>Yiyecek türü ve fiyat belirle</p>
-                        <p className="text-xs text-gray-500">Döner, kebap, pizza, balık...</p>
-                      </div>
-                    </span>
+                    <span className="flex items-center gap-3"><Beef className="w-5 h-5" /><div className="text-left"><p>Yiyecek türü ve fiyat belirle</p><p className="text-xs text-gray-500">Döner, kebap, pizza, balık...</p></div></span>
                     <ChevronDown className="w-5 h-5" />
                   </button>
                 )}
@@ -627,24 +530,13 @@ function DiscoverContent() {
               <div>
                 <h3 className="font-semibold mb-3 flex items-center gap-2"><Beer className="w-4 h-4 text-orange-500" />İçecek Fiyatı</h3>
                 {filters.drinkFilter ? (
-                  <div className="bg-yellow-500/20 border border-yellow-500 rounded-xl p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium text-yellow-400">{drinkTypes.find(d => d.id === filters.drinkFilter?.type)?.label}</p>
-                        <p className="text-sm text-gray-400">Max {filters.drinkFilter.maxPrice}₺</p>
-                      </div>
-                      <button onClick={clearDrinkFilter} className="p-2 hover:bg-white/10 rounded-lg"><X className="w-5 h-5 text-yellow-400" /></button>
-                    </div>
+                  <div className="bg-yellow-500/20 border border-yellow-500 rounded-xl p-4 flex items-center justify-between">
+                    <div><p className="font-medium text-yellow-400">{drinkTypes.find(d => d.id === filters.drinkFilter?.type)?.label}</p><p className="text-sm text-gray-400">Max {filters.drinkFilter.maxPrice}₺</p></div>
+                    <button onClick={clearDrinkFilter} className="p-2 hover:bg-white/10 rounded-lg"><X className="w-5 h-5 text-yellow-400" /></button>
                   </div>
                 ) : (
                   <button onClick={() => setShowDrinkModal(true)} className="w-full px-4 py-4 rounded-xl bg-[#242424] text-gray-300 flex items-center justify-between">
-                    <span className="flex items-center gap-3">
-                      <Wine className="w-5 h-5" />
-                      <div className="text-left">
-                        <p>İçecek türü ve fiyat belirle</p>
-                        <p className="text-xs text-gray-500">Bira, kokteyl, şarap, viski...</p>
-                      </div>
-                    </span>
+                    <span className="flex items-center gap-3"><Wine className="w-5 h-5" /><div className="text-left"><p>İçecek türü ve fiyat belirle</p><p className="text-xs text-gray-500">Bira, kokteyl, şarap, viski...</p></div></span>
                     <ChevronDown className="w-5 h-5" />
                   </button>
                 )}
@@ -656,7 +548,7 @@ function DiscoverContent() {
                 <div className="space-y-2">
                   {dietaryOptions.map(opt => (
                     <button key={opt.id} onClick={() => toggleArrayFilter('dietary', opt.id)}
-                      className={`w-full px-4 py-3 rounded-xl text-sm transition-colors flex items-center justify-between ${filters.dietary.includes(opt.id) ? 'bg-green-500/20 border border-green-500' : 'bg-[#242424] text-gray-300'}`}>
+                      className={`w-full px-4 py-3 rounded-xl text-sm flex items-center justify-between ${filters.dietary.includes(opt.id) ? 'bg-green-500/20 border border-green-500' : 'bg-[#242424] text-gray-300'}`}>
                       <span className="flex items-center gap-3"><opt.icon className="w-5 h-5" />{opt.label}</span>
                       {filters.dietary.includes(opt.id) && <Check className="w-5 h-5 text-green-500" />}
                     </button>
@@ -670,7 +562,7 @@ function DiscoverContent() {
                 <div className="space-y-2">
                   {entertainmentOptions.map(opt => (
                     <button key={opt.id} onClick={() => toggleArrayFilter('entertainment', opt.id)}
-                      className={`w-full px-4 py-3 rounded-xl text-sm transition-colors flex items-center justify-between ${filters.entertainment.includes(opt.id) ? 'bg-purple-500/20 border border-purple-500' : 'bg-[#242424] text-gray-300'}`}>
+                      className={`w-full px-4 py-3 rounded-xl text-sm flex items-center justify-between ${filters.entertainment.includes(opt.id) ? 'bg-purple-500/20 border border-purple-500' : 'bg-[#242424] text-gray-300'}`}>
                       <span className="flex items-center gap-3"><opt.icon className="w-5 h-5" />{opt.label}</span>
                       {filters.entertainment.includes(opt.id) && <Check className="w-5 h-5 text-purple-500" />}
                     </button>
@@ -684,7 +576,7 @@ function DiscoverContent() {
                 <div className="grid grid-cols-2 gap-2">
                   {featureOptions.map(opt => (
                     <button key={opt.id} onClick={() => toggleArrayFilter('features', opt.id)}
-                      className={`px-4 py-3 rounded-xl text-sm transition-colors flex items-center gap-2 ${filters.features.includes(opt.id) ? 'bg-blue-500/20 border border-blue-500' : 'bg-[#242424] text-gray-300'}`}>
+                      className={`px-4 py-3 rounded-xl text-sm flex items-center gap-2 ${filters.features.includes(opt.id) ? 'bg-blue-500/20 border border-blue-500' : 'bg-[#242424] text-gray-300'}`}>
                       <opt.icon className="w-4 h-4" />{opt.label}
                     </button>
                   ))}
@@ -692,25 +584,17 @@ function DiscoverContent() {
               </div>
 
               {/* Bugün Rezervasyon */}
-              <div>
+              <div className="pb-4">
                 <button onClick={() => setFilters(prev => ({ ...prev, reservationToday: !prev.reservationToday }))}
-                  className={`w-full px-4 py-4 rounded-xl text-sm transition-colors flex items-center justify-between ${filters.reservationToday ? 'bg-orange-500/20 border border-orange-500' : 'bg-[#242424] text-gray-300'}`}>
-                  <span className="flex items-center gap-3">
-                    <Calendar className="w-5 h-5" />
-                    <div className="text-left">
-                      <p className="font-medium">Bugün Rezervasyon Müsait</p>
-                      <p className="text-xs text-gray-400">Sadece bugün için müsait mekanları göster</p>
-                    </div>
-                  </span>
+                  className={`w-full px-4 py-4 rounded-xl text-sm flex items-center justify-between ${filters.reservationToday ? 'bg-orange-500/20 border border-orange-500' : 'bg-[#242424] text-gray-300'}`}>
+                  <span className="flex items-center gap-3"><Calendar className="w-5 h-5" /><div className="text-left"><p className="font-medium">Bugün Rezervasyon Müsait</p><p className="text-xs text-gray-400">Sadece bugün için müsait mekanları göster</p></div></span>
                   {filters.reservationToday && <Check className="w-5 h-5 text-orange-500" />}
                 </button>
               </div>
-              
-              {/* Bottom padding for scroll */}
-              <div className="h-4" />
             </div>
 
-            <div className="flex-shrink-0 border-t border-white/10 p-4 flex gap-3 bg-[#1a1a1a]">
+            {/* Footer - Fixed */}
+            <div className="px-4 py-4 border-t border-white/10 flex gap-3 flex-shrink-0 bg-[#1a1a1a]">
               <button onClick={clearFilters} className="flex-1 py-3 rounded-xl border border-white/20 text-white font-medium">Temizle</button>
               <button onClick={() => setShowFilterModal(false)} className="flex-1 py-3 rounded-xl bg-orange-500 text-white font-medium">{places.length} Sonuç Göster</button>
             </div>
@@ -721,29 +605,24 @@ function DiscoverContent() {
       {/* Food Filter Modal */}
       {showFoodModal && (
         <div className="fixed inset-0 z-[60] bg-black/80 flex items-center justify-center p-4">
-          <div className="bg-[#1a1a1a] w-full max-w-md rounded-2xl max-h-[80vh] flex flex-col">
-            <div className="flex-shrink-0 p-4 border-b border-white/10 flex items-center justify-between">
+          <div className="bg-[#1a1a1a] w-full max-w-md rounded-2xl" style={{ maxHeight: '70vh', display: 'flex', flexDirection: 'column' }}>
+            <div className="p-4 border-b border-white/10 flex items-center justify-between flex-shrink-0">
               <h2 className="text-lg font-bold">Yiyecek Filtresi</h2>
               <button onClick={() => setShowFoodModal(false)}><X className="w-6 h-6" /></button>
             </div>
-
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               <div>
                 <p className="text-sm text-gray-400 mb-2">Yiyecek Türü Seç</p>
                 <div className="grid grid-cols-2 gap-2">
                   {foodTypes.map(food => (
                     <button key={food.id} onClick={() => { setSelectedFoodType(food.id); if (!foodMaxPrice) setFoodMaxPrice(food.defaultMax.toString()) }}
-                      className={`px-3 py-3 rounded-xl text-sm transition-colors text-left ${selectedFoodType === food.id ? 'bg-red-500 text-white' : 'bg-[#242424] text-gray-300'}`}>
-                      <div className="flex items-center gap-2">
-                        <food.icon className="w-4 h-4" />
-                        <span className="font-medium">{food.label}</span>
-                      </div>
+                      className={`px-3 py-3 rounded-xl text-sm text-left ${selectedFoodType === food.id ? 'bg-red-500 text-white' : 'bg-[#242424] text-gray-300'}`}>
+                      <div className="flex items-center gap-2"><food.icon className="w-4 h-4" /><span className="font-medium">{food.label}</span></div>
                       {food.examples && <p className="text-xs opacity-60 mt-1">{food.examples}</p>}
                     </button>
                   ))}
                 </div>
               </div>
-
               <div>
                 <p className="text-sm text-gray-400 mb-2">Maximum Fiyat (₺)</p>
                 <div className="relative">
@@ -759,8 +638,7 @@ function DiscoverContent() {
                 </div>
               </div>
             </div>
-
-            <div className="flex-shrink-0 p-4 border-t border-white/10 flex gap-3">
+            <div className="p-4 border-t border-white/10 flex gap-3 flex-shrink-0">
               <button onClick={() => setShowFoodModal(false)} className="flex-1 py-3 rounded-xl border border-white/20 text-white font-medium">İptal</button>
               <button onClick={applyFoodFilter} disabled={!selectedFoodType || !foodMaxPrice} className="flex-1 py-3 rounded-xl bg-red-500 text-white font-medium disabled:opacity-50">Uygula</button>
             </div>
@@ -771,29 +649,24 @@ function DiscoverContent() {
       {/* Drink Filter Modal */}
       {showDrinkModal && (
         <div className="fixed inset-0 z-[60] bg-black/80 flex items-center justify-center p-4">
-          <div className="bg-[#1a1a1a] w-full max-w-md rounded-2xl max-h-[80vh] flex flex-col">
-            <div className="flex-shrink-0 p-4 border-b border-white/10 flex items-center justify-between">
+          <div className="bg-[#1a1a1a] w-full max-w-md rounded-2xl" style={{ maxHeight: '70vh', display: 'flex', flexDirection: 'column' }}>
+            <div className="p-4 border-b border-white/10 flex items-center justify-between flex-shrink-0">
               <h2 className="text-lg font-bold">İçecek Filtresi</h2>
               <button onClick={() => setShowDrinkModal(false)}><X className="w-6 h-6" /></button>
             </div>
-
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               <div>
                 <p className="text-sm text-gray-400 mb-2">İçecek Türü Seç</p>
                 <div className="grid grid-cols-2 gap-2">
                   {drinkTypes.map(drink => (
                     <button key={drink.id} onClick={() => { setSelectedDrinkType(drink.id); if (!drinkMaxPrice) setDrinkMaxPrice(drink.defaultMax.toString()) }}
-                      className={`px-3 py-3 rounded-xl text-sm transition-colors text-left ${selectedDrinkType === drink.id ? 'bg-yellow-500 text-black' : 'bg-[#242424] text-gray-300'}`}>
-                      <div className="flex items-center gap-2">
-                        <drink.icon className="w-4 h-4" />
-                        <span className="font-medium">{drink.label}</span>
-                      </div>
+                      className={`px-3 py-3 rounded-xl text-sm text-left ${selectedDrinkType === drink.id ? 'bg-yellow-500 text-black' : 'bg-[#242424] text-gray-300'}`}>
+                      <div className="flex items-center gap-2"><drink.icon className="w-4 h-4" /><span className="font-medium">{drink.label}</span></div>
                       {drink.examples && <p className="text-xs opacity-60 mt-1">{drink.examples}</p>}
                     </button>
                   ))}
                 </div>
               </div>
-
               <div>
                 <p className="text-sm text-gray-400 mb-2">Maximum Fiyat (₺)</p>
                 <div className="relative">
@@ -809,8 +682,7 @@ function DiscoverContent() {
                 </div>
               </div>
             </div>
-
-            <div className="flex-shrink-0 p-4 border-t border-white/10 flex gap-3">
+            <div className="p-4 border-t border-white/10 flex gap-3 flex-shrink-0">
               <button onClick={() => setShowDrinkModal(false)} className="flex-1 py-3 rounded-xl border border-white/20 text-white font-medium">İptal</button>
               <button onClick={applyDrinkFilter} disabled={!selectedDrinkType || !drinkMaxPrice} className="flex-1 py-3 rounded-xl bg-yellow-500 text-black font-medium disabled:opacity-50">Uygula</button>
             </div>
