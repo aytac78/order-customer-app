@@ -2,13 +2,8 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Search, MapPin, Star, X, SlidersHorizontal, Loader2, Package, RefreshCw } from 'lucide-react'
-import { createClient } from '@supabase/supabase-js'
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://ipobkbhcrkrqgbohdeea.supabase.co',
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imlwb2JrYmhjcmtycWdib2hkZWVhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ0MzE1MjgsImV4cCI6MjA4MDAwNzUyOH0.QaUkRsv_B3Msc9qYmE366k1x_sTe8j5GxLUO3oKKg3w'
-)
+import { Search, MapPin, Star, X, Loader2, Package, RefreshCw } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
 
 interface Place {
   id: string
@@ -19,10 +14,8 @@ interface Place {
   lon: number
   address?: string
   rating?: number
-  priceLevel?: number
   distance?: number
   isOrderEnabled: boolean
-  venueId?: string
   isOpen?: boolean
 }
 
@@ -35,11 +28,6 @@ const categories = [
   { id: 'beach_club', label: 'Beach Club', emoji: '🏖️' },
   { id: 'night_club', label: 'Gece Kulübü', emoji: '🎉' },
 ]
-
-const typeToCategory: Record<string, string> = {
-  restaurant: 'restaurant', cafe: 'cafe', bar: 'bar',
-  night_club: 'night_club', meal_takeaway: 'fast_food', bakery: 'bakery',
-}
 
 const categoryToEmoji: Record<string, string> = {
   restaurant: '🍽️', cafe: '☕', bar: '🍸', night_club: '🎉',
@@ -61,14 +49,12 @@ function DiscoverContent() {
   
   const [places, setPlaces] = useState<Place[]>([])
   const [loading, setLoading] = useState(true)
-  const [loadingMore, setLoadingMore] = useState(false)
+  const [loadingGoogle, setLoadingGoogle] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number, address: string}>({ 
     lat: 40.9662, lng: 29.0751, address: 'Konum alınıyor...' 
   })
-  const [maxDistance, setMaxDistance] = useState<number>(5)
-  const [showFilters, setShowFilters] = useState(false)
 
   useEffect(() => {
     if (mode === 'takeaway') localStorage.setItem('order_mode', 'takeaway')
@@ -81,21 +67,15 @@ function DiscoverContent() {
   const getLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        async (pos) => {
+        (pos) => {
           const lat = pos.coords.latitude
           const lng = pos.coords.longitude
           setUserLocation(prev => ({ ...prev, lat, lng }))
           
-          // Konum adını arka planda al
           fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
             .then(res => res.json())
-            .then(data => {
-              setUserLocation(prev => ({ 
-                ...prev, 
-                address: data.address?.neighbourhood || data.address?.suburb || data.address?.district || 'Konum alındı' 
-              }))
-            })
-            .catch(() => setUserLocation(prev => ({ ...prev, address: 'Konum alındı' })))
+            .then(data => setUserLocation(prev => ({ ...prev, address: data.address?.neighbourhood || data.address?.suburb || 'Konum alındı' })))
+            .catch(() => {})
           
           loadPlaces(lat, lng)
         },
@@ -112,120 +92,80 @@ function DiscoverContent() {
 
   const loadPlaces = async (lat: number, lng: number) => {
     setLoading(true)
+    
+    // 1. ORDER mekanları - HIZLI
+    const { data: venues } = await supabase.from('venues').select('*').eq('is_active', true)
+    
+    const orderPlaces: Place[] = (venues || []).map(v => ({
+      id: `order-${v.id}`,
+      name: v.name,
+      category: v.category || 'restaurant',
+      emoji: categoryToEmoji[v.category] || '🍽️',
+      lat: parseFloat(String(v.lat)) || lat,
+      lon: parseFloat(String(v.lon)) || lng,
+      address: v.address,
+      rating: v.rating,
+      distance: v.lat && v.lon ? calculateDistance(lat, lng, parseFloat(String(v.lat)), parseFloat(String(v.lon))) : 0,
+      isOrderEnabled: true,
+    }))
 
+    setPlaces(orderPlaces.sort((a, b) => (a.distance || 999) - (b.distance || 999)))
+    setLoading(false)
+
+    // 2. Google Places - ARKA PLANDA (sadece restaurant)
+    setLoadingGoogle(true)
     try {
-      // 1. ORDER mekanları - Hızlı
-      const { data: venues } = await supabase
-        .from('venues')
-        .select('*')
-        .eq('is_active', true)
+      const res = await fetch(`/api/places?lat=${lat}&lng=${lng}&radius=3000&type=restaurant`)
+      const data = await res.json()
       
-      const orderPlaces: Place[] = (venues || []).map(v => ({
-        id: `order-${v.id}`,
-        venueId: v.id,
-        name: v.name,
-        category: v.category || 'restaurant',
-        emoji: categoryToEmoji[v.category] || '🍽️',
-        lat: parseFloat(String(v.lat)) || lat,
-        lon: parseFloat(String(v.lon)) || lng,
-        address: v.address,
-        rating: v.rating,
-        priceLevel: v.price_level,
-        distance: v.lat && v.lon ? calculateDistance(lat, lng, parseFloat(String(v.lat)), parseFloat(String(v.lon))) : 0,
-        isOrderEnabled: true,
-      }))
+      if (data.results) {
+        const orderCoords = new Set(orderPlaces.map(v => `${v.lat.toFixed(3)},${v.lon.toFixed(3)}`))
+        
+        const googlePlaces: Place[] = data.results
+          .filter((p: any) => !orderCoords.has(`${p.geometry.location.lat.toFixed(3)},${p.geometry.location.lng.toFixed(3)}`))
+          .slice(0, 20)
+          .map((p: any) => ({
+            id: `google-${p.place_id}`,
+            name: p.name,
+            category: 'restaurant',
+            emoji: '🍽️',
+            lat: p.geometry.location.lat,
+            lon: p.geometry.location.lng,
+            address: p.vicinity,
+            rating: p.rating,
+            distance: calculateDistance(lat, lng, p.geometry.location.lat, p.geometry.location.lng),
+            isOrderEnabled: false,
+            isOpen: p.opening_hours?.open_now
+          }))
 
-      // ORDER mekanlarını hemen göster
-      setPlaces(orderPlaces.sort((a, b) => (a.distance || 999) - (b.distance || 999)))
-      setLoading(false)
-
-      // 2. Google Places - Arka planda, sadece 2 ana kategori
-      setLoadingMore(true)
-      const googleTypes = ['restaurant', 'cafe']
-      
-      const googlePromises = googleTypes.map(type => 
-        fetch(`/api/places?lat=${lat}&lng=${lng}&radius=3000&type=${type}`)
-          .then(res => res.json())
-          .catch(() => ({ results: [] }))
-      )
-      
-      const googleResults = await Promise.all(googlePromises)
-      
-      let googlePlaces: Place[] = []
-      const seen = new Set<string>()
-      
-      googleResults.forEach((data, index) => {
-        if (data.results) {
-          const googleType = googleTypes[index]
-          const category = typeToCategory[googleType] || googleType
-          
-          data.results.forEach((p: any) => {
-            const key = `${p.geometry.location.lat.toFixed(4)},${p.geometry.location.lng.toFixed(4)}`
-            if (seen.has(key)) return
-            seen.add(key)
-            
-            googlePlaces.push({
-              id: `google-${p.place_id}`,
-              name: p.name,
-              category,
-              emoji: categoryToEmoji[category] || '🍽️',
-              lat: p.geometry.location.lat,
-              lon: p.geometry.location.lng,
-              address: p.vicinity,
-              rating: p.rating,
-              priceLevel: p.price_level,
-              distance: calculateDistance(lat, lng, p.geometry.location.lat, p.geometry.location.lng),
-              isOrderEnabled: false,
-              isOpen: p.opening_hours?.open_now
-            })
-          })
-        }
-      })
-
-      // ORDER mekanları ile çakışanları kaldır
-      const orderCoords = new Set(orderPlaces.map(v => `${v.lat.toFixed(3)},${v.lon.toFixed(3)}`))
-      googlePlaces = googlePlaces.filter(p => !orderCoords.has(`${p.lat.toFixed(3)},${p.lon.toFixed(3)}`))
-
-      // Birleştir
-      setPlaces([
-        ...orderPlaces.sort((a, b) => (a.distance || 999) - (b.distance || 999)),
-        ...googlePlaces.sort((a, b) => (a.distance || 999) - (b.distance || 999))
-      ])
-      setLoadingMore(false)
+        setPlaces(prev => [...prev, ...googlePlaces].sort((a, b) => {
+          if (a.isOrderEnabled && !b.isOrderEnabled) return -1
+          if (!a.isOrderEnabled && b.isOrderEnabled) return 1
+          return (a.distance || 999) - (b.distance || 999)
+        }))
+      }
     } catch (err) {
-      console.error('Load places error:', err)
-      setLoading(false)
-      setLoadingMore(false)
+      console.error('Google Places error:', err)
     }
+    setLoadingGoogle(false)
   }
 
   const filteredPlaces = places.filter(p => {
-    if (maxDistance && (p.distance || 0) > maxDistance) return false
     if (searchTerm && !p.name.toLowerCase().includes(searchTerm.toLowerCase())) return false
     if (selectedCategory !== 'all') {
-      if (selectedCategory === 'beach_club') {
-        return p.category === 'beach_club' || p.name.toLowerCase().includes('beach') || p.name.toLowerCase().includes('plaj')
-      }
+      if (selectedCategory === 'beach_club') return p.category === 'beach_club' || p.name.toLowerCase().includes('beach')
       return p.category === selectedCategory
     }
     return true
   })
 
   const handlePlaceClick = (place: Place) => {
-    if (place.isOrderEnabled && place.venueId) {
-      router.push(`/venue/${place.venueId}`)
+    if (place.isOrderEnabled) {
+      const venueId = place.id.replace('order-', '')
+      router.push(`/venue/${venueId}`)
     } else {
       window.open(`https://www.google.com/maps/search/?api=1&query=${place.lat},${place.lon}`, '_blank')
     }
-  }
-
-  const getCategoryCount = (catId: string) => {
-    if (catId === 'all') return places.filter(p => (p.distance || 0) <= maxDistance).length
-    return places.filter(p => {
-      if ((p.distance || 0) > maxDistance) return false
-      if (catId === 'beach_club') return p.category === 'beach_club' || p.name.toLowerCase().includes('beach')
-      return p.category === catId
-    }).length
   }
 
   return (
@@ -254,37 +194,28 @@ function DiscoverContent() {
           </div>
         </div>
 
-        <div className="flex gap-2">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
-            <input 
-              type="text" 
-              placeholder="Mekan ara..." 
-              value={searchTerm} 
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-10 py-3 bg-[#1a1a1a] rounded-xl text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-orange-500" 
-            />
-            {searchTerm && (
-              <button onClick={() => setSearchTerm('')} className="absolute right-3 top-1/2 -translate-y-1/2">
-                <X className="w-4 h-4 text-gray-500" />
-              </button>
-            )}
-          </div>
-          <button 
-            onClick={() => setShowFilters(!showFilters)} 
-            className={`w-12 h-12 rounded-xl flex items-center justify-center ${showFilters ? 'bg-orange-500' : 'bg-[#1a1a1a]'}`}
-          >
-            <SlidersHorizontal className="w-5 h-5" />
-          </button>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+          <input 
+            type="text" 
+            placeholder="Mekan ara..." 
+            value={searchTerm} 
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-10 py-3 bg-[#1a1a1a] rounded-xl text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-orange-500" 
+          />
+          {searchTerm && (
+            <button onClick={() => setSearchTerm('')} className="absolute right-3 top-1/2 -translate-y-1/2">
+              <X className="w-4 h-4 text-gray-500" />
+            </button>
+          )}
         </div>
 
-        {/* Kategoriler */}
         <div className="flex gap-2 mt-3 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-hide">
           {categories.map(cat => (
             <button 
               key={cat.id} 
               onClick={() => setSelectedCategory(cat.id)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm whitespace-nowrap ${
                 selectedCategory === cat.id ? 'bg-orange-500 text-white' : 'bg-[#1a1a1a] text-gray-400'
               }`}
             >
@@ -295,18 +226,6 @@ function DiscoverContent() {
         </div>
       </div>
 
-      {/* Filters */}
-      {showFilters && (
-        <div className="p-4 bg-[#111] border-b border-white/5">
-          <label className="text-sm text-gray-400 mb-2 block">Mesafe: {maxDistance} km</label>
-          <input 
-            type="range" min="1" max="10" value={maxDistance} 
-            onChange={(e) => setMaxDistance(parseInt(e.target.value))} 
-            className="w-full accent-orange-500" 
-          />
-        </div>
-      )}
-
       {/* Content */}
       <div className="p-4 space-y-3">
         {loading ? (
@@ -314,69 +233,65 @@ function DiscoverContent() {
             <Loader2 className="w-8 h-8 text-orange-500 animate-spin mb-4" />
             <p className="text-gray-400">Mekanlar yükleniyor...</p>
           </div>
+        ) : filteredPlaces.length === 0 ? (
+          <div className="text-center py-10">
+            <p className="text-gray-400 mb-2">Mekan bulunamadı</p>
+            <button onClick={() => { setSearchTerm(''); setSelectedCategory('all'); }} className="text-orange-500 text-sm">
+              Filtreleri temizle
+            </button>
+          </div>
         ) : (
           <>
-            {filteredPlaces.length === 0 ? (
-              <div className="text-center py-10">
-                <p className="text-gray-400 mb-2">Mekan bulunamadı</p>
-                <button onClick={() => { setSearchTerm(''); setSelectedCategory('all'); }} className="text-orange-500 text-sm">
-                  Filtreleri temizle
-                </button>
-              </div>
-            ) : (
-              <>
-                {filteredPlaces.map(place => (
-                  <button 
-                    key={place.id} 
-                    onClick={() => handlePlaceClick(place)} 
-                    className="w-full bg-[#1a1a1a] rounded-xl p-4 text-left hover:bg-[#222] transition-colors"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="font-semibold">{place.name}</h3>
-                          {place.isOrderEnabled && (
-                            <span className="px-2 py-0.5 bg-orange-500/20 text-orange-500 text-xs rounded-full font-medium">ORDER</span>
-                          )}
-                          {place.isOpen !== undefined && (
-                            <span className={`px-2 py-0.5 text-xs rounded-full ${place.isOpen ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                              {place.isOpen ? 'Açık' : 'Kapalı'}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm text-gray-400 mt-1">{place.address || `${place.distance} km`}</p>
-                        <div className="flex items-center gap-3 mt-2">
-                          {place.rating && (
-                            <span className="flex items-center gap-1 text-sm">
-                              <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                              {place.rating.toFixed(1)}
-                            </span>
-                          )}
-                          <span className="text-sm text-gray-500">{place.distance} km</span>
-                        </div>
-                      </div>
-                      <div className="w-12 h-12 bg-[#242424] rounded-lg flex items-center justify-center text-2xl ml-3">
-                        {place.emoji}
-                      </div>
+            {filteredPlaces.map(place => (
+              <button 
+                key={place.id} 
+                onClick={() => handlePlaceClick(place)} 
+                className="w-full bg-[#1a1a1a] rounded-xl p-4 text-left hover:bg-[#222] transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <h3 className="font-semibold">{place.name}</h3>
+                      {place.isOrderEnabled && (
+                        <span className="px-2 py-0.5 bg-orange-500/20 text-orange-500 text-xs rounded-full font-medium">ORDER</span>
+                      )}
+                      {place.isOpen !== undefined && (
+                        <span className={`px-2 py-0.5 text-xs rounded-full ${place.isOpen ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                          {place.isOpen ? 'Açık' : 'Kapalı'}
+                        </span>
+                      )}
                     </div>
-                  </button>
-                ))}
-                
-                {loadingMore && (
-                  <div className="flex items-center justify-center py-4">
-                    <Loader2 className="w-5 h-5 text-orange-500 animate-spin mr-2" />
-                    <span className="text-sm text-gray-400">Daha fazla mekan yükleniyor...</span>
+                    <p className="text-sm text-gray-400 mt-1">{place.address || `${place.distance} km`}</p>
+                    <div className="flex items-center gap-3 mt-2">
+                      {place.rating && (
+                        <span className="flex items-center gap-1 text-sm">
+                          <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                          {place.rating.toFixed(1)}
+                        </span>
+                      )}
+                      <span className="text-sm text-gray-500">{place.distance} km</span>
+                    </div>
                   </div>
-                )}
-                
-                <p className="text-center text-sm text-gray-500 pt-2">
-                  <span className="text-orange-500 font-medium">{filteredPlaces.filter(p => p.isOrderEnabled).length}</span> ORDER
-                  {filteredPlaces.filter(p => !p.isOrderEnabled).length > 0 && (
-                    <> • <span className="text-gray-300">{filteredPlaces.filter(p => !p.isOrderEnabled).length}</span> çevredeki</>
-                  )}
-                </p>
-              </>
+                  <div className="w-12 h-12 bg-[#242424] rounded-lg flex items-center justify-center text-2xl ml-3">
+                    {place.emoji}
+                  </div>
+                </div>
+              </button>
+            ))}
+            
+            {loadingGoogle && (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="w-5 h-5 text-orange-500 animate-spin mr-2" />
+                <span className="text-sm text-gray-400">Daha fazla mekan yükleniyor...</span>
+              </div>
             )}
+            
+            <p className="text-center text-sm text-gray-500 pt-2">
+              <span className="text-orange-500 font-medium">{filteredPlaces.filter(p => p.isOrderEnabled).length}</span> ORDER
+              {filteredPlaces.filter(p => !p.isOrderEnabled).length > 0 && (
+                <> • <span className="text-gray-300">{filteredPlaces.filter(p => !p.isOrderEnabled).length}</span> çevredeki</>
+              )}
+            </p>
           </>
         )}
       </div>
