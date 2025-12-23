@@ -5,28 +5,11 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/lib/AuthContext'
 import {
-  User, Settings, CreditCard, LogOut, ChevronRight,
+  User, Settings, CreditCard, LogOut, ChevronRight, ChevronDown,
   Instagram, Facebook, Copy, Check, Edit2, Shield,
-  Wallet, TrendingUp, MapPin, Calendar, Clock,
-  Star, Heart, Package, Plus, Trash2, X, Loader2,
-  Fingerprint, KeyRound, Eye, EyeOff, ChevronDown
+  Wallet, MapPin, Star, Heart, Package, Plus, Trash2, X, Loader2,
+  Fingerprint, KeyRound, Eye, EyeOff, ArrowLeft
 } from 'lucide-react'
-
-interface UserStats {
-  totalSpent: number
-  orderCount: number
-  venueCount: number
-  favoriteVenue: { name: string; visits: number } | null
-  favoriteItem: { name: string; count: number } | null
-}
-
-interface SavedCard {
-  id: string
-  last4: string
-  brand: string
-  expiry: string
-  isDefault: boolean
-}
 
 interface TopVenue {
   venue_id: string
@@ -41,6 +24,14 @@ interface TopItem {
   total_spent: number
 }
 
+interface SavedCard {
+  id: string
+  last4: string
+  brand: string
+  expiry: string
+  isDefault: boolean
+}
+
 type StatsPeriod = 'daily' | 'weekly' | 'monthly' | 'yearly'
 
 export default function ProfilePage() {
@@ -49,115 +40,67 @@ export default function ProfilePage() {
   const [mounted, setMounted] = useState(false)
   const [loading, setLoading] = useState(true)
   const [profile, setProfile] = useState<any>(null)
-  const [stats, setStats] = useState<UserStats | null>(null)
   const [topVenues, setTopVenues] = useState<TopVenue[]>([])
   const [topItems, setTopItems] = useState<TopItem[]>([])
   const [statsPeriod, setStatsPeriod] = useState<StatsPeriod>('monthly')
+  const [totalSpent, setTotalSpent] = useState(0)
+  const [orderCount, setOrderCount] = useState(0)
+  const [venueCount, setVenueCount] = useState(0)
   const [copiedId, setCopiedId] = useState(false)
+  
+  // Expandable sections
+  const [showVenues, setShowVenues] = useState(false)
+  const [showItems, setShowItems] = useState(false)
+  
+  // Modals
   const [showEditModal, setShowEditModal] = useState(false)
   const [showPaymentModal, setShowPaymentModal] = useState(false)
   const [showSecurityModal, setShowSecurityModal] = useState(false)
 
   useEffect(() => {
     setMounted(true)
-  }, [])
-
-  useEffect(() => {
-    if (mounted) {
-      if (user) {
-        loadProfile()
-      } else {
-        // Kullanıcı yoksa loading'i kapat
-        setLoading(false)
-      }
+    if (user) {
+      loadProfile()
+    } else {
+      setLoading(false)
     }
-  }, [user, mounted])
+  }, [user])
 
   useEffect(() => {
-    if (user && mounted && !loading) {
+    if (user && profile) {
       loadStats()
     }
-  }, [user, mounted, loading, statsPeriod])
+  }, [user, profile, statsPeriod])
 
   const loadProfile = async () => {
-    if (!user) {
-      setLoading(false)
-      return
-    }
+    if (!user) return
     
     try {
-      // Önce profili kontrol et
       const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
         .eq('id', user.id)
-        .maybeSingle()
+        .single()
 
-      if (error) {
-        console.error('Profil hatası:', error)
-        // Hata olsa bile devam et, boş profil göster
-        setProfile({
-          id: user.id,
-          full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || '',
-          avatar_url: user.user_metadata?.avatar_url || '',
-          tit_id: null,
-          saved_cards: []
-        })
-        setLoading(false)
-        return
-      }
-
-      if (!data) {
-        // Profil yoksa oluşturmayı dene
-        try {
-          const { data: newProfile, error: insertError } = await supabase
-            .from('user_profiles')
-            .insert({
-              id: user.id,
-              full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || '',
-              avatar_url: user.user_metadata?.avatar_url || '',
-              phone: user.phone || '',
-              country_code: 'TR'
-            })
-            .select()
-            .single()
-          
-          if (insertError) {
-            console.error('Profil oluşturma hatası:', insertError)
-            // Hata olsa bile devam et
-            setProfile({
-              id: user.id,
-              full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || '',
-              avatar_url: user.user_metadata?.avatar_url || '',
-              tit_id: null,
-              saved_cards: []
-            })
-          } else {
-            setProfile(newProfile)
-          }
-        } catch (insertErr) {
-          console.error('Insert error:', insertErr)
-          setProfile({
+      if (error && error.code === 'PGRST116') {
+        const { data: newProfile } = await supabase
+          .from('user_profiles')
+          .insert({
             id: user.id,
             full_name: user.user_metadata?.full_name || '',
             avatar_url: user.user_metadata?.avatar_url || '',
-            tit_id: null,
-            saved_cards: []
+            phone: user.phone || '',
+            country_code: 'TR'
           })
-        }
+          .select()
+          .single()
+        
+        setProfile(newProfile)
       } else {
         setProfile(data)
       }
     } catch (err) {
       console.error('Profil yüklenemedi:', err)
-      // Hata durumunda da temel profili göster
-      setProfile({
-        id: user.id,
-        full_name: user.user_metadata?.full_name || '',
-        avatar_url: user.user_metadata?.avatar_url || '',
-        tit_id: null,
-        saved_cards: []
-      })
     } finally {
       setLoading(false)
     }
@@ -167,7 +110,6 @@ export default function ProfilePage() {
     if (!user) return
 
     try {
-      // Dönem başlangıç tarihini hesapla
       const now = new Date()
       let startDate = new Date()
       
@@ -186,52 +128,30 @@ export default function ProfilePage() {
           break
       }
 
-      // Siparişleri getir
       const { data: orders, error } = await supabase
         .from('orders')
         .select('venue_id, total, items, created_at')
         .eq('user_id', user.id)
         .gte('created_at', startDate.toISOString())
+        .in('status', ['completed', 'served', 'paid'])
 
-      if (error) {
-        console.error('Siparişler yüklenemedi:', error)
-        // Boş stats göster
-        setStats({
-          totalSpent: 0,
-          orderCount: 0,
-          venueCount: 0,
-          favoriteVenue: null,
-          favoriteItem: null
-        })
-        return
-      }
+      if (error) throw error
 
-      if (!orders || orders.length === 0) {
-        setStats({
-          totalSpent: 0,
-          orderCount: 0,
-          venueCount: 0,
-          favoriteVenue: null,
-          favoriteItem: null
-        })
-        setTopVenues([])
-        setTopItems([])
-        return
-      }
-
-      // Mekan bilgilerini getir
       const venueIds = [...new Set(orders?.map(o => o.venue_id).filter(Boolean))]
       const { data: venues } = await supabase
         .from('venues')
         .select('id, name')
-        .in('id', venueIds)
+        .in('id', venueIds.length > 0 ? venueIds : ['none'])
 
       const venueMap = new Map(venues?.map(v => [v.id, v.name]) || [])
 
-      // İstatistikleri hesapla
-      const totalSpent = orders?.reduce((sum, o) => sum + (o.total || 0), 0) || 0
-      const orderCount = orders?.length || 0
+      const total = orders?.reduce((sum, o) => sum + (o.total || 0), 0) || 0
+      const count = orders?.length || 0
       const uniqueVenues = new Set(orders?.map(o => o.venue_id).filter(Boolean))
+
+      setTotalSpent(total)
+      setOrderCount(count)
+      setVenueCount(uniqueVenues.size)
 
       // En çok gidilen mekanlar
       const venueVisits: Record<string, { count: number; spent: number }> = {}
@@ -253,7 +173,7 @@ export default function ProfilePage() {
           total_spent: data.spent
         }))
         .sort((a, b) => b.visit_count - a.visit_count)
-        .slice(0, 5)
+        .slice(0, 10)
 
       setTopVenues(sortedVenues)
 
@@ -281,18 +201,9 @@ export default function ProfilePage() {
           total_spent: data.spent
         }))
         .sort((a, b) => b.count - a.count)
-        .slice(0, 5)
+        .slice(0, 10)
 
       setTopItems(sortedItems)
-
-      // Stats özeti
-      setStats({
-        totalSpent,
-        orderCount,
-        venueCount: uniqueVenues.size,
-        favoriteVenue: sortedVenues[0] ? { name: sortedVenues[0].venue_name, visits: sortedVenues[0].visit_count } : null,
-        favoriteItem: sortedItems[0] ? { name: sortedItems[0].name, count: sortedItems[0].count } : null
-      })
 
     } catch (err) {
       console.error('İstatistikler yüklenemedi:', err)
@@ -314,7 +225,6 @@ export default function ProfilePage() {
 
   const formatTitId = (id: string) => {
     if (!id) return ''
-    // TR + 14 hane formatla: TR 1234 5678 9012 34
     return `${id.slice(0, 2)} ${id.slice(2, 6)} ${id.slice(6, 10)} ${id.slice(10, 14)} ${id.slice(14)}`
   }
 
@@ -354,6 +264,9 @@ export default function ProfilePage() {
       {/* Header */}
       <div className="bg-gradient-to-br from-orange-500 to-red-500 pt-8 pb-16 px-4 relative">
         <div className="flex items-center justify-between mb-6">
+          <button onClick={() => router.back()} className="p-2 -ml-2">
+            <ArrowLeft className="w-6 h-6" />
+          </button>
           <h1 className="text-xl font-bold">Profilim</h1>
           <button 
             onClick={() => setShowEditModal(true)}
@@ -456,137 +369,123 @@ export default function ProfilePage() {
         <div className="grid grid-cols-3 gap-3 mb-4">
           <div className="bg-[#1a1a1a] rounded-xl p-4 text-center">
             <Wallet className="w-6 h-6 text-green-500 mx-auto mb-2" />
-            <p className="text-xl font-bold">₺{(stats?.totalSpent || 0).toLocaleString()}</p>
+            <p className="text-xl font-bold">₺{totalSpent.toLocaleString()}</p>
             <p className="text-xs text-gray-400">Harcama</p>
           </div>
           <div className="bg-[#1a1a1a] rounded-xl p-4 text-center">
             <Package className="w-6 h-6 text-blue-500 mx-auto mb-2" />
-            <p className="text-xl font-bold">{stats?.orderCount || 0}</p>
+            <p className="text-xl font-bold">{orderCount}</p>
             <p className="text-xs text-gray-400">Sipariş</p>
           </div>
           <div className="bg-[#1a1a1a] rounded-xl p-4 text-center">
             <MapPin className="w-6 h-6 text-orange-500 mx-auto mb-2" />
-            <p className="text-xl font-bold">{stats?.venueCount || 0}</p>
+            <p className="text-xl font-bold">{venueCount}</p>
             <p className="text-xs text-gray-400">Mekan</p>
           </div>
         </div>
       </div>
 
-      {/* Top Venues */}
+      {/* Top Venues - Expandable */}
       {topVenues.length > 0 && (
         <div className="px-4 mt-4">
-          <h3 className="font-semibold mb-3 flex items-center gap-2">
-            <Star className="w-4 h-4 text-yellow-500" />
-            En Çok Gittiğin Mekanlar
-          </h3>
-          <div className="space-y-2">
-            {topVenues.map((venue, index) => (
-              <button
-                key={venue.venue_id}
-                onClick={() => router.push(`/venue/${venue.venue_id}`)}
-                className="w-full flex items-center gap-3 p-3 bg-[#1a1a1a] rounded-xl"
-              >
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                  index === 0 ? 'bg-yellow-500' : index === 1 ? 'bg-gray-400' : 'bg-gray-600'
-                }`}>
-                  {index + 1}
-                </div>
-                <div className="flex-1 text-left">
-                  <p className="font-medium">{venue.venue_name}</p>
-                  <p className="text-xs text-gray-400">{venue.visit_count} ziyaret • ₺{venue.total_spent.toLocaleString()}</p>
-                </div>
-                <ChevronRight className="w-5 h-5 text-gray-500" />
-              </button>
-            ))}
-          </div>
+          <button 
+            onClick={() => setShowVenues(!showVenues)}
+            className="w-full flex items-center justify-between p-4 bg-[#1a1a1a] rounded-xl"
+          >
+            <div className="flex items-center gap-3">
+              <Star className="w-5 h-5 text-yellow-500" />
+              <div className="text-left">
+                <p className="font-semibold">En Çok Gittiğin Mekanlar</p>
+                <p className="text-xs text-gray-400">{topVenues.length} mekan</p>
+              </div>
+            </div>
+            <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${showVenues ? 'rotate-180' : ''}`} />
+          </button>
+          
+          {showVenues && (
+            <div className="mt-2 space-y-2">
+              {topVenues.map((venue, index) => (
+                <button
+                  key={venue.venue_id}
+                  onClick={() => router.push(`/venue/${venue.venue_id}`)}
+                  className="w-full flex items-center gap-3 p-3 bg-[#1a1a1a] rounded-xl"
+                >
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                    index === 0 ? 'bg-yellow-500' : index === 1 ? 'bg-gray-400' : 'bg-gray-600'
+                  }`}>
+                    {index + 1}
+                  </div>
+                  <div className="flex-1 text-left">
+                    <p className="font-medium">{venue.venue_name}</p>
+                    <p className="text-xs text-gray-400">{venue.visit_count} ziyaret • ₺{venue.total_spent.toLocaleString()}</p>
+                  </div>
+                  <ChevronRight className="w-5 h-5 text-gray-500" />
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
-      {/* Top Items */}
+      {/* Top Items - Expandable */}
       {topItems.length > 0 && (
         <div className="px-4 mt-4">
-          <h3 className="font-semibold mb-3 flex items-center gap-2">
-            <Heart className="w-4 h-4 text-red-500" />
-            En Çok Sipariş Ettiklerin
-          </h3>
-          <div className="space-y-2">
-            {topItems.map((item, index) => (
-              <div
-                key={item.name}
-                className="flex items-center gap-3 p-3 bg-[#1a1a1a] rounded-xl"
-              >
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                  index === 0 ? 'bg-orange-500' : index === 1 ? 'bg-orange-400' : 'bg-gray-600'
-                }`}>
-                  {index + 1}
-                </div>
-                <div className="flex-1">
-                  <p className="font-medium">{item.name}</p>
-                  <p className="text-xs text-gray-400">{item.count} kez • ₺{item.total_spent.toLocaleString()}</p>
-                </div>
+          <button 
+            onClick={() => setShowItems(!showItems)}
+            className="w-full flex items-center justify-between p-4 bg-[#1a1a1a] rounded-xl"
+          >
+            <div className="flex items-center gap-3">
+              <Heart className="w-5 h-5 text-red-500" />
+              <div className="text-left">
+                <p className="font-semibold">En Çok Sipariş Ettiklerin</p>
+                <p className="text-xs text-gray-400">{topItems.length} ürün</p>
               </div>
-            ))}
-          </div>
+            </div>
+            <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${showItems ? 'rotate-180' : ''}`} />
+          </button>
+          
+          {showItems && (
+            <div className="mt-2 space-y-2">
+              {topItems.map((item, index) => (
+                <div
+                  key={item.name}
+                  className="flex items-center gap-3 p-3 bg-[#1a1a1a] rounded-xl"
+                >
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                    index === 0 ? 'bg-orange-500' : index === 1 ? 'bg-orange-400' : 'bg-gray-600'
+                  }`}>
+                    {index + 1}
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium">{item.name}</p>
+                    <p className="text-xs text-gray-400">{item.count} kez • ₺{item.total_spent.toLocaleString()}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
       {/* Payment Methods */}
       <div className="px-4 mt-6">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="font-semibold flex items-center gap-2">
-            <CreditCard className="w-4 h-4 text-purple-500" />
-            Ödeme Yöntemlerim
-          </h3>
-          <button 
-            onClick={() => setShowPaymentModal(true)}
-            className="text-orange-500 text-sm"
-          >
-            Düzenle
-          </button>
-        </div>
-        
-        <div className="space-y-2">
-          {/* TiT Pay */}
-          <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-purple-500/20 to-indigo-500/20 border border-purple-500/30 rounded-xl">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-lg flex items-center justify-center">
-              <span className="text-sm font-bold">TiT</span>
-            </div>
-            <div className="flex-1">
-              <p className="font-medium">TiT Pay</p>
-              <p className="text-xs text-purple-400">Aktif</p>
-            </div>
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+        <button 
+          onClick={() => setShowPaymentModal(true)}
+          className="w-full flex items-center gap-3 p-4 bg-[#1a1a1a] rounded-xl"
+        >
+          <div className="w-10 h-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
+            <CreditCard className="w-5 h-5 text-purple-500" />
           </div>
-
-          {/* Saved Cards */}
-          {profile?.saved_cards?.map((card: SavedCard) => (
-            <div key={card.id} className="flex items-center gap-3 p-4 bg-[#1a1a1a] rounded-xl">
-              <div className="w-10 h-10 bg-gray-700 rounded-lg flex items-center justify-center">
-                <CreditCard className="w-5 h-5" />
-              </div>
-              <div className="flex-1">
-                <p className="font-medium">•••• {card.last4}</p>
-                <p className="text-xs text-gray-400">{card.brand} • {card.expiry}</p>
-              </div>
-              {card.isDefault && (
-                <span className="px-2 py-0.5 bg-orange-500/20 text-orange-500 text-xs rounded-full">Varsayılan</span>
-              )}
-            </div>
-          ))}
-
-          {/* Add Card Button */}
-          <button 
-            onClick={() => setShowPaymentModal(true)}
-            className="w-full flex items-center justify-center gap-2 p-4 border border-dashed border-gray-700 rounded-xl text-gray-400"
-          >
-            <Plus className="w-5 h-5" />
-            Kart Ekle
-          </button>
-        </div>
+          <div className="flex-1 text-left">
+            <p className="font-medium">Ödeme Yöntemlerim</p>
+            <p className="text-xs text-gray-400">Kart ekle, TiT Pay</p>
+          </div>
+          <ChevronRight className="w-5 h-5 text-gray-500" />
+        </button>
       </div>
 
       {/* Menu Items */}
-      <div className="px-4 mt-6 space-y-2">
+      <div className="px-4 mt-4 space-y-2">
         <button 
           onClick={() => setShowSecurityModal(true)}
           className="w-full flex items-center gap-3 p-4 bg-[#1a1a1a] rounded-xl"
@@ -609,7 +508,7 @@ export default function ProfilePage() {
             <Package className="w-5 h-5 text-blue-500" />
           </div>
           <div className="flex-1 text-left">
-            <p className="font-medium">Siparişlerim</p>
+            <p className="font-medium">Sipariş Geçmişim</p>
             <p className="text-xs text-gray-400">Geçmiş siparişleri görüntüle</p>
           </div>
           <ChevronRight className="w-5 h-5 text-gray-500" />
@@ -625,20 +524,6 @@ export default function ProfilePage() {
           <div className="flex-1 text-left">
             <p className="font-medium">Favorilerim</p>
             <p className="text-xs text-gray-400">Kayıtlı mekanlar</p>
-          </div>
-          <ChevronRight className="w-5 h-5 text-gray-500" />
-        </button>
-
-        <button 
-          onClick={() => router.push('/settings')}
-          className="w-full flex items-center gap-3 p-4 bg-[#1a1a1a] rounded-xl"
-        >
-          <div className="w-10 h-10 bg-gray-500/20 rounded-lg flex items-center justify-center">
-            <Settings className="w-5 h-5 text-gray-500" />
-          </div>
-          <div className="flex-1 text-left">
-            <p className="font-medium">Ayarlar</p>
-            <p className="text-xs text-gray-400">Bildirimler, Dil, Tema</p>
           </div>
           <ChevronRight className="w-5 h-5 text-gray-500" />
         </button>
@@ -659,17 +544,22 @@ export default function ProfilePage() {
       {showEditModal && (
         <EditProfileModal 
           profile={profile}
+          user={user}
           onClose={() => setShowEditModal(false)}
           onSave={async (updates) => {
-            const { error } = await supabase
-              .from('user_profiles')
-              .update(updates)
-              .eq('id', user.id)
-            
-            if (!error) {
+            try {
+              const { error } = await supabase
+                .from('user_profiles')
+                .update(updates)
+                .eq('id', user.id)
+              
+              if (error) throw error
               setProfile({ ...profile, ...updates })
+              setShowEditModal(false)
+            } catch (err) {
+              console.error('Kaydetme hatası:', err)
+              alert('Kaydetme sırasında bir hata oluştu.')
             }
-            setShowEditModal(false)
           }}
         />
       )}
@@ -681,18 +571,21 @@ export default function ProfilePage() {
           defaultMethod={profile?.default_payment_method || 'cash'}
           onClose={() => setShowPaymentModal(false)}
           onSave={async (cards, defaultMethod) => {
-            const { error } = await supabase
-              .from('user_profiles')
-              .update({ 
-                saved_cards: cards,
-                default_payment_method: defaultMethod
-              })
-              .eq('id', user.id)
-            
-            if (!error) {
+            try {
+              const { error } = await supabase
+                .from('user_profiles')
+                .update({ 
+                  saved_cards: cards,
+                  default_payment_method: defaultMethod
+                })
+                .eq('id', user.id)
+              
+              if (error) throw error
               setProfile({ ...profile, saved_cards: cards, default_payment_method: defaultMethod })
+              setShowPaymentModal(false)
+            } catch (err) {
+              console.error('Kaydetme hatası:', err)
             }
-            setShowPaymentModal(false)
           }}
         />
       )}
@@ -703,15 +596,18 @@ export default function ProfilePage() {
           profile={profile}
           onClose={() => setShowSecurityModal(false)}
           onSave={async (updates) => {
-            const { error } = await supabase
-              .from('user_profiles')
-              .update(updates)
-              .eq('id', user.id)
-            
-            if (!error) {
+            try {
+              const { error } = await supabase
+                .from('user_profiles')
+                .update(updates)
+                .eq('id', user.id)
+              
+              if (error) throw error
               setProfile({ ...profile, ...updates })
+              setShowSecurityModal(false)
+            } catch (err) {
+              console.error('Kaydetme hatası:', err)
             }
-            setShowSecurityModal(false)
           }}
         />
       )}
@@ -719,8 +615,8 @@ export default function ProfilePage() {
   )
 }
 
-// Edit Profile Modal
-function EditProfileModal({ profile, onClose, onSave }: any) {
+// Edit Profile Modal - FIXED
+function EditProfileModal({ profile, user, onClose, onSave }: any) {
   const [fullName, setFullName] = useState(profile?.full_name || '')
   const [phone, setPhone] = useState(profile?.phone || '')
   const [bio, setBio] = useState(profile?.bio || '')
@@ -734,18 +630,18 @@ function EditProfileModal({ profile, onClose, onSave }: any) {
       full_name: fullName,
       phone,
       bio,
-      instagram_url: instagram,
-      facebook_url: facebook
+      instagram_url: instagram || null,
+      facebook_url: facebook || null
     })
     setSaving(false)
   }
 
   return (
     <div className="fixed inset-0 bg-[#0a0a0a] z-[9999] flex flex-col">
-      {/* Header */}
-      <div className="flex-shrink-0 p-4 flex items-center justify-between border-b border-white/10">
-        <h2 className="text-lg font-bold text-white">Profili Düzenle</h2>
-        <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full text-white">
+      {/* Header - Fixed */}
+      <div className="flex-shrink-0 p-4 border-b border-white/10 flex items-center justify-between bg-[#0a0a0a]">
+        <h2 className="text-lg font-bold">Profili Düzenle</h2>
+        <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full">
           <X className="w-6 h-6" />
         </button>
       </div>
@@ -778,7 +674,7 @@ function EditProfileModal({ profile, onClose, onSave }: any) {
           <textarea
             value={bio}
             onChange={(e) => setBio(e.target.value)}
-            rows={2}
+            rows={3}
             placeholder="Kendinizden bahsedin..."
             className="w-full p-3 bg-[#1a1a1a] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"
           />
@@ -811,12 +707,12 @@ function EditProfileModal({ profile, onClose, onSave }: any) {
         </div>
       </div>
 
-      {/* Footer - Fixed at bottom */}
+      {/* Footer - Fixed */}
       <div className="flex-shrink-0 p-4 border-t border-white/10 bg-[#0a0a0a]">
         <button
           onClick={handleSave}
           disabled={saving}
-          className="w-full py-4 bg-orange-500 rounded-xl font-bold text-white flex items-center justify-center gap-2"
+          className="w-full py-4 bg-orange-500 rounded-xl font-bold flex items-center justify-center gap-2"
         >
           {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Kaydet'}
         </button>
@@ -870,15 +766,13 @@ function PaymentMethodsModal({ savedCards, defaultMethod, onClose, onSave }: any
 
   return (
     <div className="fixed inset-0 bg-[#0a0a0a] z-[9999] flex flex-col">
-      {/* Header */}
-      <div className="flex-shrink-0 p-4 flex items-center justify-between border-b border-white/10">
-        <h2 className="text-lg font-bold text-white">Ödeme Yöntemleri</h2>
-        <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full text-white">
+      <div className="flex-shrink-0 p-4 border-b border-white/10 flex items-center justify-between">
+        <h2 className="text-lg font-bold">Ödeme Yöntemleri</h2>
+        <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full">
           <X className="w-6 h-6" />
         </button>
       </div>
 
-      {/* Content */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {/* Default Method */}
         <div>
@@ -937,7 +831,6 @@ function PaymentMethodsModal({ savedCards, defaultMethod, onClose, onSave }: any
               </div>
             ))}
 
-            {/* Add Card Form */}
             {showAddCard ? (
               <div className="p-4 bg-[#1a1a1a] rounded-xl space-y-3">
                 <input
@@ -981,12 +874,11 @@ function PaymentMethodsModal({ savedCards, defaultMethod, onClose, onSave }: any
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="flex-shrink-0 p-4 border-t border-white/10 bg-[#0a0a0a]">
+      <div className="flex-shrink-0 p-4 border-t border-white/10">
         <button
           onClick={handleSave}
           disabled={saving}
-          className="w-full py-4 bg-orange-500 rounded-xl font-bold text-white flex items-center justify-center gap-2"
+          className="w-full py-4 bg-orange-500 rounded-xl font-bold flex items-center justify-center gap-2"
         >
           {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Kaydet'}
         </button>
@@ -999,14 +891,14 @@ function PaymentMethodsModal({ savedCards, defaultMethod, onClose, onSave }: any
 function SecurityModal({ profile, onClose, onSave }: any) {
   const [pinEnabled, setPinEnabled] = useState(!!profile?.pin_code)
   const [biometricEnabled, setBiometricEnabled] = useState(profile?.biometric_enabled || false)
-  const [pin, setPin] = useState('')
+  const [pin, setPin] = useState(profile?.pin_code || '')
   const [showPin, setShowPin] = useState(false)
   const [saving, setSaving] = useState(false)
 
   const handleSave = async () => {
     setSaving(true)
     await onSave({
-      pin_code: pinEnabled ? pin : null,
+      pin_code: pinEnabled && pin ? pin : null,
       biometric_enabled: biometricEnabled
     })
     setSaving(false)
@@ -1014,18 +906,16 @@ function SecurityModal({ profile, onClose, onSave }: any) {
 
   return (
     <div className="fixed inset-0 bg-[#0a0a0a] z-[9999] flex flex-col">
-      {/* Header */}
-      <div className="flex-shrink-0 p-4 flex items-center justify-between border-b border-white/10">
-        <h2 className="text-lg font-bold text-white">Güvenlik Ayarları</h2>
-        <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full text-white">
+      <div className="flex-shrink-0 p-4 border-b border-white/10 flex items-center justify-between">
+        <h2 className="text-lg font-bold">Güvenlik Ayarları</h2>
+        <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full">
           <X className="w-6 h-6" />
         </button>
       </div>
 
-      {/* Content */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         <p className="text-sm text-gray-400">
-          Giriş yaptıktan sonra 1 hafta boyunca oturum açık kalır. Tekrar giriş için bu yöntemlerden birini kullanabilirsiniz.
+          Giriş yaptıktan sonra 1 ay boyunca oturum açık kalır. Tekrar giriş için bu yöntemlerden birini kullanabilirsiniz.
         </p>
 
         {/* Biometric */}
@@ -1083,12 +973,11 @@ function SecurityModal({ profile, onClose, onSave }: any) {
         </div>
       </div>
 
-      {/* Footer */}
-      <div className="flex-shrink-0 p-4 border-t border-white/10 bg-[#0a0a0a]">
+      <div className="flex-shrink-0 p-4 border-t border-white/10">
         <button
           onClick={handleSave}
           disabled={saving}
-          className="w-full py-4 bg-orange-500 rounded-xl font-bold text-white flex items-center justify-center gap-2"
+          className="w-full py-4 bg-orange-500 rounded-xl font-bold flex items-center justify-center gap-2"
         >
           {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Kaydet'}
         </button>

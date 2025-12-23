@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { 
-  MapPin, Search, QrCode, Package, Sparkles, 
+  Search, QrCode, Package, Sparkles, 
   TrendingUp, Clock, Star, Heart, ChevronRight,
-  Flame, Award, Users, ArrowRight, Loader2
+  Flame, Award, Users, ArrowRight, Loader2, User, MapPin
 } from 'lucide-react'
 import { useAuth } from '@/lib/AuthContext'
 
@@ -42,18 +42,32 @@ export default function HomePage() {
   const [userLocation, setUserLocation] = useState<{ lat: number; lon: number } | null>(null)
   const [lastUpdateTime, setLastUpdateTime] = useState<string>('')
   const [nextUpdateTime, setNextUpdateTime] = useState<string>('')
+  const [profile, setProfile] = useState<any>(null)
 
   useEffect(() => {
     setMounted(true)
     getUserLocation()
     calculateUpdateTimes()
-  }, [])
+    if (user) {
+      loadProfile()
+    }
+  }, [user])
 
   useEffect(() => {
     if (userLocation) {
       loadPopularData()
     }
   }, [userLocation])
+
+  const loadProfile = async () => {
+    if (!user) return
+    const { data } = await supabase
+      .from('user_profiles')
+      .select('full_name, avatar_url')
+      .eq('id', user.id)
+      .single()
+    if (data) setProfile(data)
+  }
 
   const calculateUpdateTimes = () => {
     const now = new Date()
@@ -71,30 +85,19 @@ export default function HomePage() {
 
   const getUserLocation = () => {
     if (navigator.geolocation) {
-      // 5 saniye timeout ekle
-      const timeoutId = setTimeout(() => {
-        console.log('Konum zaman aşımı, varsayılan kullanılıyor')
-        setUserLocation({ lat: 37.0344, lon: 27.4305 })
-      }, 5000)
-
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          clearTimeout(timeoutId)
           setUserLocation({
             lat: position.coords.latitude,
             lon: position.coords.longitude
           })
         },
         (error) => {
-          clearTimeout(timeoutId)
-          console.log('Konum alınamadı, varsayılan kullanılıyor:', error.message)
-          // Default: Bodrum
+          console.log('Konum alınamadı, varsayılan kullanılıyor')
           setUserLocation({ lat: 37.0344, lon: 27.4305 })
-        },
-        { timeout: 5000, enableHighAccuracy: false }
+        }
       )
     } else {
-      // Default: Bodrum
       setUserLocation({ lat: 37.0344, lon: 27.4305 })
     }
   }
@@ -104,29 +107,26 @@ export default function HomePage() {
     
     setLoading(true)
     try {
-      // 1. Son 24 saatteki siparişlere göre popüler mekanları getir
       const today = new Date()
       today.setHours(today.getHours() - 24)
       
-      // Mekanları getir
       const { data: venues, error: venuesError } = await supabase
         .from('venues')
         .select('id, name, category, emoji, rating, lat, lon, district')
         .eq('is_active', true)
+        .not('lat', 'is', null)
+        .not('lon', 'is', null)
 
-      if (venuesError) {
-        console.error('Venues error:', venuesError)
-        setLoading(false)
-        return
-      }
+      if (venuesError) throw venuesError
 
-      // Siparişleri getir (son 24 saat)
       const { data: orders, error: ordersError } = await supabase
         .from('orders')
         .select('venue_id, items')
         .gte('created_at', today.toISOString())
+        .in('status', ['completed', 'served', 'ready', 'preparing', 'confirmed'])
 
-      // Venue başına sipariş sayısını hesapla
+      if (ordersError) throw ordersError
+
       const venueOrderCounts: Record<string, number> = {}
       orders?.forEach(order => {
         if (order.venue_id) {
@@ -134,37 +134,21 @@ export default function HomePage() {
         }
       })
 
-      // Mesafe hesapla ve filtrele (100km içindeki mekanlar)
       const venuesWithDistance = venues?.map(venue => {
-        // lat/lon yoksa varsayılan mesafe ver
-        const venueLat = venue.lat || 37.0344
-        const venueLon = venue.lon || 27.4305
         const distance = calculateDistance(
           userLocation.lat, userLocation.lon,
-          venueLat, venueLon
+          venue.lat, venue.lon
         )
         return {
           ...venue,
-          lat: venueLat,
-          lon: venueLon,
           distance,
           order_count: venueOrderCounts[venue.id] || 0
         }
-      }).filter(v => v.distance <= 100) || [] // 100km içi
+      }).filter(v => v.distance <= 50)
 
-      // Sipariş sayısına göre sırala, sipariş yoksa rating'e göre
-      const sortedVenues = venuesWithDistance
-        .sort((a, b) => {
-          if (b.order_count !== a.order_count) {
-            return b.order_count - a.order_count
-          }
-          return (b.rating || 0) - (a.rating || 0)
-        })
-        .slice(0, 10)
-      
+      const sortedVenues = venuesWithDistance?.sort((a, b) => b.order_count - a.order_count).slice(0, 10) || []
       setPopularVenues(sortedVenues)
 
-      // 2. Popüler yemekleri getir (items JSON'dan)
       const itemCounts: Record<string, { name: string; venue_id: string; venue_name: string; price: number; count: number }> = {}
       
       orders?.forEach(order => {
@@ -208,9 +192,8 @@ export default function HomePage() {
     }
   }
 
-  // Haversine formula - iki nokta arası mesafe (km)
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
-    const R = 6371 // Dünya yarıçapı (km)
+    const R = 6371
     const dLat = (lat2 - lat1) * Math.PI / 180
     const dLon = (lon2 - lon1) * Math.PI / 180
     const a = 
@@ -231,16 +214,27 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white pb-24">
-      {/* Header */}
+      {/* Header with Profile Avatar */}
       <div className="p-4 pt-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <p className="text-gray-400 text-sm">Merhaba{user?.user_metadata?.full_name ? `, ${user.user_metadata.full_name.split(' ')[0]}` : ''} 👋</p>
+            <p className="text-gray-400 text-sm">Merhaba{profile?.full_name ? `, ${profile.full_name.split(' ')[0]}` : ''} 👋</p>
             <h1 className="text-xl font-bold">Ne yapmak istersin?</h1>
           </div>
-          <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center">
-            <Sparkles className="w-5 h-5" />
-          </div>
+          
+          {/* Profile Avatar - Right Side */}
+          <button 
+            onClick={() => router.push('/profile')}
+            className="w-11 h-11 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center overflow-hidden ring-2 ring-orange-500/30"
+          >
+            {profile?.avatar_url ? (
+              <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+            ) : user ? (
+              <span className="text-sm font-bold">{(profile?.full_name || user.email || 'U')[0].toUpperCase()}</span>
+            ) : (
+              <User className="w-5 h-5" />
+            )}
+          </button>
         </div>
 
         {/* Search */}

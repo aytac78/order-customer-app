@@ -2,186 +2,126 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useAuth } from '@/lib/AuthContext'
 import { supabase } from '@/lib/supabase'
-import { 
-  ArrowLeft, 
-  Receipt, 
-  Clock, 
-  MapPin, 
-  Users, 
-  AlertTriangle,
-  CheckCircle,
-  Loader2,
-  Bell,
-  CreditCard,
-  TrendingUp,
-  RefreshCw
+import { useAuth } from '@/lib/AuthContext'
+import {
+  Receipt, Clock, MapPin, CreditCard, QrCode, 
+  ChevronRight, Loader2, Plus, Minus, X, Check,
+  Wallet, Phone, Bell, User
 } from 'lucide-react'
 
-interface OrderItem {
-  id: string
-  product_name: string
-  quantity: number
-  unit_price: number
-  total_price: number
-  status: 'pending' | 'preparing' | 'ready' | 'served'
-  notes?: string
-}
-
-interface ActiveBill {
+interface ActiveOrder {
   id: string
   order_number: string
   venue_id: string
   venue_name: string
-  venue_logo?: string
+  venue_emoji: string
   table_number: string
   status: string
-  items: OrderItem[]
+  items: any[]
   subtotal: number
   tax: number
-  service_charge: number
-  discount: number
   total: number
-  spending_limit?: number
   created_at: string
-  updated_at: string
 }
 
 export default function BillPage() {
   const router = useRouter()
   const { user } = useAuth()
-  const [bill, setBill] = useState<ActiveBill | null>(null)
+  const [mounted, setMounted] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [activeOrder, setActiveOrder] = useState<ActiveOrder | null>(null)
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [callingWaiter, setCallingWaiter] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
     if (user) {
-      loadActiveBill()
-      
+      loadActiveOrder()
       // Real-time subscription
       const channel = supabase
-        .channel('active-bill')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'orders',
-            filter: `customer_id=eq.${user.id}`
-          },
-          (payload) => {
-            console.log('Order updated:', payload)
-            loadActiveBill() // Yeniden yükle
-          }
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'order_items',
-          },
-          (payload) => {
-            console.log('Order item updated:', payload)
-            loadActiveBill()
-          }
-        )
+        .channel('active-order')
+        .on('postgres_changes', {
+          event: '*',
+          schema: 'public',
+          table: 'orders',
+          filter: `user_id=eq.${user.id}`
+        }, () => {
+          loadActiveOrder()
+        })
         .subscribe()
 
       return () => {
         supabase.removeChannel(channel)
       }
+    } else {
+      setLoading(false)
     }
   }, [user])
 
-  const loadActiveBill = async () => {
+  const loadActiveOrder = async () => {
     if (!user) return
     
     try {
-      // Aktif siparişi bul (pending, confirmed, preparing, ready, served - completed veya cancelled değil)
-      const { data: orders, error: orderError } = await supabase
+      // Get active orders (not completed/cancelled)
+      const { data: orders, error } = await supabase
         .from('orders')
         .select(`
-          *,
-          venues (
-            id,
-            name,
-            logo_url,
-            spending_limit
-          ),
-          order_items (*)
+          id, order_number, venue_id, table_number, status, 
+          items, subtotal, tax, total, created_at
         `)
-        .eq('customer_id', user.id)
+        .eq('user_id', user.id)
         .in('status', ['pending', 'confirmed', 'preparing', 'ready', 'served'])
         .order('created_at', { ascending: false })
         .limit(1)
-        .single()
 
-      if (orderError && orderError.code !== 'PGRST116') {
-        console.error('Order fetch error:', orderError)
-      }
+      if (error) throw error
 
-      if (orders) {
-        setBill({
-          id: orders.id,
-          order_number: orders.order_number,
-          venue_id: orders.venue_id,
-          venue_name: orders.venues?.name || 'Mekan',
-          venue_logo: orders.venues?.logo_url,
-          table_number: orders.table_number || '-',
-          status: orders.status,
-          items: orders.order_items || [],
-          subtotal: orders.subtotal || 0,
-          tax: orders.tax || 0,
-          service_charge: orders.service_charge || 0,
-          discount: orders.discount || 0,
-          total: orders.total || 0,
-          spending_limit: orders.venues?.spending_limit,
-          created_at: orders.created_at,
-          updated_at: orders.updated_at
+      if (orders && orders.length > 0) {
+        const order = orders[0]
+        
+        // Get venue info
+        const { data: venue } = await supabase
+          .from('venues')
+          .select('name, emoji')
+          .eq('id', order.venue_id)
+          .single()
+
+        setActiveOrder({
+          ...order,
+          venue_name: venue?.name || 'Mekan',
+          venue_emoji: venue?.emoji || '🍽️'
         })
       } else {
-        setBill(null)
+        setActiveOrder(null)
       }
     } catch (err) {
-      console.error('Load bill error:', err)
-      setError('Hesap bilgisi yüklenemedi')
+      console.error('Aktif sipariş yüklenemedi:', err)
     } finally {
       setLoading(false)
     }
   }
 
-  const getStatusInfo = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return { label: 'Onay Bekliyor', color: 'text-yellow-500', bg: 'bg-yellow-500/20' }
-      case 'confirmed':
-        return { label: 'Onaylandı', color: 'text-blue-500', bg: 'bg-blue-500/20' }
-      case 'preparing':
-        return { label: 'Hazırlanıyor', color: 'text-purple-500', bg: 'bg-purple-500/20' }
-      case 'ready':
-        return { label: 'Hazır', color: 'text-green-500', bg: 'bg-green-500/20' }
-      case 'served':
-        return { label: 'Servis Edildi', color: 'text-emerald-500', bg: 'bg-emerald-500/20' }
-      default:
-        return { label: status, color: 'text-gray-500', bg: 'bg-gray-500/20' }
-    }
+  const callWaiter = async () => {
+    if (!activeOrder) return
+    setCallingWaiter(true)
+    
+    // Simulate waiter call - in real app, this would notify the business app
+    setTimeout(() => {
+      setCallingWaiter(false)
+      alert('Garson çağrıldı! Kısa süre içinde masanıza gelecek.')
+    }, 1000)
   }
 
-  const getItemStatusIcon = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return <Clock className="w-4 h-4 text-yellow-500" />
-      case 'preparing':
-        return <Loader2 className="w-4 h-4 text-purple-500 animate-spin" />
-      case 'ready':
-        return <Bell className="w-4 h-4 text-green-500" />
-      case 'served':
-        return <CheckCircle className="w-4 h-4 text-emerald-500" />
-      default:
-        return <Clock className="w-4 h-4 text-gray-500" />
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, { text: string; color: string }> = {
+      pending: { text: 'Onay Bekliyor', color: 'text-yellow-500' },
+      confirmed: { text: 'Onaylandı', color: 'text-blue-500' },
+      preparing: { text: 'Hazırlanıyor', color: 'text-purple-500' },
+      ready: { text: 'Hazır', color: 'text-green-500' },
+      served: { text: 'Servis Edildi', color: 'text-green-500' }
     }
+    return labels[status] || { text: status, color: 'text-gray-500' }
   }
 
   const formatTime = (dateString: string) => {
@@ -189,276 +129,312 @@ export default function BillPage() {
     return date.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })
   }
 
-  const calculateDuration = (dateString: string) => {
+  const getElapsedTime = (dateString: string) => {
     const start = new Date(dateString)
     const now = new Date()
-    const diffMs = now.getTime() - start.getTime()
-    const diffMins = Math.floor(diffMs / 60000)
-    if (diffMins < 60) return `${diffMins} dk`
-    const hours = Math.floor(diffMins / 60)
-    const mins = diffMins % 60
-    return `${hours} sa ${mins} dk`
+    const diff = Math.floor((now.getTime() - start.getTime()) / 1000 / 60)
+    if (diff < 60) return `${diff} dk`
+    return `${Math.floor(diff / 60)} saat ${diff % 60} dk`
   }
 
-  if (loading) {
+  if (!mounted || loading) {
     return (
       <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-orange-500 animate-spin mx-auto mb-4" />
-          <p className="text-gray-400">Hesap yükleniyor...</p>
-        </div>
+        <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
       </div>
     )
   }
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center p-6">
-        <div className="text-center">
-          <Receipt className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-          <h2 className="text-xl font-bold mb-2">Giriş Yapın</h2>
-          <p className="text-gray-400 mb-6">Hesabınızı takip etmek için giriş yapın</p>
-          <button
-            onClick={() => router.push('/auth')}
-            className="px-6 py-3 bg-orange-500 rounded-xl font-semibold"
-          >
-            Giriş Yap
-          </button>
-        </div>
-      </div>
-    )
-  }
-
-  if (!bill) {
+  // No active order
+  if (!activeOrder) {
     return (
       <div className="min-h-screen bg-[#0a0a0a] text-white pb-24">
-        {/* Header */}
-        <div className="sticky top-0 z-10 bg-[#0a0a0a]/95 backdrop-blur-sm border-b border-white/10">
-          <div className="flex items-center gap-4 p-4">
-            <button onClick={() => router.back()} className="p-2 hover:bg-white/10 rounded-full">
-              <ArrowLeft className="w-6 h-6" />
-            </button>
-            <h1 className="text-xl font-bold">Açık Hesabım</h1>
-          </div>
+        <div className="p-4 pt-8">
+          <h1 className="text-2xl font-bold mb-2">Canlı Hesap</h1>
+          <p className="text-gray-400">Aktif siparişinizi buradan takip edin</p>
         </div>
 
-        <div className="flex flex-col items-center justify-center p-6 mt-20">
-          <div className="w-24 h-24 bg-gray-800 rounded-full flex items-center justify-center mb-6">
+        <div className="flex flex-col items-center justify-center px-4 py-16">
+          <div className="w-24 h-24 bg-[#1a1a1a] rounded-full flex items-center justify-center mb-6">
             <Receipt className="w-12 h-12 text-gray-600" />
           </div>
-          <h2 className="text-xl font-bold mb-2">Açık Hesap Yok</h2>
-          <p className="text-gray-400 text-center mb-6">
-            Şu anda aktif bir hesabınız bulunmuyor.<br/>
-            Bir mekanda QR kod okutarak sipariş verin.
+          <h2 className="text-xl font-bold mb-2">Aktif Hesap Yok</h2>
+          <p className="text-gray-400 text-center mb-8">
+            Bir mekanda sipariş verdiğinizde hesabınız burada görünecek.
           </p>
+          
           <button
             onClick={() => router.push('/scan')}
-            className="px-6 py-3 bg-orange-500 rounded-xl font-semibold"
+            className="flex items-center gap-3 px-6 py-4 bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl font-bold"
           >
+            <QrCode className="w-6 h-6" />
             QR Kod Tara
+          </button>
+          
+          <button
+            onClick={() => router.push('/discover')}
+            className="mt-4 text-orange-500"
+          >
+            veya mekan keşfet
+          </button>
+        </div>
+
+        {/* Past Orders Link */}
+        <div className="px-4">
+          <button
+            onClick={() => router.push('/orders')}
+            className="w-full flex items-center justify-between p-4 bg-[#1a1a1a] rounded-xl"
+          >
+            <div className="flex items-center gap-3">
+              <Clock className="w-5 h-5 text-gray-400" />
+              <span>Geçmiş Siparişler</span>
+            </div>
+            <ChevronRight className="w-5 h-5 text-gray-500" />
           </button>
         </div>
       </div>
     )
   }
 
-  const statusInfo = getStatusInfo(bill.status)
-  const limitUsagePercent = bill.spending_limit 
-    ? Math.min((bill.total / bill.spending_limit) * 100, 100) 
-    : 0
-  const isNearLimit = bill.spending_limit && bill.total >= bill.spending_limit * 0.8
-  const isOverLimit = bill.spending_limit && bill.total >= bill.spending_limit
+  // Active order view
+  const statusInfo = getStatusLabel(activeOrder.status)
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white pb-24">
+    <div className="min-h-screen bg-[#0a0a0a] text-white pb-32">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-[#0a0a0a]/95 backdrop-blur-sm border-b border-white/10">
-        <div className="flex items-center justify-between p-4">
-          <div className="flex items-center gap-4">
-            <button onClick={() => router.back()} className="p-2 hover:bg-white/10 rounded-full">
-              <ArrowLeft className="w-6 h-6" />
-            </button>
-            <div>
-              <h1 className="text-xl font-bold">Açık Hesabım</h1>
-              <p className="text-sm text-gray-400">Canlı Takip</p>
+      <div className="bg-gradient-to-br from-green-600 to-emerald-600 pt-8 pb-6 px-4">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <p className="text-green-200 text-sm">Aktif Hesap</p>
+            <h1 className="text-2xl font-bold">{activeOrder.order_number}</h1>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-green-400 rounded-full animate-pulse" />
+            <span className="text-sm">Canlı</span>
+          </div>
+        </div>
+
+        {/* Venue Info */}
+        <div className="flex items-center gap-3 p-3 bg-white/10 rounded-xl">
+          <span className="text-3xl">{activeOrder.venue_emoji}</span>
+          <div className="flex-1">
+            <p className="font-semibold">{activeOrder.venue_name}</p>
+            <p className="text-sm text-green-200">Masa {activeOrder.table_number}</p>
+          </div>
+          <div className="text-right">
+            <p className={`font-medium ${statusInfo.color}`}>{statusInfo.text}</p>
+            <p className="text-xs text-green-200">{getElapsedTime(activeOrder.created_at)}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Order Items */}
+      <div className="px-4 -mt-4">
+        <div className="bg-[#1a1a1a] rounded-2xl overflow-hidden">
+          <div className="p-4 border-b border-white/10">
+            <div className="flex items-center justify-between">
+              <h2 className="font-semibold">Siparişler</h2>
+              <span className="text-sm text-gray-400">{activeOrder.items?.length || 0} kalem</span>
             </div>
           </div>
-          <button 
-            onClick={loadActiveBill}
-            className="p-2 hover:bg-white/10 rounded-full"
+
+          <div className="divide-y divide-white/5">
+            {activeOrder.items?.map((item: any, index: number) => (
+              <div key={index} className="p-4 flex items-center gap-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-orange-500/20 to-red-500/20 rounded-xl flex items-center justify-center">
+                  <span className="text-lg">🍽️</span>
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium">{item.name || item.product_name}</p>
+                  {item.notes && <p className="text-xs text-gray-400">{item.notes}</p>}
+                </div>
+                <div className="text-right">
+                  <p className="font-bold">₺{((item.price || item.unit_price) * (item.quantity || 1)).toLocaleString()}</p>
+                  <p className="text-xs text-gray-400">x{item.quantity || 1}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Add More */}
+          <button
+            onClick={() => router.push(`/venue/${activeOrder.venue_id}/menu?table=${activeOrder.table_number}`)}
+            className="w-full p-4 border-t border-white/10 flex items-center justify-center gap-2 text-orange-500"
           >
-            <RefreshCw className="w-5 h-5 text-gray-400" />
+            <Plus className="w-5 h-5" />
+            Sipariş Ekle
           </button>
         </div>
       </div>
 
-      {/* Venue & Table Info */}
-      <div className="p-4">
-        <div className="bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-500/30 rounded-2xl p-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center">
-                <MapPin className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h2 className="font-bold text-lg">{bill.venue_name}</h2>
-                <p className="text-sm text-gray-400">Masa {bill.table_number}</p>
-              </div>
-            </div>
-            <div className={`px-3 py-1.5 rounded-full ${statusInfo.bg}`}>
-              <span className={`text-sm font-medium ${statusInfo.color}`}>{statusInfo.label}</span>
-            </div>
-          </div>
-          
-          <div className="flex items-center justify-between text-sm text-gray-400">
-            <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4" />
-              <span>Başlangıç: {formatTime(bill.created_at)}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <TrendingUp className="w-4 h-4" />
-              <span>Süre: {calculateDuration(bill.created_at)}</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Spending Limit Warning */}
-      {bill.spending_limit && (
-        <div className="px-4 mb-4">
-          <div className={`rounded-2xl p-4 ${isOverLimit ? 'bg-red-500/20 border border-red-500/50' : isNearLimit ? 'bg-yellow-500/20 border border-yellow-500/50' : 'bg-[#1a1a1a]'}`}>
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                {isOverLimit ? (
-                  <AlertTriangle className="w-5 h-5 text-red-500" />
-                ) : isNearLimit ? (
-                  <AlertTriangle className="w-5 h-5 text-yellow-500" />
-                ) : (
-                  <CreditCard className="w-5 h-5 text-gray-400" />
-                )}
-                <span className="font-medium">Harcama Limiti</span>
-              </div>
-              <span className={`font-bold ${isOverLimit ? 'text-red-500' : isNearLimit ? 'text-yellow-500' : ''}`}>
-                ₺{bill.total.toLocaleString()} / ₺{bill.spending_limit.toLocaleString()}
-              </span>
-            </div>
-            
-            {/* Progress Bar */}
-            <div className="h-3 bg-gray-700 rounded-full overflow-hidden">
-              <div 
-                className={`h-full rounded-full transition-all duration-500 ${
-                  isOverLimit ? 'bg-red-500' : isNearLimit ? 'bg-yellow-500' : 'bg-green-500'
-                }`}
-                style={{ width: `${limitUsagePercent}%` }}
-              />
-            </div>
-            
-            <div className="flex justify-between mt-2 text-sm">
-              <span className="text-gray-400">Kullanılan: %{Math.round(limitUsagePercent)}</span>
-              <span className={isOverLimit ? 'text-red-400' : isNearLimit ? 'text-yellow-400' : 'text-green-400'}>
-                Kalan: ₺{Math.max(0, bill.spending_limit - bill.total).toLocaleString()}
-              </span>
-            </div>
-            
-            {isOverLimit && (
-              <p className="text-red-400 text-sm mt-2 flex items-center gap-1">
-                <AlertTriangle className="w-4 h-4" />
-                Limit aşıldı! Lütfen hesabı kapatın.
-              </p>
-            )}
-            {isNearLimit && !isOverLimit && (
-              <p className="text-yellow-400 text-sm mt-2">
-                ⚠️ Limite yaklaşıyorsunuz
-              </p>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Order Items */}
-      <div className="px-4">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="font-semibold">Siparişler ({bill.items.length})</h3>
-          <span className="text-sm text-gray-400">#{bill.order_number}</span>
-        </div>
-        
-        <div className="bg-[#1a1a1a] rounded-2xl overflow-hidden divide-y divide-white/5">
-          {bill.items.map((item) => (
-            <div key={item.id} className="p-4 flex items-center gap-4">
-              <div className="w-10 h-10 bg-[#252525] rounded-lg flex items-center justify-center">
-                {getItemStatusIcon(item.status)}
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">{item.product_name}</span>
-                  <span className="text-sm text-gray-500">x{item.quantity}</span>
-                </div>
-                {item.notes && (
-                  <p className="text-xs text-gray-500 mt-0.5">{item.notes}</p>
-                )}
-              </div>
-              <span className="font-semibold">₺{item.total_price.toLocaleString()}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Bill Summary */}
-      <div className="px-4 mt-6">
+      {/* Total */}
+      <div className="px-4 mt-4">
         <div className="bg-[#1a1a1a] rounded-2xl p-4 space-y-3">
-          <div className="flex justify-between text-gray-400">
-            <span>Ara Toplam</span>
-            <span>₺{bill.subtotal.toLocaleString()}</span>
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-400">Ara Toplam</span>
+            <span>₺{activeOrder.subtotal?.toLocaleString()}</span>
           </div>
-          {bill.service_charge > 0 && (
-            <div className="flex justify-between text-gray-400">
-              <span>Servis Ücreti</span>
-              <span>₺{bill.service_charge.toLocaleString()}</span>
-            </div>
-          )}
-          {bill.tax > 0 && (
-            <div className="flex justify-between text-gray-400">
-              <span>KDV</span>
-              <span>₺{bill.tax.toLocaleString()}</span>
-            </div>
-          )}
-          {bill.discount > 0 && (
-            <div className="flex justify-between text-green-500">
-              <span>İndirim</span>
-              <span>-₺{bill.discount.toLocaleString()}</span>
-            </div>
-          )}
-          <div className="border-t border-white/10 pt-3 flex justify-between">
-            <span className="font-bold text-lg">Toplam</span>
-            <span className="font-bold text-2xl text-orange-500">₺{bill.total.toLocaleString()}</span>
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-400">KDV</span>
+            <span>₺{activeOrder.tax?.toLocaleString()}</span>
+          </div>
+          <div className="h-px bg-white/10" />
+          <div className="flex justify-between text-xl font-bold">
+            <span>Toplam</span>
+            <span className="text-green-500">₺{activeOrder.total?.toLocaleString()}</span>
           </div>
         </div>
       </div>
 
       {/* Actions */}
-      <div className="px-4 mt-6 space-y-3">
-        <button
-          onClick={() => router.push(`/venue/${bill.venue_id}`)}
-          className="w-full py-4 bg-orange-500 rounded-xl font-semibold flex items-center justify-center gap-2"
-        >
-          <Receipt className="w-5 h-5" />
-          Sipariş Ekle
-        </button>
-        
-        <button
-          onClick={() => {/* Garson çağır */}}
-          className="w-full py-4 bg-[#1a1a1a] border border-white/10 rounded-xl font-semibold flex items-center justify-center gap-2"
-        >
-          <Bell className="w-5 h-5" />
-          Garson Çağır
-        </button>
+      <div className="fixed bottom-20 left-0 right-0 p-4 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a] to-transparent">
+        <div className="flex gap-3">
+          <button
+            onClick={callWaiter}
+            disabled={callingWaiter}
+            className="flex-1 py-4 bg-[#1a1a1a] border border-white/10 rounded-2xl font-bold flex items-center justify-center gap-2"
+          >
+            {callingWaiter ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <>
+                <Bell className="w-5 h-5" />
+                Garson Çağır
+              </>
+            )}
+          </button>
+          <button
+            onClick={() => setShowPaymentModal(true)}
+            className="flex-1 py-4 bg-green-500 rounded-2xl font-bold flex items-center justify-center gap-2"
+          >
+            <CreditCard className="w-5 h-5" />
+            Hesabı Öde
+          </button>
+        </div>
       </div>
 
-      {/* Real-time indicator */}
-      <div className="fixed bottom-24 left-1/2 -translate-x-1/2">
-        <div className="flex items-center gap-2 px-4 py-2 bg-green-500/20 border border-green-500/30 rounded-full">
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-          <span className="text-xs text-green-400 font-medium">Canlı Takip Aktif</span>
+      {/* Payment Modal */}
+      {showPaymentModal && (
+        <PaymentModal
+          order={activeOrder}
+          onClose={() => setShowPaymentModal(false)}
+          onPay={async (method) => {
+            // Process payment
+            const { error } = await supabase
+              .from('orders')
+              .update({ 
+                status: 'paid',
+                payment_status: 'paid',
+                payment_method: method 
+              })
+              .eq('id', activeOrder.id)
+
+            if (!error) {
+              setShowPaymentModal(false)
+              setActiveOrder(null)
+              router.push('/orders')
+            }
+          }}
+        />
+      )}
+    </div>
+  )
+}
+
+// Payment Modal
+function PaymentModal({ order, onClose, onPay }: { order: ActiveOrder; onClose: () => void; onPay: (method: string) => void }) {
+  const [selectedMethod, setSelectedMethod] = useState('card')
+  const [processing, setProcessing] = useState(false)
+
+  const handlePay = async () => {
+    setProcessing(true)
+    await onPay(selectedMethod)
+    setProcessing(false)
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/90 z-[100] flex items-end">
+      <div className="w-full bg-[#1a1a1a] rounded-t-3xl max-h-[80vh] overflow-y-auto">
+        <div className="p-4 border-b border-white/10 flex items-center justify-between sticky top-0 bg-[#1a1a1a]">
+          <h2 className="text-lg font-bold">Ödeme Yap</h2>
+          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full">
+            <X className="w-6 h-6" />
+          </button>
+        </div>
+
+        <div className="p-4 space-y-4">
+          {/* Total */}
+          <div className="text-center py-4">
+            <p className="text-gray-400">Ödenecek Tutar</p>
+            <p className="text-4xl font-bold text-green-500">₺{order.total.toLocaleString()}</p>
+          </div>
+
+          {/* Payment Methods */}
+          <div className="space-y-2">
+            <button
+              onClick={() => setSelectedMethod('tit_pay')}
+              className={`w-full flex items-center gap-3 p-4 rounded-xl border ${
+                selectedMethod === 'tit_pay' ? 'border-purple-500 bg-purple-500/10' : 'border-gray-700 bg-[#2a2a2a]'
+              }`}
+            >
+              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-xl flex items-center justify-center">
+                <span className="font-bold">TiT</span>
+              </div>
+              <div className="flex-1 text-left">
+                <p className="font-medium">TiT Pay</p>
+                <p className="text-xs text-gray-400">Anında ödeme</p>
+              </div>
+              {selectedMethod === 'tit_pay' && <Check className="w-5 h-5 text-purple-500" />}
+            </button>
+
+            <button
+              onClick={() => setSelectedMethod('card')}
+              className={`w-full flex items-center gap-3 p-4 rounded-xl border ${
+                selectedMethod === 'card' ? 'border-orange-500 bg-orange-500/10' : 'border-gray-700 bg-[#2a2a2a]'
+              }`}
+            >
+              <div className="w-12 h-12 bg-orange-500/20 rounded-xl flex items-center justify-center">
+                <CreditCard className="w-6 h-6 text-orange-500" />
+              </div>
+              <div className="flex-1 text-left">
+                <p className="font-medium">Kredi Kartı</p>
+                <p className="text-xs text-gray-400">Kayıtlı kart ile öde</p>
+              </div>
+              {selectedMethod === 'card' && <Check className="w-5 h-5 text-orange-500" />}
+            </button>
+
+            <button
+              onClick={() => setSelectedMethod('cash')}
+              className={`w-full flex items-center gap-3 p-4 rounded-xl border ${
+                selectedMethod === 'cash' ? 'border-green-500 bg-green-500/10' : 'border-gray-700 bg-[#2a2a2a]'
+              }`}
+            >
+              <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center">
+                <Wallet className="w-6 h-6 text-green-500" />
+              </div>
+              <div className="flex-1 text-left">
+                <p className="font-medium">Nakit</p>
+                <p className="text-xs text-gray-400">Garsona öde</p>
+              </div>
+              {selectedMethod === 'cash' && <Check className="w-5 h-5 text-green-500" />}
+            </button>
+          </div>
+
+          {/* Pay Button */}
+          <button
+            onClick={handlePay}
+            disabled={processing}
+            className="w-full py-4 bg-green-500 rounded-xl font-bold flex items-center justify-center gap-2"
+          >
+            {processing ? (
+              <Loader2 className="w-5 h-5 animate-spin" />
+            ) : (
+              <>
+                <Check className="w-5 h-5" />
+                Ödemeyi Tamamla
+              </>
+            )}
+          </button>
         </div>
       </div>
     </div>
