@@ -25,28 +25,28 @@ import {
   TrendingUp
 } from 'lucide-react'
 import { useCoffeestar } from '@/lib/coffeestar-context'
-import { CoffeeShop, CoffeeShopFeature } from '@/lib/coffeestar-types'
 
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''
 
-// Feature ikonları
-const featureIcons: Record<CoffeeShopFeature, { icon: any; label: string }> = {
-  wifi: { icon: Wifi, label: 'WiFi' },
-  outdoor: { icon: MapPin, label: 'Açık Alan' },
-  pet_friendly: { icon: Dog, label: 'Pet Friendly' },
-  laptop_friendly: { icon: Laptop, label: 'Laptop' },
-  specialty_coffee: { icon: Coffee, label: 'Specialty' },
-  third_wave: { icon: Sparkles, label: '3rd Wave' },
-  roastery: { icon: Coffee, label: 'Roastery' },
-  vegan_options: { icon: Leaf, label: 'Vegan' },
-  gluten_free: { icon: Leaf, label: 'Gluten Free' },
-  breakfast: { icon: Coffee, label: 'Kahvaltı' },
-  brunch: { icon: Coffee, label: 'Brunch' }
+interface CoffeeShop {
+  id: string
+  place_id: string
+  name: string
+  address: string
+  lat: number
+  lng: number
+  rating: number
+  user_ratings_total: number
+  price_level: number
+  photo_url?: string
+  is_open?: boolean
+  distance_km?: number
+  features: string[]
 }
 
 export default function CoffeestarPage() {
   const router = useRouter()
-  const { stats, freeBalance, getLevelConfig, nearbyShops, favoriteShops, toggleFavoriteShop } = useCoffeestar()
+  const { stats, freeBalance, getLevelConfig } = useCoffeestar()
   
   const [coffeeShops, setCoffeeShops] = useState<CoffeeShop[]>([])
   const [filteredShops, setFilteredShops] = useState<CoffeeShop[]>([])
@@ -55,19 +55,16 @@ export default function CoffeestarPage() {
   const [viewMode, setViewMode] = useState<'list' | 'map'>('list')
   const [showFilters, setShowFilters] = useState(false)
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
+  const [favorites, setFavorites] = useState<string[]>([])
   
-  // Filters
   const [filters, setFilters] = useState({
     isOpen: false,
     hasWifi: false,
-    petFriendly: false,
-    specialty: false,
     minRating: 0
   })
 
   const levelConfig = stats ? getLevelConfig(stats.level) : null
 
-  // Konum al
   useEffect(() => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -78,34 +75,32 @@ export default function CoffeestarPage() {
           })
         },
         () => {
-          // Default: İstanbul
           setUserLocation({ lat: 41.0082, lng: 28.9784 })
         }
       )
+    } else {
+      setUserLocation({ lat: 41.0082, lng: 28.9784 })
     }
   }, [])
 
-  // Coffee shop'ları çek
   const fetchCoffeeShops = useCallback(async () => {
     if (!userLocation) return
     
     setLoading(true)
     try {
       const response = await fetch(
-        `/api/places/search?lat=${userLocation.lat}&lng=${userLocation.lng}&type=cafe&radius=5000&keyword=coffee`
+        `/api/places/coffee-shops?lat=${userLocation.lat}&lng=${userLocation.lng}&radius=5000`
       )
       const data = await response.json()
       
-      if (data.places) {
-        const shops: CoffeeShop[] = data.places.map((place: any) => ({
+      if (data.shops) {
+        const shops: CoffeeShop[] = data.shops.map((place: any) => ({
           id: place.place_id,
           place_id: place.place_id,
           name: place.name,
           address: place.vicinity || place.formatted_address || '',
-          district: '',
-          city: '',
-          lat: place.geometry?.location?.lat || place.lat,
-          lng: place.geometry?.location?.lng || place.lng,
+          lat: place.geometry?.location?.lat,
+          lng: place.geometry?.location?.lng,
           rating: place.rating || 0,
           user_ratings_total: place.user_ratings_total || 0,
           price_level: place.price_level || 2,
@@ -113,10 +108,8 @@ export default function CoffeestarPage() {
             ? `https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photo_reference=${place.photos[0].photo_reference}&key=${GOOGLE_MAPS_API_KEY}`
             : null,
           is_open: place.opening_hours?.open_now,
-          is_partner: false,
           distance_km: place.distance_km,
-          features: detectFeatures(place),
-          specialty: place.types?.includes('cafe') ? 'Coffee Shop' : 'Café'
+          features: detectFeatures(place)
         }))
         
         setCoffeeShops(shops)
@@ -129,18 +122,12 @@ export default function CoffeestarPage() {
     }
   }, [userLocation])
 
-  // Feature detection (demo)
-  const detectFeatures = (place: any): CoffeeShopFeature[] => {
-    const features: CoffeeShopFeature[] = []
-    
-    // Random features for demo
+  const detectFeatures = (place: any): string[] => {
+    const features: string[] = []
     if (Math.random() > 0.3) features.push('wifi')
     if (Math.random() > 0.6) features.push('outdoor')
     if (Math.random() > 0.7) features.push('pet_friendly')
-    if (Math.random() > 0.5) features.push('laptop_friendly')
-    if (place.rating >= 4.5) features.push('specialty_coffee')
-    if (Math.random() > 0.8) features.push('third_wave')
-    
+    if (place.rating >= 4.5) features.push('specialty')
     return features
   }
 
@@ -150,11 +137,9 @@ export default function CoffeestarPage() {
     }
   }, [userLocation, fetchCoffeeShops])
 
-  // Filtreleme
   useEffect(() => {
     let result = [...coffeeShops]
     
-    // Arama
     if (searchQuery) {
       result = result.filter(shop => 
         shop.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -162,18 +147,11 @@ export default function CoffeestarPage() {
       )
     }
     
-    // Filtreler
     if (filters.isOpen) {
       result = result.filter(shop => shop.is_open)
     }
     if (filters.hasWifi) {
       result = result.filter(shop => shop.features.includes('wifi'))
-    }
-    if (filters.petFriendly) {
-      result = result.filter(shop => shop.features.includes('pet_friendly'))
-    }
-    if (filters.specialty) {
-      result = result.filter(shop => shop.features.includes('specialty_coffee'))
     }
     if (filters.minRating > 0) {
       result = result.filter(shop => shop.rating >= filters.minRating)
@@ -182,14 +160,21 @@ export default function CoffeestarPage() {
     setFilteredShops(result)
   }, [coffeeShops, searchQuery, filters])
 
-  const isFavorite = (shopId: string) => favoriteShops.some(s => s.id === shopId)
+  const toggleFavorite = (shopId: string) => {
+    setFavorites(prev => 
+      prev.includes(shopId) 
+        ? prev.filter(id => id !== shopId)
+        : [...prev, shopId]
+    )
+  }
+
+  const coffeesUntilFree = freeBalance?.next_free_in || 10
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white pb-24">
       {/* Header */}
       <div className="sticky top-0 z-40 bg-gradient-to-b from-[#0a0a0a] via-[#0a0a0a] to-transparent pb-4">
         <div className="px-4 pt-4">
-          {/* Top Bar */}
           <div className="flex items-center justify-between mb-4">
             <button 
               onClick={() => router.back()}
@@ -245,6 +230,20 @@ export default function CoffeestarPage() {
                 <ChevronRight className="w-4 h-4" />
               </button>
             </div>
+            
+            {/* Progress bar */}
+            <div className="mt-3 pt-3 border-t border-amber-500/20">
+              <div className="flex items-center justify-between text-xs mb-1">
+                <span className="text-amber-200/60">{coffeesUntilFree} kahve daha → Bedava!</span>
+                <span className="text-amber-400">{10 - coffeesUntilFree}/10</span>
+              </div>
+              <div className="h-2 bg-black/30 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full"
+                  style={{ width: `${((10 - coffeesUntilFree) / 10) * 100}%` }}
+                />
+              </div>
+            </div>
           </div>
 
           {/* Search */}
@@ -267,19 +266,9 @@ export default function CoffeestarPage() {
             )}
           </div>
 
-          {/* Filter & View Toggle */}
+          {/* Filters */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm whitespace-nowrap transition-colors ${
-                  showFilters ? 'bg-amber-500 text-white' : 'bg-white/5 text-gray-400'
-                }`}
-              >
-                <SlidersHorizontal className="w-4 h-4" />
-                Filtreler
-              </button>
-              
               <button
                 onClick={() => setFilters(f => ({ ...f, isOpen: !f.isOpen }))}
                 className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm whitespace-nowrap transition-colors ${
@@ -301,13 +290,13 @@ export default function CoffeestarPage() {
               </button>
               
               <button
-                onClick={() => setFilters(f => ({ ...f, specialty: !f.specialty }))}
+                onClick={() => setFilters(f => ({ ...f, minRating: f.minRating === 4 ? 0 : 4 }))}
                 className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm whitespace-nowrap transition-colors ${
-                  filters.specialty ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-white/5 text-gray-400'
+                  filters.minRating > 0 ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-white/5 text-gray-400'
                 }`}
               >
-                <Sparkles className="w-4 h-4" />
-                Specialty
+                <Star className="w-4 h-4" />
+                4+ Puan
               </button>
             </div>
             
@@ -329,51 +318,8 @@ export default function CoffeestarPage() {
         </div>
       </div>
 
-      {/* Extended Filters */}
-      {showFilters && (
-        <div className="px-4 pb-4">
-          <div className="bg-white/5 rounded-xl p-4 border border-white/10">
-            <h3 className="font-medium mb-3">Minimum Puan</h3>
-            <div className="flex items-center gap-2">
-              {[0, 3, 3.5, 4, 4.5].map((rating) => (
-                <button
-                  key={rating}
-                  onClick={() => setFilters(f => ({ ...f, minRating: rating }))}
-                  className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm transition-colors ${
-                    filters.minRating === rating 
-                      ? 'bg-amber-500 text-white' 
-                      : 'bg-white/5 text-gray-400'
-                  }`}
-                >
-                  {rating === 0 ? 'Tümü' : (
-                    <>
-                      <Star className="w-3 h-3 fill-current" />
-                      {rating}+
-                    </>
-                  )}
-                </button>
-              ))}
-            </div>
-
-            <h3 className="font-medium mb-3 mt-4">Özellikler</h3>
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => setFilters(f => ({ ...f, petFriendly: !f.petFriendly }))}
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm transition-colors ${
-                  filters.petFriendly ? 'bg-pink-500/20 text-pink-400 border border-pink-500/30' : 'bg-white/5 text-gray-400'
-                }`}
-              >
-                <Dog className="w-4 h-4" />
-                Pet Friendly
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Content */}
       <div className="px-4">
-        {/* Results count */}
         <div className="flex items-center justify-between mb-4">
           <p className="text-sm text-gray-400">
             {loading ? 'Aranıyor...' : `${filteredShops.length} coffee shop bulundu`}
@@ -414,7 +360,6 @@ export default function CoffeestarPage() {
                 className="w-full bg-white/5 rounded-2xl p-4 border border-white/5 hover:border-amber-500/30 transition-all text-left group"
               >
                 <div className="flex gap-4">
-                  {/* Image */}
                   <div className="w-24 h-24 rounded-xl bg-gradient-to-br from-amber-900/50 to-orange-900/50 flex items-center justify-center overflow-hidden flex-shrink-0">
                     {shop.photo_url ? (
                       <img 
@@ -427,7 +372,6 @@ export default function CoffeestarPage() {
                     )}
                   </div>
 
-                  {/* Info */}
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between mb-1">
                       <h3 className="font-semibold text-white group-hover:text-amber-400 transition-colors truncate pr-2">
@@ -436,11 +380,11 @@ export default function CoffeestarPage() {
                       <button
                         onClick={(e) => {
                           e.stopPropagation()
-                          toggleFavoriteShop(shop.id)
+                          toggleFavorite(shop.id)
                         }}
                         className="flex-shrink-0"
                       >
-                        <Heart className={`w-5 h-5 ${isFavorite(shop.id) ? 'fill-red-500 text-red-500' : 'text-gray-500'}`} />
+                        <Heart className={`w-5 h-5 ${favorites.includes(shop.id) ? 'fill-red-500 text-red-500' : 'text-gray-500'}`} />
                       </button>
                     </div>
 
@@ -465,27 +409,22 @@ export default function CoffeestarPage() {
 
                     <p className="text-sm text-gray-500 truncate mb-2">{shop.address}</p>
 
-                    {/* Features */}
                     <div className="flex items-center gap-2 flex-wrap">
-                      {shop.features.slice(0, 4).map((feature) => {
-                        const config = featureIcons[feature]
-                        if (!config) return null
-                        const Icon = config.icon
-                        return (
-                          <div 
-                            key={feature}
-                            className="flex items-center gap-1 px-2 py-0.5 bg-white/5 rounded-full text-xs text-gray-400"
-                          >
-                            <Icon className="w-3 h-3" />
-                            <span>{config.label}</span>
-                          </div>
-                        )
-                      })}
+                      {shop.features.slice(0, 3).map((feature) => (
+                        <div 
+                          key={feature}
+                          className="px-2 py-0.5 bg-white/5 rounded-full text-xs text-gray-400"
+                        >
+                          {feature === 'wifi' && '📶 WiFi'}
+                          {feature === 'outdoor' && '🌳 Açık Alan'}
+                          {feature === 'pet_friendly' && '🐕 Pet'}
+                          {feature === 'specialty' && '⭐ Specialty'}
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
 
-                {/* Distance */}
                 {shop.distance_km && (
                   <div className="flex items-center justify-end mt-3 pt-3 border-t border-white/5">
                     <div className="flex items-center gap-1 text-sm text-gray-400">
