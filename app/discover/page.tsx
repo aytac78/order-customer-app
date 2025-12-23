@@ -105,7 +105,6 @@ const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: numbe
   return Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)) * 10) / 10
 }
 
-// Price level'dan ortalama fiyat tahmini
 const estimateAvgPrice = (priceLevel?: number): number => {
   switch(priceLevel) {
     case 1: return 200
@@ -267,8 +266,23 @@ function DiscoverContent() {
   const applyFilters = () => {
     let result = [...allPlaces]
     if (filters.searchQuery && filters.searchQuery.length >= 2) return
-    if (filters.categories.length > 0) result = result.filter(p => filters.categories.includes(p.category))
-    if (filters.priceLevel.length > 0) result = result.filter(p => p.price_level && filters.priceLevel.includes(p.price_level))
+    
+    // Kategori filtresi - OR mantığı (Kafe VEYA Restoran)
+    if (filters.categories.length > 0) {
+      result = result.filter(p => {
+        // ORDER mekanları için category alanını kontrol et
+        if (p.isOrderEnabled) {
+          return filters.categories.includes(p.category)
+        }
+        // Google mekanları için - restaurant kategorisi seçiliyse göster
+        return filters.categories.includes('restaurant') || filters.categories.includes('cafe')
+      })
+    }
+    
+    // Fiyat seviyesi filtresi
+    if (filters.priceLevel.length > 0) {
+      result = result.filter(p => p.price_level && filters.priceLevel.includes(p.price_level))
+    }
     
     // Bütçe filtresi
     if (filters.budgetRange) {
@@ -278,10 +292,40 @@ function DiscoverContent() {
       })
     }
     
-    if (filters.features.length > 0) result = result.filter(p => filters.features.every(f => (p as any)[f] === true))
-    if (filters.dietary.length > 0) result = result.filter(p => filters.dietary.every(d => (p as any)[d] === true))
-    if (filters.entertainment.length > 0) result = result.filter(p => filters.entertainment.some(e => (p as any)[e] === true))
-    if (filters.reservationToday) result = result.filter(p => p.reservation_available_today === true)
+    // Dietary filtresi - sadece ORDER mekanlara uygula, Google mekanlarını dahil etme
+    if (filters.dietary.length > 0) {
+      result = result.filter(p => {
+        // Google mekanlarında bu bilgi yok, onları hariç tut
+        if (!p.isOrderEnabled) return false
+        // ORDER mekanlarında en az biri true olmalı (OR mantığı)
+        return filters.dietary.some(d => (p as any)[d] === true)
+      })
+    }
+    
+    // Features filtresi - sadece ORDER mekanlara uygula
+    if (filters.features.length > 0) {
+      result = result.filter(p => {
+        if (!p.isOrderEnabled) return false
+        return filters.features.every(f => (p as any)[f] === true)
+      })
+    }
+    
+    // Entertainment filtresi - sadece ORDER mekanlara uygula
+    if (filters.entertainment.length > 0) {
+      result = result.filter(p => {
+        if (!p.isOrderEnabled) return false
+        return filters.entertainment.some(e => (p as any)[e] === true)
+      })
+    }
+    
+    // Rezervasyon filtresi
+    if (filters.reservationToday) {
+      result = result.filter(p => {
+        if (!p.isOrderEnabled) return false
+        return p.reservation_available_today === true
+      })
+    }
+    
     setPlaces(result)
   }
 
@@ -305,6 +349,9 @@ function DiscoverContent() {
     if (place.isOrderEnabled) router.push(`/venue/${place.id.replace('order-', '')}`)
     else window.open(`https://www.google.com/maps/search/?api=1&query=${place.lat},${place.lon}`, '_blank')
   }
+
+  // Aktif özel filtrelerin sayısını hesapla (dietary, features, entertainment, reservation)
+  const hasOrderOnlyFilters = filters.dietary.length > 0 || filters.features.length > 0 || filters.entertainment.length > 0 || filters.reservationToday
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white pb-24">
@@ -378,12 +425,26 @@ function DiscoverContent() {
               {entertainmentOptions.find(opt => opt.id === e)?.label}<button onClick={() => toggleArrayFilter('entertainment', e)}><X className="w-3 h-3" /></button>
             </span>
           ))}
+          {filters.features.map(f => (
+            <span key={f} className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs flex items-center gap-1">
+              {featureOptions.find(opt => opt.id === f)?.label}<button onClick={() => toggleArrayFilter('features', f)}><X className="w-3 h-3" /></button>
+            </span>
+          ))}
           {filters.reservationToday && (
-            <span className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs flex items-center gap-1">
+            <span className="px-2 py-1 bg-cyan-500/20 text-cyan-400 rounded-full text-xs flex items-center gap-1">
               Bugün Müsait<button onClick={() => setFilters(prev => ({ ...prev, reservationToday: false }))}><X className="w-3 h-3" /></button>
             </span>
           )}
           <button onClick={clearFilters} className="text-xs text-red-400 underline ml-2">Temizle</button>
+        </div>
+      )}
+
+      {/* ORDER Only Filter Info */}
+      {hasOrderOnlyFilters && (
+        <div className="px-4 py-2 bg-orange-500/10 border-b border-orange-500/20">
+          <p className="text-xs text-orange-400">
+            ℹ️ Seçili filtreler sadece ORDER üyesi mekanlarda geçerlidir
+          </p>
         </div>
       )}
 
@@ -393,7 +454,8 @@ function DiscoverContent() {
           <div className="flex flex-col items-center py-20"><Loader2 className="w-8 h-8 text-orange-500 animate-spin mb-4" /><p className="text-gray-400">Mekanlar yükleniyor...</p></div>
         ) : places.length === 0 ? (
           <div className="text-center py-10">
-            <p className="text-gray-400 mb-2">{filters.searchQuery ? `"${filters.searchQuery}" için sonuç bulunamadı` : 'Mekan bulunamadı'}</p>
+            <p className="text-gray-400 mb-2">{filters.searchQuery ? `"${filters.searchQuery}" için sonuç bulunamadı` : 'Bu filtrelere uygun mekan bulunamadı'}</p>
+            {hasOrderOnlyFilters && <p className="text-xs text-gray-500 mb-3">Seçili özellikler sadece ORDER üyesi mekanlarda aranıyor</p>}
             <button onClick={clearFilters} className="text-orange-500 text-sm">Filtreleri temizle</button>
           </div>
         ) : (
@@ -413,9 +475,11 @@ function DiscoverContent() {
                       <div className="flex items-center gap-2 mt-2 flex-wrap">
                         {place.has_gluten_free && <span className="text-xs bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded">Glutensiz</span>}
                         {place.has_vegan && <span className="text-xs bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded">Vegan</span>}
+                        {place.has_vegetarian && <span className="text-xs bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded">Vejetaryen</span>}
                         {place.has_live_music && <span className="text-xs bg-purple-500/20 text-purple-400 px-1.5 py-0.5 rounded">Canlı Müzik</span>}
                         {place.has_dj && <span className="text-xs bg-pink-500/20 text-pink-400 px-1.5 py-0.5 rounded">DJ</span>}
-                        {place.reservation_available_today && <span className="text-xs bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded">Bugün Müsait</span>}
+                        {place.has_pool && <span className="text-xs bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded">Havuz</span>}
+                        {place.reservation_available_today && <span className="text-xs bg-cyan-500/20 text-cyan-400 px-1.5 py-0.5 rounded">Bugün Müsait</span>}
                       </div>
                     )}
                     <div className="flex items-center gap-3 mt-2">
@@ -446,13 +510,11 @@ function DiscoverContent() {
       {showFilterModal && (
         <div className="fixed inset-0 z-50 bg-black/80">
           <div className="absolute inset-x-0 bottom-0 bg-[#1a1a1a] rounded-t-3xl flex flex-col" style={{ height: '60vh', marginBottom: '80px' }}>
-            {/* Header */}
             <div className="px-4 py-4 border-b border-white/10 flex items-center justify-between flex-shrink-0">
               <h2 className="text-lg font-bold">Filtreler</h2>
               <button onClick={() => setShowFilterModal(false)}><X className="w-6 h-6" /></button>
             </div>
 
-            {/* Scrollable Content */}
             <div className="flex-1 overflow-y-auto p-4 space-y-6">
               {/* Kategori */}
               <div>
@@ -494,56 +556,60 @@ function DiscoverContent() {
                 </div>
               </div>
 
-              {/* Diyet Seçenekleri */}
-              <div>
-                <h3 className="font-semibold mb-3 flex items-center gap-2"><Leaf className="w-4 h-4 text-orange-500" />Diyet Seçenekleri</h3>
-                <div className="flex flex-wrap gap-2">
-                  {dietaryOptions.map(opt => (
-                    <button key={opt.id} onClick={() => toggleArrayFilter('dietary', opt.id)}
-                      className={`px-4 py-2 rounded-xl text-sm flex items-center gap-2 ${filters.dietary.includes(opt.id) ? 'bg-emerald-500 text-white' : 'bg-[#242424] text-gray-300'}`}>
-                      <opt.icon className="w-4 h-4" />{opt.label}
-                    </button>
-                  ))}
+              {/* ORDER Üyesi Filtreler */}
+              <div className="pt-2 border-t border-white/10">
+                <p className="text-xs text-orange-400 mb-4">🏷️ Aşağıdaki filtreler sadece ORDER üyesi mekanlarda geçerlidir</p>
+                
+                {/* Diyet Seçenekleri */}
+                <div className="mb-4">
+                  <h3 className="font-semibold mb-3 flex items-center gap-2"><Leaf className="w-4 h-4 text-orange-500" />Diyet Seçenekleri</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {dietaryOptions.map(opt => (
+                      <button key={opt.id} onClick={() => toggleArrayFilter('dietary', opt.id)}
+                        className={`px-4 py-2 rounded-xl text-sm flex items-center gap-2 ${filters.dietary.includes(opt.id) ? 'bg-emerald-500 text-white' : 'bg-[#242424] text-gray-300'}`}>
+                        <opt.icon className="w-4 h-4" />{opt.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              {/* Eğlence */}
-              <div>
-                <h3 className="font-semibold mb-3 flex items-center gap-2"><Music className="w-4 h-4 text-orange-500" />Eğlence</h3>
-                <div className="flex flex-wrap gap-2">
-                  {entertainmentOptions.map(opt => (
-                    <button key={opt.id} onClick={() => toggleArrayFilter('entertainment', opt.id)}
-                      className={`px-4 py-2 rounded-xl text-sm flex items-center gap-2 ${filters.entertainment.includes(opt.id) ? 'bg-purple-500 text-white' : 'bg-[#242424] text-gray-300'}`}>
-                      <opt.icon className="w-4 h-4" />{opt.label}
-                    </button>
-                  ))}
+                {/* Eğlence */}
+                <div className="mb-4">
+                  <h3 className="font-semibold mb-3 flex items-center gap-2"><Music className="w-4 h-4 text-orange-500" />Eğlence</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {entertainmentOptions.map(opt => (
+                      <button key={opt.id} onClick={() => toggleArrayFilter('entertainment', opt.id)}
+                        className={`px-4 py-2 rounded-xl text-sm flex items-center gap-2 ${filters.entertainment.includes(opt.id) ? 'bg-purple-500 text-white' : 'bg-[#242424] text-gray-300'}`}>
+                        <opt.icon className="w-4 h-4" />{opt.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              {/* Özellikler */}
-              <div>
-                <h3 className="font-semibold mb-3 flex items-center gap-2"><Sparkles className="w-4 h-4 text-orange-500" />Özellikler</h3>
-                <div className="grid grid-cols-2 gap-2">
-                  {featureOptions.map(opt => (
-                    <button key={opt.id} onClick={() => toggleArrayFilter('features', opt.id)}
-                      className={`px-4 py-3 rounded-xl text-sm flex items-center gap-2 ${filters.features.includes(opt.id) ? 'bg-blue-500 text-white' : 'bg-[#242424] text-gray-300'}`}>
-                      <opt.icon className="w-4 h-4" />{opt.label}
-                    </button>
-                  ))}
+                {/* Özellikler */}
+                <div className="mb-4">
+                  <h3 className="font-semibold mb-3 flex items-center gap-2"><Sparkles className="w-4 h-4 text-orange-500" />Özellikler</h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    {featureOptions.map(opt => (
+                      <button key={opt.id} onClick={() => toggleArrayFilter('features', opt.id)}
+                        className={`px-4 py-3 rounded-xl text-sm flex items-center gap-2 ${filters.features.includes(opt.id) ? 'bg-blue-500 text-white' : 'bg-[#242424] text-gray-300'}`}>
+                        <opt.icon className="w-4 h-4" />{opt.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              {/* Bugün Rezervasyon */}
-              <div className="pb-2">
-                <button onClick={() => setFilters(prev => ({ ...prev, reservationToday: !prev.reservationToday }))}
-                  className={`w-full px-4 py-4 rounded-xl text-sm flex items-center justify-between ${filters.reservationToday ? 'bg-orange-500 text-white' : 'bg-[#242424] text-gray-300'}`}>
-                  <span className="flex items-center gap-3"><Calendar className="w-5 h-5" /><span>Bugün Rezervasyon Müsait</span></span>
-                  {filters.reservationToday && <Check className="w-5 h-5" />}
-                </button>
+                {/* Bugün Rezervasyon */}
+                <div className="pb-2">
+                  <button onClick={() => setFilters(prev => ({ ...prev, reservationToday: !prev.reservationToday }))}
+                    className={`w-full px-4 py-4 rounded-xl text-sm flex items-center justify-between ${filters.reservationToday ? 'bg-cyan-500 text-white' : 'bg-[#242424] text-gray-300'}`}>
+                    <span className="flex items-center gap-3"><Calendar className="w-5 h-5" /><span>Bugün Rezervasyon Müsait</span></span>
+                    {filters.reservationToday && <Check className="w-5 h-5" />}
+                  </button>
+                </div>
               </div>
             </div>
 
-            {/* Footer - Always Visible */}
             <div className="px-4 py-4 border-t border-white/10 flex gap-3 flex-shrink-0 bg-[#1a1a1a]">
               <button onClick={clearFilters} className="flex-1 py-3 rounded-xl border border-white/20 text-white font-medium">Temizle</button>
               <button onClick={() => setShowFilterModal(false)} className="flex-1 py-3 rounded-xl bg-orange-500 text-white font-medium">{places.length} Sonuç Göster</button>
