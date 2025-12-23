@@ -741,80 +741,85 @@ function EditProfileModal({ profile, onClose, onSave }: any) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/90 z-50 flex items-end">
-      <div className="w-full bg-[#1a1a1a] rounded-t-3xl max-h-[90vh] overflow-y-auto">
-        <div className="p-4 border-b border-white/10 flex items-center justify-between sticky top-0 bg-[#1a1a1a]">
-          <h2 className="text-lg font-bold">Profili Düzenle</h2>
-          <button onClick={onClose} className="p-2"><X className="w-6 h-6" /></button>
+    <div className="fixed inset-0 bg-[#0a0a0a] z-[9999] flex flex-col">
+      {/* Header */}
+      <div className="flex-shrink-0 p-4 flex items-center justify-between border-b border-white/10">
+        <h2 className="text-lg font-bold text-white">Profili Düzenle</h2>
+        <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full text-white">
+          <X className="w-6 h-6" />
+        </button>
+      </div>
+
+      {/* Content - Scrollable */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div>
+          <label className="text-sm text-gray-400 mb-1 block">Ad Soyad</label>
+          <input
+            type="text"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            className="w-full p-3 bg-[#1a1a1a] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+          />
         </div>
 
-        <div className="p-4 space-y-4">
-          <div>
-            <label className="text-sm text-gray-400 mb-1 block">Ad Soyad</label>
-            <input
-              type="text"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              className="w-full p-3 bg-[#2a2a2a] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
-            />
-          </div>
-
-          <div>
-            <label className="text-sm text-gray-400 mb-1 block">Telefon</label>
-            <input
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="+90 5XX XXX XX XX"
-              className="w-full p-3 bg-[#2a2a2a] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
-            />
-          </div>
-
-          <div>
-            <label className="text-sm text-gray-400 mb-1 block">Hakkımda</label>
-            <textarea
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              rows={3}
-              placeholder="Kendinizden bahsedin..."
-              className="w-full p-3 bg-[#2a2a2a] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"
-            />
-          </div>
-
-          <div>
-            <label className="text-sm text-gray-400 mb-1 block flex items-center gap-2">
-              <Instagram className="w-4 h-4" /> Instagram
-            </label>
-            <input
-              type="url"
-              value={instagram}
-              onChange={(e) => setInstagram(e.target.value)}
-              placeholder="https://instagram.com/kullaniciadi"
-              className="w-full p-3 bg-[#2a2a2a] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
-            />
-          </div>
-
-          <div>
-            <label className="text-sm text-gray-400 mb-1 block flex items-center gap-2">
-              <Facebook className="w-4 h-4" /> Facebook
-            </label>
-            <input
-              type="url"
-              value={facebook}
-              onChange={(e) => setFacebook(e.target.value)}
-              placeholder="https://facebook.com/kullaniciadi"
-              className="w-full p-3 bg-[#2a2a2a] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
-            />
-          </div>
-
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="w-full py-4 bg-orange-500 rounded-xl font-bold flex items-center justify-center gap-2"
-          >
-            {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Kaydet'}
-          </button>
+        <div>
+          <label className="text-sm text-gray-400 mb-1 block">Telefon</label>
+          <input
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="+90 5XX XXX XX XX"
+            className="w-full p-3 bg-[#1a1a1a] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+          />
         </div>
+
+        <div>
+          <label className="text-sm text-gray-400 mb-1 block">Hakkımda</label>
+          <textarea
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
+            rows={2}
+            placeholder="Kendinizden bahsedin..."
+            className="w-full p-3 bg-[#1a1a1a] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"
+          />
+        </div>
+
+        <div>
+          <label className="text-sm text-gray-400 mb-1 block flex items-center gap-2">
+            <Instagram className="w-4 h-4" /> Instagram
+          </label>
+          <input
+            type="url"
+            value={instagram}
+            onChange={(e) => setInstagram(e.target.value)}
+            placeholder="https://instagram.com/kullaniciadi"
+            className="w-full p-3 bg-[#1a1a1a] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+          />
+        </div>
+
+        <div>
+          <label className="text-sm text-gray-400 mb-1 block flex items-center gap-2">
+            <Facebook className="w-4 h-4" /> Facebook
+          </label>
+          <input
+            type="url"
+            value={facebook}
+            onChange={(e) => setFacebook(e.target.value)}
+            placeholder="https://facebook.com/kullaniciadi"
+            className="w-full p-3 bg-[#1a1a1a] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
+          />
+        </div>
+      </div>
+
+      {/* Footer - Fixed at bottom */}
+      <div className="flex-shrink-0 p-4 border-t border-white/10 bg-[#0a0a0a]">
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="w-full py-4 bg-orange-500 rounded-xl font-bold text-white flex items-center justify-center gap-2"
+        >
+          {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Kaydet'}
+        </button>
       </div>
     </div>
   )
@@ -864,122 +869,127 @@ function PaymentMethodsModal({ savedCards, defaultMethod, onClose, onSave }: any
   }
 
   return (
-    <div className="fixed inset-0 bg-black/90 z-50 flex items-end">
-      <div className="w-full bg-[#1a1a1a] rounded-t-3xl max-h-[90vh] overflow-y-auto">
-        <div className="p-4 border-b border-white/10 flex items-center justify-between sticky top-0 bg-[#1a1a1a]">
-          <h2 className="text-lg font-bold">Ödeme Yöntemleri</h2>
-          <button onClick={onClose} className="p-2"><X className="w-6 h-6" /></button>
+    <div className="fixed inset-0 bg-[#0a0a0a] z-[9999] flex flex-col">
+      {/* Header */}
+      <div className="flex-shrink-0 p-4 flex items-center justify-between border-b border-white/10">
+        <h2 className="text-lg font-bold text-white">Ödeme Yöntemleri</h2>
+        <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full text-white">
+          <X className="w-6 h-6" />
+        </button>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {/* Default Method */}
+        <div>
+          <label className="text-sm text-gray-400 mb-2 block">Varsayılan Ödeme</label>
+          <div className="space-y-2">
+            <button
+              onClick={() => setMethod('tit_pay')}
+              className={`w-full flex items-center gap-3 p-4 rounded-xl border ${
+                method === 'tit_pay' ? 'border-purple-500 bg-purple-500/10' : 'border-gray-700 bg-[#1a1a1a]'
+              }`}
+            >
+              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-lg flex items-center justify-center">
+                <span className="text-sm font-bold">TiT</span>
+              </div>
+              <span className="flex-1 text-left font-medium">TiT Pay</span>
+              {method === 'tit_pay' && <Check className="w-5 h-5 text-purple-500" />}
+            </button>
+
+            <button
+              onClick={() => setMethod('cash')}
+              className={`w-full flex items-center gap-3 p-4 rounded-xl border ${
+                method === 'cash' ? 'border-green-500 bg-green-500/10' : 'border-gray-700 bg-[#1a1a1a]'
+              }`}
+            >
+              <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
+                <Wallet className="w-5 h-5 text-green-500" />
+              </div>
+              <span className="flex-1 text-left font-medium">Nakit</span>
+              {method === 'cash' && <Check className="w-5 h-5 text-green-500" />}
+            </button>
+          </div>
         </div>
 
-        <div className="p-4 space-y-4">
-          {/* Default Method */}
-          <div>
-            <label className="text-sm text-gray-400 mb-2 block">Varsayılan Ödeme</label>
-            <div className="space-y-2">
-              <button
-                onClick={() => setMethod('tit_pay')}
-                className={`w-full flex items-center gap-3 p-4 rounded-xl border ${
-                  method === 'tit_pay' ? 'border-purple-500 bg-purple-500/10' : 'border-gray-700 bg-[#2a2a2a]'
+        {/* Saved Cards */}
+        <div>
+          <label className="text-sm text-gray-400 mb-2 block">Kayıtlı Kartlar</label>
+          <div className="space-y-2">
+            {cards.map(card => (
+              <div
+                key={card.id}
+                className={`flex items-center gap-3 p-4 rounded-xl border ${
+                  card.isDefault && method === 'card' ? 'border-orange-500 bg-orange-500/10' : 'border-gray-700 bg-[#1a1a1a]'
                 }`}
               >
-                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-500 rounded-lg flex items-center justify-center">
-                  <span className="text-sm font-bold">TiT</span>
+                <CreditCard className="w-6 h-6 text-gray-400" />
+                <div className="flex-1">
+                  <p className="font-medium">•••• {card.last4}</p>
+                  <p className="text-xs text-gray-400">{card.brand} • {card.expiry}</p>
                 </div>
-                <span className="flex-1 text-left font-medium">TiT Pay</span>
-                {method === 'tit_pay' && <Check className="w-5 h-5 text-purple-500" />}
-              </button>
+                <button onClick={() => setDefaultCard(card.id)} className="p-2">
+                  {card.isDefault ? <Check className="w-5 h-5 text-orange-500" /> : <div className="w-5 h-5 border border-gray-600 rounded-full" />}
+                </button>
+                <button onClick={() => removeCard(card.id)} className="p-2 text-red-500">
+                  <Trash2 className="w-5 h-5" />
+                </button>
+              </div>
+            ))}
 
-              <button
-                onClick={() => setMethod('cash')}
-                className={`w-full flex items-center gap-3 p-4 rounded-xl border ${
-                  method === 'cash' ? 'border-green-500 bg-green-500/10' : 'border-gray-700 bg-[#2a2a2a]'
-                }`}
-              >
-                <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
-                  <Wallet className="w-5 h-5 text-green-500" />
-                </div>
-                <span className="flex-1 text-left font-medium">Nakit</span>
-                {method === 'cash' && <Check className="w-5 h-5 text-green-500" />}
-              </button>
-            </div>
-          </div>
-
-          {/* Saved Cards */}
-          <div>
-            <label className="text-sm text-gray-400 mb-2 block">Kayıtlı Kartlar</label>
-            <div className="space-y-2">
-              {cards.map(card => (
-                <div
-                  key={card.id}
-                  className={`flex items-center gap-3 p-4 rounded-xl border ${
-                    card.isDefault && method === 'card' ? 'border-orange-500 bg-orange-500/10' : 'border-gray-700 bg-[#2a2a2a]'
-                  }`}
-                >
-                  <CreditCard className="w-6 h-6 text-gray-400" />
-                  <div className="flex-1">
-                    <p className="font-medium">•••• {card.last4}</p>
-                    <p className="text-xs text-gray-400">{card.brand} • {card.expiry}</p>
-                  </div>
-                  <button onClick={() => setDefaultCard(card.id)} className="p-2">
-                    {card.isDefault ? <Check className="w-5 h-5 text-orange-500" /> : <div className="w-5 h-5 border border-gray-600 rounded-full" />}
-                  </button>
-                  <button onClick={() => removeCard(card.id)} className="p-2 text-red-500">
-                    <Trash2 className="w-5 h-5" />
-                  </button>
-                </div>
-              ))}
-
-              {/* Add Card Form */}
-              {showAddCard ? (
-                <div className="p-4 bg-[#2a2a2a] rounded-xl space-y-3">
+            {/* Add Card Form */}
+            {showAddCard ? (
+              <div className="p-4 bg-[#1a1a1a] rounded-xl space-y-3">
+                <input
+                  type="text"
+                  value={cardNumber}
+                  onChange={(e) => setCardNumber(e.target.value.replace(/\D/g, '').slice(0, 16))}
+                  placeholder="Kart Numarası"
+                  className="w-full p-3 bg-[#2a2a2a] rounded-lg text-white"
+                />
+                <div className="flex gap-3">
                   <input
                     type="text"
-                    value={cardNumber}
-                    onChange={(e) => setCardNumber(e.target.value.replace(/\D/g, '').slice(0, 16))}
-                    placeholder="Kart Numarası"
-                    className="w-full p-3 bg-[#1a1a1a] rounded-lg text-white"
+                    value={expiry}
+                    onChange={(e) => setExpiry(e.target.value)}
+                    placeholder="AA/YY"
+                    className="flex-1 p-3 bg-[#2a2a2a] rounded-lg text-white"
                   />
-                  <div className="flex gap-3">
-                    <input
-                      type="text"
-                      value={expiry}
-                      onChange={(e) => setExpiry(e.target.value)}
-                      placeholder="AA/YY"
-                      className="flex-1 p-3 bg-[#1a1a1a] rounded-lg text-white"
-                    />
-                    <input
-                      type="text"
-                      value={cvv}
-                      onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
-                      placeholder="CVV"
-                      className="w-24 p-3 bg-[#1a1a1a] rounded-lg text-white"
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => setShowAddCard(false)} className="flex-1 py-3 bg-gray-700 rounded-lg">İptal</button>
-                    <button onClick={addCard} className="flex-1 py-3 bg-orange-500 rounded-lg font-medium">Ekle</button>
-                  </div>
+                  <input
+                    type="text"
+                    value={cvv}
+                    onChange={(e) => setCvv(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                    placeholder="CVV"
+                    className="w-24 p-3 bg-[#2a2a2a] rounded-lg text-white"
+                  />
                 </div>
-              ) : (
-                <button
-                  onClick={() => setShowAddCard(true)}
-                  className="w-full flex items-center justify-center gap-2 p-4 border border-dashed border-gray-700 rounded-xl text-gray-400"
-                >
-                  <Plus className="w-5 h-5" />
-                  Yeni Kart Ekle
-                </button>
-              )}
-            </div>
+                <div className="flex gap-2">
+                  <button onClick={() => setShowAddCard(false)} className="flex-1 py-3 bg-gray-700 rounded-lg">İptal</button>
+                  <button onClick={addCard} className="flex-1 py-3 bg-orange-500 rounded-lg font-medium">Ekle</button>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowAddCard(true)}
+                className="w-full flex items-center justify-center gap-2 p-4 border border-dashed border-gray-700 rounded-xl text-gray-400"
+              >
+                <Plus className="w-5 h-5" />
+                Yeni Kart Ekle
+              </button>
+            )}
           </div>
-
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="w-full py-4 bg-orange-500 rounded-xl font-bold flex items-center justify-center gap-2"
-          >
-            {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Kaydet'}
-          </button>
         </div>
+      </div>
+
+      {/* Footer */}
+      <div className="flex-shrink-0 p-4 border-t border-white/10 bg-[#0a0a0a]">
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="w-full py-4 bg-orange-500 rounded-xl font-bold text-white flex items-center justify-center gap-2"
+        >
+          {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Kaydet'}
+        </button>
       </div>
     </div>
   )
@@ -1003,80 +1013,85 @@ function SecurityModal({ profile, onClose, onSave }: any) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/90 z-50 flex items-end">
-      <div className="w-full bg-[#1a1a1a] rounded-t-3xl max-h-[90vh] overflow-y-auto">
-        <div className="p-4 border-b border-white/10 flex items-center justify-between sticky top-0 bg-[#1a1a1a]">
-          <h2 className="text-lg font-bold">Güvenlik Ayarları</h2>
-          <button onClick={onClose} className="p-2"><X className="w-6 h-6" /></button>
+    <div className="fixed inset-0 bg-[#0a0a0a] z-[9999] flex flex-col">
+      {/* Header */}
+      <div className="flex-shrink-0 p-4 flex items-center justify-between border-b border-white/10">
+        <h2 className="text-lg font-bold text-white">Güvenlik Ayarları</h2>
+        <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full text-white">
+          <X className="w-6 h-6" />
+        </button>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <p className="text-sm text-gray-400">
+          Giriş yaptıktan sonra 1 hafta boyunca oturum açık kalır. Tekrar giriş için bu yöntemlerden birini kullanabilirsiniz.
+        </p>
+
+        {/* Biometric */}
+        <div className="flex items-center justify-between p-4 bg-[#1a1a1a] rounded-xl">
+          <div className="flex items-center gap-3">
+            <Fingerprint className="w-6 h-6 text-green-500" />
+            <div>
+              <p className="font-medium">Parmak İzi / Face ID</p>
+              <p className="text-xs text-gray-400">Biyometrik doğrulama</p>
+            </div>
+          </div>
+          <button
+            onClick={() => setBiometricEnabled(!biometricEnabled)}
+            className={`w-12 h-7 rounded-full transition-colors ${biometricEnabled ? 'bg-green-500' : 'bg-gray-600'}`}
+          >
+            <div className={`w-5 h-5 bg-white rounded-full transition-transform ${biometricEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+          </button>
         </div>
 
-        <div className="p-4 space-y-4">
-          <p className="text-sm text-gray-400">
-            Giriş yaptıktan sonra 1 hafta boyunca oturum açık kalır. Tekrar giriş için bu yöntemlerden birini kullanabilirsiniz.
-          </p>
-
-          {/* Biometric */}
-          <div className="flex items-center justify-between p-4 bg-[#2a2a2a] rounded-xl">
+        {/* PIN */}
+        <div className="p-4 bg-[#1a1a1a] rounded-xl space-y-3">
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Fingerprint className="w-6 h-6 text-green-500" />
+              <KeyRound className="w-6 h-6 text-blue-500" />
               <div>
-                <p className="font-medium">Parmak İzi / Face ID</p>
-                <p className="text-xs text-gray-400">Biyometrik doğrulama</p>
+                <p className="font-medium">PIN Kodu</p>
+                <p className="text-xs text-gray-400">4-6 haneli şifre</p>
               </div>
             </div>
             <button
-              onClick={() => setBiometricEnabled(!biometricEnabled)}
-              className={`w-12 h-7 rounded-full transition-colors ${biometricEnabled ? 'bg-green-500' : 'bg-gray-600'}`}
+              onClick={() => setPinEnabled(!pinEnabled)}
+              className={`w-12 h-7 rounded-full transition-colors ${pinEnabled ? 'bg-blue-500' : 'bg-gray-600'}`}
             >
-              <div className={`w-5 h-5 bg-white rounded-full transition-transform ${biometricEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+              <div className={`w-5 h-5 bg-white rounded-full transition-transform ${pinEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
             </button>
           </div>
 
-          {/* PIN */}
-          <div className="p-4 bg-[#2a2a2a] rounded-xl space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <KeyRound className="w-6 h-6 text-blue-500" />
-                <div>
-                  <p className="font-medium">PIN Kodu</p>
-                  <p className="text-xs text-gray-400">4-6 haneli şifre</p>
-                </div>
-              </div>
+          {pinEnabled && (
+            <div className="relative">
+              <input
+                type={showPin ? 'text' : 'password'}
+                value={pin}
+                onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                placeholder="PIN kodunuzu girin"
+                className="w-full p-3 bg-[#2a2a2a] rounded-lg text-white text-center tracking-widest"
+              />
               <button
-                onClick={() => setPinEnabled(!pinEnabled)}
-                className={`w-12 h-7 rounded-full transition-colors ${pinEnabled ? 'bg-blue-500' : 'bg-gray-600'}`}
+                onClick={() => setShowPin(!showPin)}
+                className="absolute right-3 top-1/2 -translate-y-1/2"
               >
-                <div className={`w-5 h-5 bg-white rounded-full transition-transform ${pinEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+                {showPin ? <EyeOff className="w-5 h-5 text-gray-400" /> : <Eye className="w-5 h-5 text-gray-400" />}
               </button>
             </div>
-
-            {pinEnabled && (
-              <div className="relative">
-                <input
-                  type={showPin ? 'text' : 'password'}
-                  value={pin}
-                  onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  placeholder="PIN kodunuzu girin"
-                  className="w-full p-3 bg-[#1a1a1a] rounded-lg text-white text-center tracking-widest"
-                />
-                <button
-                  onClick={() => setShowPin(!showPin)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2"
-                >
-                  {showPin ? <EyeOff className="w-5 h-5 text-gray-400" /> : <Eye className="w-5 h-5 text-gray-400" />}
-                </button>
-              </div>
-            )}
-          </div>
-
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="w-full py-4 bg-orange-500 rounded-xl font-bold flex items-center justify-center gap-2"
-          >
-            {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Kaydet'}
-          </button>
+          )}
         </div>
+      </div>
+
+      {/* Footer */}
+      <div className="flex-shrink-0 p-4 border-t border-white/10 bg-[#0a0a0a]">
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="w-full py-4 bg-orange-500 rounded-xl font-bold text-white flex items-center justify-center gap-2"
+        >
+          {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Kaydet'}
+        </button>
       </div>
     </div>
   )
