@@ -1,15 +1,17 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { 
   ArrowLeft, MapPin, Users, Heart, X, MessageCircle, 
   Send, ChevronLeft, Sparkles, Clock, Navigation,
-  Instagram, Zap, CheckCircle, Building2, Settings,
-  Eye, EyeOff, LogOut, Shield, Flag, Ban, ExternalLink,
-  ChevronRight, User, Calendar, Filter, AlertTriangle
+  Zap, CheckCircle, Building2, Settings,
+  Eye, EyeOff, LogOut, Shield, Ban, ExternalLink,
+  ChevronRight, User, Calendar, Filter, AlertTriangle,
+  Camera, Upload, Loader2, Trash2
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import Image from 'next/image'
 
 // Types
 interface HereProfile {
@@ -33,7 +35,7 @@ interface HereUser {
   id: string
   nickname: string
   age: number
-  avatar: string
+  avatar_url?: string
   bio: string
   interests: string[]
   gender: string
@@ -100,8 +102,6 @@ const ageRanges = [
   { min: 45, max: 99, label: '45+' },
 ]
 
-const avatarEmojis = ['👤', '😊', '🙂', '😎', '🤓', '🧔', '👩', '👨', '🧑', '👱‍♀️', '👱', '🧑‍🦰', '👩‍🦰', '🧑‍🦱', '👩‍🦱', '🧑‍🦳', '👴', '👵']
-
 // Demo Data
 const currentVenue: Venue = {
   id: 'v1',
@@ -111,32 +111,34 @@ const currentVenue: Venue = {
 }
 
 const usersAtVenue: HereUser[] = [
-  { id: 'u1', nickname: 'KahveSever', age: 26, avatar: '👩‍🦰', bio: 'Kahve tutkunu ☕ Kitap kurdu 📚', interests: ['Kahve', 'Kitap', 'Seyahat'], gender: 'female', orientation: 'hetero', isHere: true, lastSeenMinutes: 2, venue: "Nihal's Break Point", avatar_blur: false },
-  { id: 'u2', nickname: 'TechGuy', age: 28, avatar: '👨‍💼', bio: 'Yazılımcı 💻 Müzik sever 🎵', interests: ['Teknoloji', 'Müzik', 'Film'], gender: 'male', orientation: 'hetero', isHere: true, lastSeenMinutes: 5, venue: "Nihal's Break Point", avatar_blur: true },
-  { id: 'u3', nickname: 'ArtLover', age: 24, avatar: '👩‍🎨', bio: 'Tasarımcı 🎨 Yoga lover 🧘‍♀️', interests: ['Tasarım', 'Yoga', 'Doğa'], gender: 'female', orientation: 'bisexual', isHere: true, lastSeenMinutes: 0, venue: "Nihal's Break Point", avatar_blur: false },
+  { id: 'u1', nickname: 'KahveSever', age: 26, avatar_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400', bio: 'Kahve tutkunu ☕ Kitap kurdu 📚', interests: ['Kahve', 'Kitap', 'Seyahat'], gender: 'female', orientation: 'hetero', isHere: true, lastSeenMinutes: 2, venue: "Nihal's Break Point", avatar_blur: false },
+  { id: 'u2', nickname: 'TechGuy', age: 28, avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400', bio: 'Yazılımcı 💻 Müzik sever 🎵', interests: ['Teknoloji', 'Müzik', 'Film'], gender: 'male', orientation: 'hetero', isHere: true, lastSeenMinutes: 5, venue: "Nihal's Break Point", avatar_blur: true },
+  { id: 'u3', nickname: 'ArtLover', age: 24, avatar_url: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400', bio: 'Tasarımcı 🎨 Yoga lover 🧘‍♀️', interests: ['Tasarım', 'Yoga', 'Doğa'], gender: 'female', orientation: 'bisexual', isHere: true, lastSeenMinutes: 0, venue: "Nihal's Break Point", avatar_blur: false },
 ]
 
 const nearbyUsers: HereUser[] = [
-  { id: 'u4', nickname: 'FoodieChef', age: 30, avatar: '👨‍🍳', bio: 'Gurme 🍷 Yemek bloggerı', interests: ['Yemek', 'Şarap', 'Fotoğraf'], gender: 'male', orientation: 'gay', isHere: false, lastSeenMinutes: 10, distance: 150, venue: 'Cafe Nero', avatar_blur: false },
-  { id: 'u5', nickname: 'DancerPM', age: 27, avatar: '👩‍💻', bio: 'PM 📊 Dans etmeyi seviyorum 💃', interests: ['İş', 'Dans', 'Netflix'], gender: 'female', orientation: 'hetero', isHere: false, lastSeenMinutes: 3, distance: 320, venue: 'Starbucks', avatar_blur: true },
+  { id: 'u4', nickname: 'FoodieChef', age: 30, avatar_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400', bio: 'Gurme 🍷 Yemek bloggerı', interests: ['Yemek', 'Şarap', 'Fotoğraf'], gender: 'male', orientation: 'gay', isHere: false, lastSeenMinutes: 10, distance: 150, venue: 'Cafe Nero', avatar_blur: false },
+  { id: 'u5', nickname: 'DancerPM', age: 27, avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400', bio: 'PM 📊 Dans etmeyi seviyorum 💃', interests: ['İş', 'Dans', 'Netflix'], gender: 'female', orientation: 'hetero', isHere: false, lastSeenMinutes: 3, distance: 320, venue: 'Starbucks', avatar_blur: true },
 ]
 
 type TabType = 'venue' | 'nearby' | 'messages' | 'chat' | 'profile' | 'setup'
 
 export default function HerePage() {
   const router = useRouter()
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [mounted, setMounted] = useState(false)
   const [activeTab, setActiveTab] = useState<TabType>('venue')
   const [hasProfile, setHasProfile] = useState(false)
   const [profile, setProfile] = useState<HereProfile | null>(null)
   const [isCheckedIn, setIsCheckedIn] = useState(false)
   const [checkoutTimer, setCheckoutTimer] = useState<number | null>(null)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   
   // Profile Setup State
   const [setupStep, setSetupStep] = useState(1)
   const [nickname, setNickname] = useState('')
   const [bio, setBio] = useState('')
-  const [selectedAvatar, setSelectedAvatar] = useState('👤')
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [avatarBlur, setAvatarBlur] = useState(true)
   const [gender, setGender] = useState('')
   const [orientation, setOrientation] = useState('prefer_not_say')
@@ -144,6 +146,7 @@ export default function HerePage() {
   const [ageRangeMin, setAgeRangeMin] = useState(18)
   const [ageRangeMax, setAgeRangeMax] = useState(99)
   const [birthYear, setBirthYear] = useState('')
+  const [uploading, setUploading] = useState(false)
   
   // Matching State
   const [matches, setMatches] = useState<Match[]>([])
@@ -165,25 +168,107 @@ export default function HerePage() {
 
   useEffect(() => {
     setMounted(true)
+    checkAuth()
     checkProfile()
   }, [])
 
+  const checkAuth = async () => {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      setCurrentUserId(user.id)
+    }
+  }
+
   const checkProfile = async () => {
-    // Demo: Check if profile exists
     const savedProfile = localStorage.getItem('here_profile')
     if (savedProfile) {
-      setProfile(JSON.parse(savedProfile))
+      const parsed = JSON.parse(savedProfile)
+      setProfile(parsed)
       setHasProfile(true)
+      // Populate form fields
+      setNickname(parsed.nickname || '')
+      setBio(parsed.bio || '')
+      setAvatarUrl(parsed.avatar_url || null)
+      setAvatarBlur(parsed.avatar_blur ?? true)
+      setGender(parsed.gender || '')
+      setOrientation(parsed.orientation || 'prefer_not_say')
+      setLookingFor(parsed.looking_for || 'everyone')
+      setAgeRangeMin(parsed.age_range_min || 18)
+      setAgeRangeMax(parsed.age_range_max || 99)
+    }
+  }
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    // Validate file
+    if (!file.type.startsWith('image/')) {
+      alert('Lütfen bir resim dosyası seçin')
+      return
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Dosya boyutu 5MB\'dan küçük olmalı')
+      return
+    }
+
+    setUploading(true)
+
+    try {
+      // Create unique filename
+      const fileExt = file.name.split('.').pop()
+      const fileName = `${currentUserId || 'demo'}-${Date.now()}.${fileExt}`
+      const filePath = `${currentUserId || 'demo'}/${fileName}`
+
+      // Upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('here-avatars')
+        .upload(filePath, file, { upsert: true })
+
+      if (uploadError) {
+        console.error('Upload error:', uploadError)
+        // Fallback: Use local preview
+        const reader = new FileReader()
+        reader.onloadend = () => {
+          setAvatarUrl(reader.result as string)
+        }
+        reader.readAsDataURL(file)
+      } else {
+        // Get public URL
+        const { data: { publicUrl } } = supabase.storage
+          .from('here-avatars')
+          .getPublicUrl(filePath)
+        
+        setAvatarUrl(publicUrl)
+      }
+    } catch (error) {
+      console.error('Upload error:', error)
+      // Fallback: Use local preview
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setAvatarUrl(reader.result as string)
+      }
+      reader.readAsDataURL(file)
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const removePhoto = () => {
+    setAvatarUrl(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
     }
   }
 
   const saveProfile = () => {
     const newProfile: HereProfile = {
       id: `profile-${Date.now()}`,
-      user_id: 'demo-user',
+      user_id: currentUserId || 'demo-user',
       nickname,
       bio,
-      avatar_url: selectedAvatar,
+      avatar_url: avatarUrl || undefined,
       avatar_blur: avatarBlur,
       orientation,
       looking_for: lookingFor,
@@ -202,8 +287,6 @@ export default function HerePage() {
 
   const handleCheckIn = () => {
     setIsCheckedIn(true)
-    // 15 dakika sonra otomatik checkout (demo için 15 saniye)
-    // Gerçekte ödeme sonrası tetiklenir
   }
 
   const handleCheckOut = () => {
@@ -211,36 +294,15 @@ export default function HerePage() {
     setCheckoutTimer(null)
   }
 
-  const startAutoCheckout = () => {
-    // Hesap ödendikten sonra 15 dk timer başlat
-    setCheckoutTimer(15 * 60) // 15 dakika
-    const interval = setInterval(() => {
-      setCheckoutTimer(prev => {
-        if (prev === null || prev <= 1) {
-          clearInterval(interval)
-          handleCheckOut()
-          return null
-        }
-        return prev - 1
-      })
-    }, 1000)
-  }
-
   // Filter users based on preferences
   const filterUsers = (users: HereUser[]) => {
     return users.filter(user => {
-      // Gender filter
       if (filterGender.length > 0 && !filterGender.includes(user.gender)) return false
-      
-      // Age filter
       if (filterAgeRange && (user.age < filterAgeRange.min || user.age > filterAgeRange.max)) return false
-      
-      // Looking for filter (from profile)
       if (profile) {
         if (profile.looking_for === 'men' && user.gender !== 'male') return false
         if (profile.looking_for === 'women' && user.gender !== 'female') return false
       }
-      
       return true
     })
   }
@@ -285,7 +347,6 @@ export default function HerePage() {
     setMessages(prev => [...prev, msg])
     setNewMessage('')
     
-    // After 3 messages, show TiT Chat modal
     if (messages.length >= 2) {
       setTimeout(() => setShowTitChatModal(true), 1000)
     } else {
@@ -304,7 +365,6 @@ export default function HerePage() {
   }
 
   const moveToTitChat = () => {
-    // TiT Chat'e yönlendir
     alert('TiT Chat açılıyor... (Demo)')
     setShowTitChatModal(false)
     if (selectedMatch) {
@@ -328,6 +388,30 @@ export default function HerePage() {
     return new Date().getFullYear() - parseInt(birthYear)
   }
 
+  // Avatar Component
+  const AvatarImage = ({ src, blur, size = 'md', className = '' }: { src?: string, blur?: boolean, size?: 'sm' | 'md' | 'lg' | 'xl', className?: string }) => {
+    const sizeClasses = {
+      sm: 'w-10 h-10',
+      md: 'w-14 h-14',
+      lg: 'w-24 h-24',
+      xl: 'w-32 h-32'
+    }
+    
+    return (
+      <div className={`${sizeClasses[size]} rounded-full overflow-hidden bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center ${className}`}>
+        {src ? (
+          <img 
+            src={src} 
+            alt="Avatar" 
+            className={`w-full h-full object-cover ${blur ? 'blur-lg scale-110' : ''}`}
+          />
+        ) : (
+          <User className={`${size === 'xl' ? 'w-16 h-16' : size === 'lg' ? 'w-12 h-12' : 'w-6 h-6'} text-white/70`} />
+        )}
+      </div>
+    )
+  }
+
   if (!mounted) {
     return (
       <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center">
@@ -339,7 +423,7 @@ export default function HerePage() {
   // PROFILE SETUP SCREEN
   if (!hasProfile || activeTab === 'setup') {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] text-white">
+      <div className="min-h-screen bg-[#0a0a0a] text-white pb-24">
         <div className="p-4 border-b border-white/10 flex items-center gap-4">
           <button onClick={() => hasProfile ? setActiveTab('venue') : router.back()}>
             <ArrowLeft className="w-6 h-6" />
@@ -360,34 +444,74 @@ export default function HerePage() {
             <div className="space-y-6">
               <div className="text-center mb-8">
                 <h2 className="text-2xl font-bold mb-2">Temel Bilgiler</h2>
-                <p className="text-gray-400">Nickname ve profilin</p>
+                <p className="text-gray-400">Fotoğraf ve nickname</p>
               </div>
 
-              {/* Avatar Selection */}
-              <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">Avatar Seç</label>
-                <div className="flex flex-wrap gap-2 justify-center mb-4">
-                  {avatarEmojis.map(emoji => (
-                    <button key={emoji} onClick={() => setSelectedAvatar(emoji)}
-                      className={`w-14 h-14 rounded-full text-2xl flex items-center justify-center ${selectedAvatar === emoji ? 'bg-pink-500 ring-2 ring-pink-400' : 'bg-[#1a1a1a]'}`}>
-                      {emoji}
-                    </button>
-                  ))}
-                </div>
-                
-                {/* Avatar Blur Toggle */}
-                <button onClick={() => setAvatarBlur(!avatarBlur)}
-                  className={`w-full flex items-center justify-between p-4 rounded-xl ${avatarBlur ? 'bg-pink-500/20 border border-pink-500' : 'bg-[#1a1a1a]'}`}>
-                  <div className="flex items-center gap-3">
-                    {avatarBlur ? <EyeOff className="w-5 h-5 text-pink-500" /> : <Eye className="w-5 h-5" />}
-                    <div className="text-left">
-                      <p className="font-medium">Fotoğrafı Bulanıklaştır</p>
-                      <p className="text-xs text-gray-400">Eşleşene kadar avatarın bulanık görünür</p>
+              {/* Photo Upload */}
+              <div className="flex flex-col items-center">
+                <div className="relative mb-4">
+                  <AvatarImage src={avatarUrl || undefined} blur={false} size="xl" />
+                  
+                  {uploading && (
+                    <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
+                      <Loader2 className="w-8 h-8 animate-spin text-white" />
                     </div>
-                  </div>
-                  {avatarBlur && <CheckCircle className="w-5 h-5 text-pink-500" />}
-                </button>
+                  )}
+                  
+                  {avatarUrl && !uploading && (
+                    <button 
+                      onClick={removePhoto}
+                      className="absolute -top-2 -right-2 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoUpload}
+                  className="hidden"
+                />
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploading}
+                    className="flex items-center gap-2 px-4 py-2 bg-pink-500 rounded-xl font-medium disabled:opacity-50"
+                  >
+                    <Camera className="w-4 h-4" />
+                    {avatarUrl ? 'Değiştir' : 'Fotoğraf Ekle'}
+                  </button>
+                </div>
+
+                <p className="text-xs text-gray-500 mt-2">Max 5MB • JPG, PNG</p>
               </div>
+
+              {/* Avatar Blur Toggle */}
+              <button onClick={() => setAvatarBlur(!avatarBlur)}
+                className={`w-full flex items-center justify-between p-4 rounded-xl ${avatarBlur ? 'bg-pink-500/20 border border-pink-500' : 'bg-[#1a1a1a]'}`}>
+                <div className="flex items-center gap-3">
+                  {avatarBlur ? <EyeOff className="w-5 h-5 text-pink-500" /> : <Eye className="w-5 h-5" />}
+                  <div className="text-left">
+                    <p className="font-medium">Fotoğrafı Bulanıklaştır</p>
+                    <p className="text-xs text-gray-400">Eşleşene kadar fotoğrafın bulanık görünür</p>
+                  </div>
+                </div>
+                {avatarBlur && <CheckCircle className="w-5 h-5 text-pink-500" />}
+              </button>
+
+              {/* Preview */}
+              {avatarUrl && avatarBlur && (
+                <div className="bg-[#1a1a1a] rounded-xl p-4">
+                  <p className="text-sm text-gray-400 mb-3 text-center">Diğerleri şöyle görecek:</p>
+                  <div className="flex justify-center">
+                    <AvatarImage src={avatarUrl} blur={true} size="lg" />
+                  </div>
+                </div>
+              )}
 
               {/* Nickname */}
               <div>
@@ -541,9 +665,7 @@ export default function HerePage() {
           <button onClick={() => { setActiveTab('messages'); setSelectedMatch(null); }}>
             <ChevronLeft className="w-6 h-6" />
           </button>
-          <div className={`w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center text-xl ${selectedMatch.user.avatar_blur ? 'blur-sm' : ''}`}>
-            {selectedMatch.user.avatar}
-          </div>
+          <AvatarImage src={selectedMatch.user.avatar_url} blur={selectedMatch.user.avatar_blur} size="sm" />
           <div className="flex-1">
             <h2 className="font-semibold">{selectedMatch.user.nickname}</h2>
             <p className="text-xs text-gray-400">Nickname ile sohbet</p>
@@ -627,8 +749,8 @@ export default function HerePage() {
         <div className="p-4 space-y-4">
           {/* Profile Card */}
           <div className="bg-[#1a1a1a] rounded-2xl p-6 text-center">
-            <div className={`w-24 h-24 rounded-full bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center text-5xl mx-auto mb-4 ${profile?.avatar_blur ? 'blur-sm' : ''}`}>
-              {profile?.avatar_url || '👤'}
+            <div className="flex justify-center mb-4">
+              <AvatarImage src={profile?.avatar_url} blur={profile?.avatar_blur} size="lg" />
             </div>
             <h2 className="text-xl font-bold">{profile?.nickname}</h2>
             <p className="text-gray-400 text-sm mt-1">{profile?.bio}</p>
@@ -687,13 +809,27 @@ export default function HerePage() {
   const UserCard = ({ user, showVenueBadge = false, showDistance = false }: { user: HereUser, showVenueBadge?: boolean, showDistance?: boolean }) => (
     <div className="relative">
       <div className="bg-[#1a1a1a] rounded-3xl overflow-hidden">
-        <div className="h-80 bg-gradient-to-br from-pink-500 via-purple-500 to-orange-500 flex items-center justify-center relative">
-          <span className={`text-9xl ${user.avatar_blur ? 'blur-md' : ''}`}>{user.avatar}</span>
-          {user.avatar_blur && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <p className="bg-black/50 px-4 py-2 rounded-full text-sm">Eşleşince görünür</p>
+        <div className="h-96 relative">
+          {user.avatar_url ? (
+            <img 
+              src={user.avatar_url} 
+              alt={user.nickname}
+              className={`w-full h-full object-cover ${user.avatar_blur ? 'blur-xl scale-110' : ''}`}
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-pink-500 via-purple-500 to-orange-500 flex items-center justify-center">
+              <User className="w-24 h-24 text-white/50" />
             </div>
           )}
+          
+          {user.avatar_blur && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+              <div className="bg-black/60 px-4 py-2 rounded-full">
+                <p className="text-sm">🔒 Eşleşince görünür</p>
+              </div>
+            </div>
+          )}
+          
           <div className="absolute top-4 left-4 right-4 flex justify-between items-start">
             {showVenueBadge && (
               <div className="px-3 py-2 bg-green-500 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg">
@@ -709,7 +845,8 @@ export default function HerePage() {
               <Clock className="w-3 h-3" />{getLastSeenText(user.lastSeenMinutes)}
             </div>
           </div>
-          <div className="absolute bottom-4 left-4 right-4">
+          
+          <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
             <h2 className="text-2xl font-bold">{user.nickname}, {user.age}</h2>
             <p className="text-sm text-white/80 flex items-center gap-1">
               {showDistance && user.venue ? (
@@ -720,6 +857,7 @@ export default function HerePage() {
             </p>
           </div>
         </div>
+        
         <div className="p-4 space-y-3">
           <p className="text-gray-300">{user.bio}</p>
           <div className="flex flex-wrap gap-2">
@@ -734,6 +872,7 @@ export default function HerePage() {
           </div>
         </div>
       </div>
+      
       <div className="flex justify-center gap-6 mt-6">
         <button onClick={() => handlePass(user.id)} className="w-16 h-16 bg-[#1a1a1a] border-2 border-red-500 rounded-full flex items-center justify-center hover:bg-red-500/20">
           <X className="w-8 h-8 text-red-500" />
@@ -911,9 +1050,7 @@ export default function HerePage() {
                 <button key={match.id} onClick={() => openChat(match)}
                   className="w-full bg-[#1a1a1a] rounded-2xl p-4 flex items-center gap-4 text-left hover:bg-[#222]">
                   <div className="relative">
-                    <div className={`w-14 h-14 rounded-full bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center text-2xl ${match.user.avatar_blur ? 'blur-sm' : ''}`}>
-                      {match.user.avatar}
-                    </div>
+                    <AvatarImage src={match.user.avatar_url} blur={match.user.avatar_blur} size="md" />
                     {match.user.isHere && (
                       <div className="absolute -bottom-1 -right-1 px-1.5 py-0.5 bg-green-500 rounded-full text-[10px] font-bold">HERE</div>
                     )}
@@ -993,13 +1130,9 @@ export default function HerePage() {
               <span className="text-sm text-pink-400">{currentVenue.name}</span>
             </div>
             <div className="flex justify-center items-center gap-4 mb-6">
-              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center text-5xl">
-                {profile?.avatar_url || '👤'}
-              </div>
+              <AvatarImage src={profile?.avatar_url} blur={false} size="lg" />
               <Heart className="w-12 h-12 text-pink-500 fill-pink-500 animate-pulse" />
-              <div className={`w-24 h-24 rounded-full bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center text-5xl ${newMatchUser.avatar_blur ? '' : ''}`}>
-                {newMatchUser.avatar}
-              </div>
+              <AvatarImage src={newMatchUser.avatar_url} blur={false} size="lg" />
             </div>
             <h2 className="text-3xl font-bold bg-gradient-to-r from-pink-500 to-orange-500 bg-clip-text text-transparent mb-2">Eşleşme!</h2>
             <p className="text-gray-400 mb-2">Sen ve {newMatchUser.nickname} birbirinizi beğendiniz!</p>
