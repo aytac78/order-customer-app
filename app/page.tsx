@@ -9,6 +9,8 @@ import {
   Flame, Award, Users, ArrowRight, Loader2, MapPin, Calendar
 } from 'lucide-react'
 import { useAuth } from '@/lib/AuthContext'
+import CoffeestarHomeCard from '@/components/coffeestar/CoffeestarHomeCard'
+import { CoffeestarProvider } from '@/lib/coffeestar-context'
 
 interface PopularVenue {
   id: string
@@ -48,13 +50,11 @@ export default function HomePage() {
   const [events, setEvents] = useState<Event[]>([])
   const [profile, setProfile] = useState<any>(null)
 
-  // Sayfa yüklendiğinde bir kere çalışır
   useEffect(() => {
     setMounted(true)
     loadAllData()
   }, [])
 
-  // User değiştiğinde profil yükle
   useEffect(() => {
     if (user?.id) {
       loadProfile()
@@ -78,7 +78,6 @@ export default function HomePage() {
   const loadAllData = async () => {
     setLoading(true)
     try {
-      // Paralel yükleme
       const [venuesRes, dishesRes, eventsRes] = await Promise.all([
         supabase
           .from('venues')
@@ -191,6 +190,13 @@ export default function HomePage() {
         </div>
       </div>
 
+      {/* COFFEESTAR */}
+      <div className="px-4 mb-6">
+        <CoffeestarProvider userId={user?.id}>
+          <CoffeestarHomeCard />
+        </CoffeestarProvider>
+      </div>
+
       {/* Etkinlikler */}
       {events.length > 0 && (
         <div className="px-4 mb-6">
@@ -245,7 +251,7 @@ export default function HomePage() {
           <Flame className="w-5 h-5 text-orange-500" />
           <h2 className="text-lg font-bold">Günün Popülerleri</h2>
         </div>
-        <p className="text-xs text-gray-500 mb-4">Her gün 15:00'te güncellenir</p>
+        <p className="text-xs text-gray-500 mb-4">Her gün 15:00te güncellenir</p>
       </div>
 
       {loading ? (
