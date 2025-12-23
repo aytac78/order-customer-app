@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { ChevronLeft, Minus, Plus, ShoppingCart, X, Send, Lock, QrCode } from 'lucide-react'
+import { ChevronLeft, Minus, Plus, ShoppingCart, X, Send, Lock, QrCode, Camera, AlertCircle } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { Html5Qrcode } from 'html5-qrcode'
 
 interface MenuItem {
   id: string
@@ -52,6 +53,12 @@ function ScanPageContent() {
   const [placedOrderId, setPlacedOrderId] = useState('')
   const [ordering, setOrdering] = useState(false)
   
+  // QR Scanner states
+  const [isScanning, setIsScanning] = useState(false)
+  const [scanError, setScanError] = useState<string | null>(null)
+  const [cameraPermission, setCameraPermission] = useState<'granted' | 'denied' | 'prompt'>('prompt')
+  const scannerRef = useRef<Html5Qrcode | null>(null)
+  
   const canOrder = !!venueSlug && !!tableFromUrl
 
   useEffect(() => {
@@ -59,6 +66,10 @@ function ScanPageContent() {
       loadVenueAndMenu(venueSlug)
     } else {
       setLoading(false)
+    }
+    
+    return () => {
+      stopScanner()
     }
   }, [venueSlug])
 
@@ -97,6 +108,91 @@ function ScanPageContent() {
     setCategories(cats)
     if (cats.length > 0) setSelectedCategory(cats[0].id)
     setLoading(false)
+  }
+
+  const startScanner = async () => {
+    setScanError(null)
+    
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+      stream.getTracks().forEach(track => track.stop())
+      setCameraPermission('granted')
+    } catch (err) {
+      setCameraPermission('denied')
+      setScanError('Kamera izni gerekli. Lütfen tarayıcı ayarlarından kamera iznini verin.')
+      return
+    }
+
+    setIsScanning(true)
+    
+    try {
+      const html5Qrcode = new Html5Qrcode('qr-reader')
+      scannerRef.current = html5Qrcode
+      
+      await html5Qrcode.start(
+        { facingMode: 'environment' },
+        {
+          fps: 10,
+          qrbox: { width: 250, height: 250 },
+        },
+        (decodedText) => {
+          handleQRCodeScanned(decodedText)
+        },
+        () => {}
+      )
+    } catch (err: any) {
+      console.error('Scanner error:', err)
+      setScanError('Kamera başlatılamadı. Lütfen tekrar deneyin.')
+      setIsScanning(false)
+    }
+  }
+
+  const stopScanner = async () => {
+    if (scannerRef.current) {
+      try {
+        await scannerRef.current.stop()
+        scannerRef.current = null
+      } catch (err) {
+        console.error('Stop scanner error:', err)
+      }
+    }
+    setIsScanning(false)
+  }
+
+  const handleQRCodeScanned = (decodedText: string) => {
+    stopScanner()
+    
+    // QR içeriğini parse et
+    // Beklenen format: https://order-app-customer.vercel.app/scan?venue=slug&table=5
+    // veya: order://venue/slug/table/5
+    try {
+      let venueSlug = ''
+      let tableNum = ''
+      
+      if (decodedText.includes('scan?')) {
+        const url = new URL(decodedText)
+        venueSlug = url.searchParams.get('venue') || ''
+        tableNum = url.searchParams.get('table') || ''
+      } else if (decodedText.includes('order://')) {
+        const parts = decodedText.replace('order://', '').split('/')
+        venueSlug = parts[1] || ''
+        tableNum = parts[3] || ''
+      } else {
+        // Sadece venue slug olabilir
+        venueSlug = decodedText
+      }
+      
+      if (venueSlug) {
+        const params = new URLSearchParams()
+        params.set('venue', venueSlug)
+        if (tableNum) params.set('table', tableNum)
+        router.push(`/scan?${params.toString()}`)
+      } else {
+        setScanError('Geçersiz QR kod. Lütfen mekan QR kodunu okutun.')
+      }
+    } catch (err) {
+      setScanError('QR kod okunamadı. Lütfen tekrar deneyin.')
+    }
   }
 
   const addToCart = (item: MenuItem) => {
@@ -175,17 +271,64 @@ function ScanPageContent() {
     setOrdering(false)
   }
 
+  // QR Scanner UI
   if (!venueSlug) {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col items-center justify-center p-6">
-        <div className="w-24 h-24 rounded-full bg-purple-500/20 flex items-center justify-center mb-6">
-          <QrCode className="w-12 h-12 text-purple-500" />
+      <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col">
+        {/* Header with back button */}
+        <header className="p-4 flex items-center gap-4">
+          <button 
+            onClick={() => router.back()} 
+            className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-white/10 flex items-center justify-center"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
+          <h1 className="text-xl font-bold">QR Kod Tara</h1>
+        </header>
+
+        <div className="flex-1 flex flex-col items-center justify-center p-6">
+          {isScanning ? (
+            <div className="w-full max-w-sm">
+              <div id="qr-reader" className="w-full rounded-2xl overflow-hidden mb-4" />
+              <button 
+                onClick={stopScanner}
+                className="w-full py-4 bg-red-500/20 border border-red-500/30 rounded-xl text-red-500 font-medium"
+              >
+                Taramayı Durdur
+              </button>
+            </div>
+          ) : (
+            <>
+              <div className="w-24 h-24 rounded-full bg-purple-500/20 flex items-center justify-center mb-6">
+                <QrCode className="w-12 h-12 text-purple-500" />
+              </div>
+              <h2 className="text-2xl font-bold mb-2">QR Kod Okutun</h2>
+              <p className="text-gray-400 text-center mb-8">Sipariş vermek için masanızdaki QR kodu okutun</p>
+              
+              {scanError && (
+                <div className="w-full max-w-sm mb-4 p-4 bg-red-500/10 border border-red-500/30 rounded-xl flex items-center gap-3">
+                  <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0" />
+                  <p className="text-red-500 text-sm">{scanError}</p>
+                </div>
+              )}
+              
+              <button 
+                onClick={startScanner}
+                className="w-full max-w-sm py-4 bg-orange-500 rounded-xl font-semibold flex items-center justify-center gap-2 mb-4"
+              >
+                <Camera className="w-5 h-5" />
+                Kamerayı Aç
+              </button>
+              
+              <button 
+                onClick={() => router.push('/discover')} 
+                className="w-full max-w-sm py-4 bg-[#1a1a1a] border border-white/10 rounded-xl font-medium"
+              >
+                Mekanları Keşfet
+              </button>
+            </>
+          )}
         </div>
-        <h1 className="text-2xl font-bold mb-2">QR Kod Okutun</h1>
-        <p className="text-gray-400 text-center mb-8">Sipariş vermek için masanızdaki QR kodu okutun</p>
-        <button onClick={() => router.push('/discover')} className="px-6 py-3 bg-[#1a1a1a] border border-white/10 rounded-xl">
-          Mekanları Keşfet
-        </button>
       </div>
     )
   }
@@ -200,8 +343,16 @@ function ScanPageContent() {
 
   if (!venue) {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center">
-        <p>Mekan bulunamadı</p>
+      <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col items-center justify-center p-6">
+        <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
+        <h2 className="text-xl font-bold mb-2">Mekan Bulunamadı</h2>
+        <p className="text-gray-400 mb-6">QR kod geçersiz veya mekan artık aktif değil.</p>
+        <button 
+          onClick={() => router.push('/scan')} 
+          className="px-6 py-3 bg-orange-500 rounded-xl font-medium"
+        >
+          Tekrar Tara
+        </button>
       </div>
     )
   }
@@ -233,7 +384,7 @@ function ScanPageContent() {
       <header className="sticky top-0 z-40 bg-[#0a0a0a]/95 backdrop-blur border-b border-white/5 px-4 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <button onClick={() => router.back()} className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-white/10 flex items-center justify-center">
+            <button onClick={() => router.push('/')} className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-white/10 flex items-center justify-center">
               <ChevronLeft className="w-5 h-5" />
             </button>
             <div>
