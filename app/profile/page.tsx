@@ -60,47 +60,104 @@ export default function ProfilePage() {
 
   useEffect(() => {
     setMounted(true)
-    if (user) {
-      loadProfile()
-    }
-  }, [user])
+  }, [])
 
   useEffect(() => {
-    if (user && profile) {
+    if (mounted) {
+      if (user) {
+        loadProfile()
+      } else {
+        // Kullanıcı yoksa loading'i kapat
+        setLoading(false)
+      }
+    }
+  }, [user, mounted])
+
+  useEffect(() => {
+    if (user && mounted && !loading) {
       loadStats()
     }
-  }, [user, profile, statsPeriod])
+  }, [user, mounted, loading, statsPeriod])
 
   const loadProfile = async () => {
-    if (!user) return
+    if (!user) {
+      setLoading(false)
+      return
+    }
     
     try {
+      // Önce profili kontrol et
       const { data, error } = await supabase
         .from('user_profiles')
         .select('*')
         .eq('id', user.id)
-        .single()
+        .maybeSingle()
 
-      if (error && error.code === 'PGRST116') {
-        // Profil yoksa oluştur
-        const { data: newProfile } = await supabase
-          .from('user_profiles')
-          .insert({
+      if (error) {
+        console.error('Profil hatası:', error)
+        // Hata olsa bile devam et, boş profil göster
+        setProfile({
+          id: user.id,
+          full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || '',
+          avatar_url: user.user_metadata?.avatar_url || '',
+          tit_id: null,
+          saved_cards: []
+        })
+        setLoading(false)
+        return
+      }
+
+      if (!data) {
+        // Profil yoksa oluşturmayı dene
+        try {
+          const { data: newProfile, error: insertError } = await supabase
+            .from('user_profiles')
+            .insert({
+              id: user.id,
+              full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || '',
+              avatar_url: user.user_metadata?.avatar_url || '',
+              phone: user.phone || '',
+              country_code: 'TR'
+            })
+            .select()
+            .single()
+          
+          if (insertError) {
+            console.error('Profil oluşturma hatası:', insertError)
+            // Hata olsa bile devam et
+            setProfile({
+              id: user.id,
+              full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || '',
+              avatar_url: user.user_metadata?.avatar_url || '',
+              tit_id: null,
+              saved_cards: []
+            })
+          } else {
+            setProfile(newProfile)
+          }
+        } catch (insertErr) {
+          console.error('Insert error:', insertErr)
+          setProfile({
             id: user.id,
             full_name: user.user_metadata?.full_name || '',
             avatar_url: user.user_metadata?.avatar_url || '',
-            phone: user.phone || '',
-            country_code: 'TR'
+            tit_id: null,
+            saved_cards: []
           })
-          .select()
-          .single()
-        
-        setProfile(newProfile)
+        }
       } else {
         setProfile(data)
       }
     } catch (err) {
       console.error('Profil yüklenemedi:', err)
+      // Hata durumunda da temel profili göster
+      setProfile({
+        id: user.id,
+        full_name: user.user_metadata?.full_name || '',
+        avatar_url: user.user_metadata?.avatar_url || '',
+        tit_id: null,
+        saved_cards: []
+      })
     } finally {
       setLoading(false)
     }
@@ -135,9 +192,32 @@ export default function ProfilePage() {
         .select('venue_id, total, items, created_at')
         .eq('user_id', user.id)
         .gte('created_at', startDate.toISOString())
-        .in('status', ['completed', 'served', 'paid'])
 
-      if (error) throw error
+      if (error) {
+        console.error('Siparişler yüklenemedi:', error)
+        // Boş stats göster
+        setStats({
+          totalSpent: 0,
+          orderCount: 0,
+          venueCount: 0,
+          favoriteVenue: null,
+          favoriteItem: null
+        })
+        return
+      }
+
+      if (!orders || orders.length === 0) {
+        setStats({
+          totalSpent: 0,
+          orderCount: 0,
+          venueCount: 0,
+          favoriteVenue: null,
+          favoriteItem: null
+        })
+        setTopVenues([])
+        setTopItems([])
+        return
+      }
 
       // Mekan bilgilerini getir
       const venueIds = [...new Set(orders?.map(o => o.venue_id).filter(Boolean))]
