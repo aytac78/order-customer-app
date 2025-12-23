@@ -221,7 +221,7 @@ export default function HomePage() {
                 className="flex-shrink-0 w-64 bg-gradient-to-br from-purple-900/50 to-pink-900/50 border border-purple-500/30 rounded-2xl overflow-hidden"
               >
                 <div className="h-20 bg-gradient-to-br from-purple-500/30 to-pink-500/30 flex items-center justify-center relative">
-                  <span className="text-4xl">{event.title.match(/^\p{Emoji}/u)?.[0] || '✨'}</span>
+                  <span className="text-4xl">{'✨'}</span>
                   {event.is_featured && (
                     <div className="absolute top-2 right-2 px-2 py-0.5 bg-purple-500 rounded-full text-[10px] font-bold">
                       {t.events?.featured || 'FEATURED'}
@@ -229,7 +229,7 @@ export default function HomePage() {
                   )}
                 </div>
                 <div className="p-3">
-                  <h4 className="font-semibold text-sm truncate">{event.title.replace(/^\p{Emoji}\s*/u, '')}</h4>
+                  <h4 className="font-semibold text-sm truncate">{event.title}</h4>
                   <p className="text-xs text-gray-400 truncate">{event.description}</p>
                   <div className="flex items-center justify-between mt-2">
                     <div className="flex items-center gap-1 text-purple-400">
