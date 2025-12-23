@@ -1,10 +1,10 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { House, Wallet, MessageSquare, Cog } from 'lucide-react';
+import { Home, Wallet, MessageSquare, Cog } from 'lucide-react';
 
 const navItems = [
-  { href: '/', icon: House, label: 'Ana Sayfa' },
+  { href: '/', icon: Home, label: 'Ana Sayfa' },
   { href: '/bill', icon: Wallet, label: 'Hesap' },
   { href: '/messages', icon: MessageSquare, label: 'Mesajlar' },
   { href: '/settings', icon: Cog, label: 'Ayarlar' },
