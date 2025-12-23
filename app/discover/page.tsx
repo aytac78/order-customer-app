@@ -28,20 +28,41 @@ interface Place {
   isOpen?: boolean
 }
 
+// Kategoriler - Google Places API type'larına göre
 const categories = [
-  { id: 'all', label: 'Tümü', emoji: '🍽️' },
-  { id: 'restaurant', label: 'Restoran', emoji: '🍽️' },
-  { id: 'cafe', label: 'Kafe', emoji: '☕' },
-  { id: 'bar', label: 'Bar', emoji: '🍸' },
-  { id: 'meal_takeaway', label: 'Fast Food', emoji: '🍔' },
-  { id: 'night_club', label: 'Gece Kulübü', emoji: '🎉' },
-  { id: 'bakery', label: 'Fırın', emoji: '🥐' },
+  { id: 'all', label: 'Tümü', emoji: '🍽️', types: [] },
+  { id: 'restaurant', label: 'Restoran', emoji: '🍽️', types: ['restaurant'] },
+  { id: 'cafe', label: 'Kafe', emoji: '☕', types: ['cafe'] },
+  { id: 'bar', label: 'Bar', emoji: '🍸', types: ['bar'] },
+  { id: 'fast_food', label: 'Fast Food', emoji: '🍔', types: ['meal_takeaway', 'meal_delivery'] },
+  { id: 'beach_club', label: 'Beach Club', emoji: '🏖️', types: ['beach_club'] },
+  { id: 'night_club', label: 'Gece Kulübü', emoji: '🎉', types: ['night_club'] },
+  { id: 'bakery', label: 'Fırın', emoji: '🥐', types: ['bakery'] },
 ]
 
-const typeToEmoji: Record<string, string> = {
-  restaurant: '🍽️', cafe: '☕', bar: '🍸', night_club: '🎉', 
-  meal_takeaway: '🍔', bakery: '🥐', meal_delivery: '🚴',
-  food: '🍽️', establishment: '🏪'
+// Google type -> kategori mapping
+const typeToCategory: Record<string, string> = {
+  restaurant: 'restaurant',
+  cafe: 'cafe',
+  bar: 'bar',
+  night_club: 'night_club',
+  meal_takeaway: 'fast_food',
+  meal_delivery: 'fast_food',
+  bakery: 'bakery',
+  beach_club: 'beach_club',
+}
+
+// Kategori -> emoji mapping
+const categoryToEmoji: Record<string, string> = {
+  restaurant: '🍽️',
+  cafe: '☕',
+  bar: '🍸',
+  night_club: '🎉',
+  fast_food: '🍔',
+  meal_takeaway: '🍔',
+  meal_delivery: '🍔',
+  bakery: '🥐',
+  beach_club: '🏖️',
 }
 
 const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
@@ -124,7 +145,7 @@ function DiscoverContent() {
         venueId: v.id,
         name: v.name,
         category: v.category || 'restaurant',
-        emoji: typeToEmoji[v.category] || '🍽️',
+        emoji: categoryToEmoji[v.category] || '🍽️',
         lat: parseFloat(String(v.lat)) || lat,
         lon: parseFloat(String(v.lon)) || lng,
         address: v.address,
@@ -136,9 +157,9 @@ function DiscoverContent() {
         photoUrl: v.image_url
       }))
 
-      // 2. Google Places API - Paralel istekler
-      const types = ['restaurant', 'cafe', 'bar', 'meal_takeaway']
-      const googlePromises = types.map(type => 
+      // 2. Google Places API - Her kategori için ayrı istek
+      const googleTypes = ['restaurant', 'cafe', 'bar', 'meal_takeaway', 'night_club', 'bakery']
+      const googlePromises = googleTypes.map(type => 
         fetch(`/api/places?lat=${lat}&lng=${lng}&radius=3000&type=${type}`)
           .then(res => res.json())
           .catch(() => ({ results: [] }))
@@ -149,12 +170,14 @@ function DiscoverContent() {
       let googlePlaces: Place[] = []
       googleResults.forEach((data, index) => {
         if (data.results) {
-          const type = types[index]
+          const googleType = googleTypes[index]
+          const category = typeToCategory[googleType] || googleType
+          
           const typePlaces = data.results.map((p: any) => ({
             id: `google-${p.place_id}`,
             name: p.name,
-            category: type,
-            emoji: typeToEmoji[type] || '🍽️',
+            category: category,
+            emoji: categoryToEmoji[category] || '🍽️',
             lat: p.geometry.location.lat,
             lon: p.geometry.location.lng,
             address: p.vicinity,
@@ -195,10 +218,30 @@ function DiscoverContent() {
     }
   }
 
+  // Kategori filtresi - düzeltilmiş
   const filteredPlaces = places.filter(p => {
+    // Mesafe filtresi
     if (maxDistance && (p.distance || 0) > maxDistance) return false
+    
+    // Arama filtresi  
     if (searchTerm && !p.name.toLowerCase().includes(searchTerm.toLowerCase())) return false
-    if (selectedCategory !== 'all' && p.category !== selectedCategory) return false
+    
+    // Kategori filtresi
+    if (selectedCategory !== 'all') {
+      const selectedCat = categories.find(c => c.id === selectedCategory)
+      if (selectedCat) {
+        // Beach club için isim kontrolü de yap
+        if (selectedCategory === 'beach_club') {
+          return p.category === 'beach_club' || 
+                 p.name.toLowerCase().includes('beach') || 
+                 p.name.toLowerCase().includes('plaj')
+        }
+        // Diğer kategoriler için direkt eşleştirme
+        return p.category === selectedCategory || 
+               (selectedCat.types && selectedCat.types.includes(p.category))
+      }
+    }
+    
     return true
   })
 
@@ -208,6 +251,22 @@ function DiscoverContent() {
     } else {
       window.open(`https://www.google.com/maps/search/?api=1&query=${place.lat},${place.lon}`, '_blank')
     }
+  }
+
+  // Kategori sayılarını hesapla
+  const getCategoryCount = (catId: string) => {
+    if (catId === 'all') return places.filter(p => (p.distance || 0) <= maxDistance).length
+    
+    const cat = categories.find(c => c.id === catId)
+    return places.filter(p => {
+      if ((p.distance || 0) > maxDistance) return false
+      if (catId === 'beach_club') {
+        return p.category === 'beach_club' || 
+               p.name.toLowerCase().includes('beach') || 
+               p.name.toLowerCase().includes('plaj')
+      }
+      return p.category === catId || (cat?.types && cat.types.includes(p.category))
+    }).length
   }
 
   return (
@@ -261,18 +320,22 @@ function DiscoverContent() {
 
         {/* Kategoriler */}
         <div className="flex gap-2 mt-3 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-hide">
-          {categories.map(cat => (
-            <button 
-              key={cat.id} 
-              onClick={() => setSelectedCategory(cat.id)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors ${
-                selectedCategory === cat.id ? 'bg-orange-500 text-white' : 'bg-[#1a1a1a] text-gray-400'
-              }`}
-            >
-              <span>{cat.emoji}</span>
-              <span>{cat.label}</span>
-            </button>
-          ))}
+          {categories.map(cat => {
+            const count = getCategoryCount(cat.id)
+            return (
+              <button 
+                key={cat.id} 
+                onClick={() => setSelectedCategory(cat.id)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors ${
+                  selectedCategory === cat.id ? 'bg-orange-500 text-white' : 'bg-[#1a1a1a] text-gray-400'
+                } ${count === 0 ? 'opacity-50' : ''}`}
+              >
+                <span>{cat.emoji}</span>
+                <span>{cat.label}</span>
+                {count > 0 && <span className="text-xs opacity-70">({count})</span>}
+              </button>
+            )
+          })}
         </div>
       </div>
 
@@ -301,11 +364,16 @@ function DiscoverContent() {
         ) : filteredPlaces.length === 0 ? (
           <div className="text-center py-10">
             <p className="text-gray-400 mb-2">
-              {searchTerm ? 'Arama sonucu bulunamadı' : 'Mekan bulunamadı'}
+              {searchTerm ? 'Arama sonucu bulunamadı' : 'Bu kategoride mekan bulunamadı'}
             </p>
             {searchTerm && (
               <button onClick={() => setSearchTerm('')} className="text-orange-500 text-sm">
                 Aramayı temizle
+              </button>
+            )}
+            {selectedCategory !== 'all' && (
+              <button onClick={() => setSelectedCategory('all')} className="text-orange-500 text-sm block mx-auto mt-2">
+                Tüm mekanları göster
               </button>
             )}
           </div>
