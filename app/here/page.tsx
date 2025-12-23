@@ -117,9 +117,8 @@ export default function HerePage() {
 
   useEffect(() => {
     setMounted(true)
-    const venueId = searchParams.get('venue')
-    if (venueId) setIsCheckedIn(true)
-  }, [searchParams])
+    // Check-in her zaman gerekli - direkt /here'e gelince de göster
+  }, [])
 
   const availableUsers = demoUsersAtVenue.filter(
     u => !likedUsers.includes(u.id) && !passedUsers.includes(u.id)

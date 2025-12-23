@@ -265,9 +265,10 @@ export default function VenuePage() {
           <span className="text-xs">Rezervasyon</span>
         </button>
         <button onClick={() => {
-          // Paket modunda order=true parametresi ekle
-          const orderMode = typeof window !== 'undefined' ? localStorage.getItem('order_mode') : null
-          const menuUrl = orderMode === 'takeaway' 
+          // URL'den mode parametresini kontrol et
+          const urlParams = new URLSearchParams(window.location.search)
+          const mode = urlParams.get('mode')
+          const menuUrl = mode === 'takeaway' 
             ? `/venue/${venueId}/menu?order=true`
             : `/venue/${venueId}/menu`
           router.push(menuUrl)

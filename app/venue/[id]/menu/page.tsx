@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { ArrowLeft, Search, Loader2, Plus, Minus, X, QrCode } from 'lucide-react'
 
@@ -26,7 +26,6 @@ interface CartItem {
   quantity: number
 }
 
-// Demo data
 const demoCategories: Category[] = [
   { id: 'cat-1', name: 'Başlangıçlar', sort_order: 1 },
   { id: 'cat-2', name: 'Ana Yemekler', sort_order: 2 },
@@ -63,43 +62,23 @@ const demoProducts: Product[] = [
 export default function VenueMenuPage() {
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const venueId = params.id as string
 
-  // Hydration fix - mounted state
   const [mounted, setMounted] = useState(false)
   const [venue, setVenue] = useState<any>(null)
-  const [categories] = useState<Category[]>(demoCategories)
-  const [products] = useState<Product[]>(demoProducts)
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [cart, setCart] = useState<CartItem[]>([])
   const [showCart, setShowCart] = useState(false)
-  
-  // Sipariş modları
-  const [tableId, setTableId] = useState<string | null>(null)
-  const [canOrderState, setCanOrderState] = useState(false)
+
+  // SADECE URL parametrelerinden kontrol - localStorage YOK
+  const tableId = searchParams.get('table')
+  const canOrder = searchParams.get('order') === 'true' || tableId !== null
 
   useEffect(() => {
     setMounted(true)
-    
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search)
-      const tableFromUrl = urlParams.get('table')
-      const orderParam = urlParams.get('order')
-      
-      // QR kod ile geldiyse (table parametresi var)
-      if (tableFromUrl) {
-        setTableId(tableFromUrl)
-        setCanOrderState(true)
-      } 
-      // URL'de order=true varsa (Paket modundan geldi)
-      else if (orderParam === 'true') {
-        setCanOrderState(true)
-      }
-      // Keşfetten geliyorsa (parametre yok) = sipariş YOK
-    }
-    
     loadVenue()
   }, [venueId])
 
@@ -118,13 +97,9 @@ export default function VenueMenuPage() {
     }
   }
 
-  // Sipariş verebilme koşulu: QR kod ile masaya oturmuş olmalı VEYA paket modu
-  // Keşfetten gelince sipariş YOK
-  const canOrder = mounted && canOrderState
-  
   const getOrderModeLabel = () => {
     if (tableId) return `Masa ${tableId}`
-    if (canOrderState) return 'Paket Sipariş'
+    if (canOrder) return 'Paket Sipariş'
     return null
   }
 
@@ -153,18 +128,17 @@ export default function VenueMenuPage() {
   const cartTotal = cart.reduce((sum, item) => sum + (item.product.price * item.quantity), 0)
   const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0)
 
-  const filteredProducts = products.filter(product => {
+  const filteredProducts = demoProducts.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase())
     const matchesCategory = !selectedCategory || product.category_id === selectedCategory
     return matchesSearch && matchesCategory
   })
 
-  const productsByCategory = categories.map(cat => ({
+  const productsByCategory = demoCategories.map(cat => ({
     category: cat,
     products: filteredProducts.filter(p => p.category_id === cat.id)
   })).filter(group => group.products.length > 0)
 
-  // Loading veya mounted değilse loading göster
   if (!mounted || loading) {
     return (
       <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center">
@@ -184,7 +158,7 @@ export default function VenueMenuPage() {
           <div className="flex-1">
             <h1 className="font-bold text-lg">{venue?.name || 'Menü'}</h1>
             <p className="text-sm text-gray-400">
-              {products.length} ürün
+              {demoProducts.length} ürün
               {getOrderModeLabel() && (
                 <span className="text-orange-500"> • {getOrderModeLabel()}</span>
               )}
@@ -215,7 +189,7 @@ export default function VenueMenuPage() {
             >
               Tümü
             </button>
-            {categories.map(cat => (
+            {demoCategories.map(cat => (
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
@@ -228,14 +202,14 @@ export default function VenueMenuPage() {
         </div>
       </div>
 
-      {/* Sipariş veremiyorsa bilgi göster */}
+      {/* Info banner when can't order */}
       {!canOrder && (
         <div className="mx-4 mt-4 p-4 bg-blue-500/20 border border-blue-500/30 rounded-2xl">
           <div className="flex items-center gap-3">
             <QrCode className="w-8 h-8 text-blue-400" />
             <div>
-              <p className="font-medium text-blue-300">Sipariş vermek için</p>
-              <p className="text-sm text-blue-400">Masadaki QR kodu okutun veya Paket seçeneğini kullanın</p>
+              <p className="font-medium text-blue-300">Sadece Menü Görüntüleme</p>
+              <p className="text-sm text-blue-400">Sipariş vermek için masadaki QR kodu okutun</p>
             </div>
           </div>
         </div>
@@ -262,7 +236,6 @@ export default function VenueMenuPage() {
                       <div className="flex items-center justify-between mt-2">
                         <span className="text-lg font-bold text-orange-500">₺{product.price}</span>
                         
-                        {/* Sadece sipariş verebiliyorsa buton göster */}
                         {canOrder && (
                           quantity > 0 ? (
                             <div className="flex items-center gap-2 bg-orange-500 rounded-full px-2 py-1">
@@ -345,7 +318,6 @@ export default function VenueMenuPage() {
               </div>
               <button 
                 onClick={() => {
-                  // Siparişi localStorage'a kaydet
                   const newOrder = {
                     id: `order-${Date.now()}`,
                     order_number: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -362,17 +334,11 @@ export default function VenueMenuPage() {
                     })),
                     created_at: new Date().toISOString()
                   }
-                  
-                  // Mevcut siparişleri al ve yenisini ekle
                   const existingOrders = JSON.parse(localStorage.getItem('user_orders') || '[]')
                   existingOrders.unshift(newOrder)
                   localStorage.setItem('user_orders', JSON.stringify(existingOrders))
-                  
-                  // Sepeti temizle ve kapat
                   setCart([])
                   setShowCart(false)
-                  
-                  // Siparişler sayfasına yönlendir
                   router.push('/orders')
                 }}
                 className="w-full py-4 bg-orange-500 rounded-2xl font-bold"
