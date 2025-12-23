@@ -18,51 +18,32 @@ interface Place {
   lat: number
   lon: number
   address?: string
-  district?: string
   rating?: number
   priceLevel?: number
   distance?: number
   isOrderEnabled: boolean
   venueId?: string
-  photoUrl?: string
   isOpen?: boolean
 }
 
-// Kategoriler - Google Places API type'larına göre
 const categories = [
-  { id: 'all', label: 'Tümü', emoji: '🍽️', types: [] },
-  { id: 'restaurant', label: 'Restoran', emoji: '🍽️', types: ['restaurant'] },
-  { id: 'cafe', label: 'Kafe', emoji: '☕', types: ['cafe'] },
-  { id: 'bar', label: 'Bar', emoji: '🍸', types: ['bar'] },
-  { id: 'fast_food', label: 'Fast Food', emoji: '🍔', types: ['meal_takeaway', 'meal_delivery'] },
-  { id: 'beach_club', label: 'Beach Club', emoji: '🏖️', types: ['beach_club'] },
-  { id: 'night_club', label: 'Gece Kulübü', emoji: '🎉', types: ['night_club'] },
-  { id: 'bakery', label: 'Fırın', emoji: '🥐', types: ['bakery'] },
+  { id: 'all', label: 'Tümü', emoji: '🍽️' },
+  { id: 'restaurant', label: 'Restoran', emoji: '🍽️' },
+  { id: 'cafe', label: 'Kafe', emoji: '☕' },
+  { id: 'bar', label: 'Bar', emoji: '🍸' },
+  { id: 'fast_food', label: 'Fast Food', emoji: '🍔' },
+  { id: 'beach_club', label: 'Beach Club', emoji: '🏖️' },
+  { id: 'night_club', label: 'Gece Kulübü', emoji: '🎉' },
 ]
 
-// Google type -> kategori mapping
 const typeToCategory: Record<string, string> = {
-  restaurant: 'restaurant',
-  cafe: 'cafe',
-  bar: 'bar',
-  night_club: 'night_club',
-  meal_takeaway: 'fast_food',
-  meal_delivery: 'fast_food',
-  bakery: 'bakery',
-  beach_club: 'beach_club',
+  restaurant: 'restaurant', cafe: 'cafe', bar: 'bar',
+  night_club: 'night_club', meal_takeaway: 'fast_food', bakery: 'bakery',
 }
 
-// Kategori -> emoji mapping
 const categoryToEmoji: Record<string, string> = {
-  restaurant: '🍽️',
-  cafe: '☕',
-  bar: '🍸',
-  night_club: '🎉',
-  fast_food: '🍔',
-  meal_takeaway: '🍔',
-  meal_delivery: '🍔',
-  bakery: '🥐',
-  beach_club: '🏖️',
+  restaurant: '🍽️', cafe: '☕', bar: '🍸', night_club: '🎉',
+  fast_food: '🍔', bakery: '🥐', beach_club: '🏖️',
 }
 
 const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
@@ -80,6 +61,7 @@ function DiscoverContent() {
   
   const [places, setPlaces] = useState<Place[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number, address: string}>({ 
@@ -89,9 +71,7 @@ function DiscoverContent() {
   const [showFilters, setShowFilters] = useState(false)
 
   useEffect(() => {
-    if (mode === 'takeaway') {
-      localStorage.setItem('order_mode', 'takeaway')
-    }
+    if (mode === 'takeaway') localStorage.setItem('order_mode', 'takeaway')
   }, [mode])
 
   useEffect(() => {
@@ -106,16 +86,16 @@ function DiscoverContent() {
           const lng = pos.coords.longitude
           setUserLocation(prev => ({ ...prev, lat, lng }))
           
-          try {
-            const res = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
-            const data = await res.json()
-            setUserLocation(prev => ({ 
-              ...prev, 
-              address: data.address?.neighbourhood || data.address?.suburb || data.address?.district || 'Konum alındı' 
-            }))
-          } catch {
-            setUserLocation(prev => ({ ...prev, address: 'Konum alındı' }))
-          }
+          // Konum adını arka planda al
+          fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`)
+            .then(res => res.json())
+            .then(data => {
+              setUserLocation(prev => ({ 
+                ...prev, 
+                address: data.address?.neighbourhood || data.address?.suburb || data.address?.district || 'Konum alındı' 
+              }))
+            })
+            .catch(() => setUserLocation(prev => ({ ...prev, address: 'Konum alındı' })))
           
           loadPlaces(lat, lng)
         },
@@ -134,7 +114,7 @@ function DiscoverContent() {
     setLoading(true)
 
     try {
-      // 1. ORDER mekanları (Supabase)
+      // 1. ORDER mekanları - Hızlı
       const { data: venues } = await supabase
         .from('venues')
         .select('*')
@@ -149,16 +129,20 @@ function DiscoverContent() {
         lat: parseFloat(String(v.lat)) || lat,
         lon: parseFloat(String(v.lon)) || lng,
         address: v.address,
-        district: v.district,
         rating: v.rating,
         priceLevel: v.price_level,
         distance: v.lat && v.lon ? calculateDistance(lat, lng, parseFloat(String(v.lat)), parseFloat(String(v.lon))) : 0,
         isOrderEnabled: true,
-        photoUrl: v.image_url
       }))
 
-      // 2. Google Places API - Her kategori için ayrı istek
-      const googleTypes = ['restaurant', 'cafe', 'bar', 'meal_takeaway', 'night_club', 'bakery']
+      // ORDER mekanlarını hemen göster
+      setPlaces(orderPlaces.sort((a, b) => (a.distance || 999) - (b.distance || 999)))
+      setLoading(false)
+
+      // 2. Google Places - Arka planda, sadece 2 ana kategori
+      setLoadingMore(true)
+      const googleTypes = ['restaurant', 'cafe']
+      
       const googlePromises = googleTypes.map(type => 
         fetch(`/api/places?lat=${lat}&lng=${lng}&radius=3000&type=${type}`)
           .then(res => res.json())
@@ -168,80 +152,62 @@ function DiscoverContent() {
       const googleResults = await Promise.all(googlePromises)
       
       let googlePlaces: Place[] = []
+      const seen = new Set<string>()
+      
       googleResults.forEach((data, index) => {
         if (data.results) {
           const googleType = googleTypes[index]
           const category = typeToCategory[googleType] || googleType
           
-          const typePlaces = data.results.map((p: any) => ({
-            id: `google-${p.place_id}`,
-            name: p.name,
-            category: category,
-            emoji: categoryToEmoji[category] || '🍽️',
-            lat: p.geometry.location.lat,
-            lon: p.geometry.location.lng,
-            address: p.vicinity,
-            rating: p.rating,
-            priceLevel: p.price_level,
-            distance: calculateDistance(lat, lng, p.geometry.location.lat, p.geometry.location.lng),
-            isOrderEnabled: false,
-            isOpen: p.opening_hours?.open_now
-          }))
-          googlePlaces = [...googlePlaces, ...typePlaces]
+          data.results.forEach((p: any) => {
+            const key = `${p.geometry.location.lat.toFixed(4)},${p.geometry.location.lng.toFixed(4)}`
+            if (seen.has(key)) return
+            seen.add(key)
+            
+            googlePlaces.push({
+              id: `google-${p.place_id}`,
+              name: p.name,
+              category,
+              emoji: categoryToEmoji[category] || '🍽️',
+              lat: p.geometry.location.lat,
+              lon: p.geometry.location.lng,
+              address: p.vicinity,
+              rating: p.rating,
+              priceLevel: p.price_level,
+              distance: calculateDistance(lat, lng, p.geometry.location.lat, p.geometry.location.lng),
+              isOrderEnabled: false,
+              isOpen: p.opening_hours?.open_now
+            })
+          })
         }
-      })
-      
-      // Duplikasyonları kaldır (aynı koordinatlar)
-      const seen = new Set<string>()
-      googlePlaces = googlePlaces.filter(p => {
-        const key = `${p.lat.toFixed(4)},${p.lon.toFixed(4)}`
-        if (seen.has(key)) return false
-        seen.add(key)
-        return true
       })
 
       // ORDER mekanları ile çakışanları kaldır
       const orderCoords = new Set(orderPlaces.map(v => `${v.lat.toFixed(3)},${v.lon.toFixed(3)}`))
-      const filteredGoogle = googlePlaces.filter(p => !orderCoords.has(`${p.lat.toFixed(3)},${p.lon.toFixed(3)}`))
+      googlePlaces = googlePlaces.filter(p => !orderCoords.has(`${p.lat.toFixed(3)},${p.lon.toFixed(3)}`))
 
-      // ORDER mekanları önce, sonra mesafeye göre sırala
-      const allPlaces = [
+      // Birleştir
+      setPlaces([
         ...orderPlaces.sort((a, b) => (a.distance || 999) - (b.distance || 999)),
-        ...filteredGoogle.sort((a, b) => (a.distance || 999) - (b.distance || 999))
-      ]
-      
-      setPlaces(allPlaces)
+        ...googlePlaces.sort((a, b) => (a.distance || 999) - (b.distance || 999))
+      ])
+      setLoadingMore(false)
     } catch (err) {
       console.error('Load places error:', err)
-    } finally {
       setLoading(false)
+      setLoadingMore(false)
     }
   }
 
-  // Kategori filtresi - düzeltilmiş
   const filteredPlaces = places.filter(p => {
-    // Mesafe filtresi
     if (maxDistance && (p.distance || 0) > maxDistance) return false
-    
-    // Arama filtresi  
     if (searchTerm && !p.name.toLowerCase().includes(searchTerm.toLowerCase())) return false
-    
-    // Kategori filtresi
     if (selectedCategory !== 'all') {
-      const selectedCat = categories.find(c => c.id === selectedCategory)
-      if (selectedCat) {
-        // Beach club için isim kontrolü de yap
-        if (selectedCategory === 'beach_club') {
-          return p.category === 'beach_club' || 
-                 p.name.toLowerCase().includes('beach') || 
-                 p.name.toLowerCase().includes('plaj')
-        }
-        // Diğer kategoriler için direkt eşleştirme
-        return p.category === selectedCategory || 
-               (selectedCat.types && selectedCat.types.includes(p.category))
+      if (selectedCategory === 'beach_club') {
+        return p.category === 'beach_club' || p.name.toLowerCase().includes('beach') || p.name.toLowerCase().includes('plaj')
       }
+      return p.category === selectedCategory
     }
-    
     return true
   })
 
@@ -253,19 +219,12 @@ function DiscoverContent() {
     }
   }
 
-  // Kategori sayılarını hesapla
   const getCategoryCount = (catId: string) => {
     if (catId === 'all') return places.filter(p => (p.distance || 0) <= maxDistance).length
-    
-    const cat = categories.find(c => c.id === catId)
     return places.filter(p => {
       if ((p.distance || 0) > maxDistance) return false
-      if (catId === 'beach_club') {
-        return p.category === 'beach_club' || 
-               p.name.toLowerCase().includes('beach') || 
-               p.name.toLowerCase().includes('plaj')
-      }
-      return p.category === catId || (cat?.types && cat.types.includes(p.category))
+      if (catId === 'beach_club') return p.category === 'beach_club' || p.name.toLowerCase().includes('beach')
+      return p.category === catId
     }).length
   }
 
@@ -287,9 +246,10 @@ function DiscoverContent() {
             )}
             <button 
               onClick={() => loadPlaces(userLocation.lat, userLocation.lng)}
-              className="p-2 hover:bg-white/10 rounded-full"
+              disabled={loading}
+              className="p-2 hover:bg-white/10 rounded-full disabled:opacity-50"
             >
-              <RefreshCw className="w-4 h-4 text-gray-400" />
+              <RefreshCw className={`w-4 h-4 text-gray-400 ${loading ? 'animate-spin' : ''}`} />
             </button>
           </div>
         </div>
@@ -320,22 +280,18 @@ function DiscoverContent() {
 
         {/* Kategoriler */}
         <div className="flex gap-2 mt-3 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-hide">
-          {categories.map(cat => {
-            const count = getCategoryCount(cat.id)
-            return (
-              <button 
-                key={cat.id} 
-                onClick={() => setSelectedCategory(cat.id)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors ${
-                  selectedCategory === cat.id ? 'bg-orange-500 text-white' : 'bg-[#1a1a1a] text-gray-400'
-                } ${count === 0 ? 'opacity-50' : ''}`}
-              >
-                <span>{cat.emoji}</span>
-                <span>{cat.label}</span>
-                {count > 0 && <span className="text-xs opacity-70">({count})</span>}
-              </button>
-            )
-          })}
+          {categories.map(cat => (
+            <button 
+              key={cat.id} 
+              onClick={() => setSelectedCategory(cat.id)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors ${
+                selectedCategory === cat.id ? 'bg-orange-500 text-white' : 'bg-[#1a1a1a] text-gray-400'
+              }`}
+            >
+              <span>{cat.emoji}</span>
+              <span>{cat.label}</span>
+            </button>
+          ))}
         </div>
       </div>
 
@@ -344,10 +300,7 @@ function DiscoverContent() {
         <div className="p-4 bg-[#111] border-b border-white/5">
           <label className="text-sm text-gray-400 mb-2 block">Mesafe: {maxDistance} km</label>
           <input 
-            type="range" 
-            min="1" 
-            max="10" 
-            value={maxDistance} 
+            type="range" min="1" max="10" value={maxDistance} 
             onChange={(e) => setMaxDistance(parseInt(e.target.value))} 
             className="w-full accent-orange-500" 
           />
@@ -361,80 +314,69 @@ function DiscoverContent() {
             <Loader2 className="w-8 h-8 text-orange-500 animate-spin mb-4" />
             <p className="text-gray-400">Mekanlar yükleniyor...</p>
           </div>
-        ) : filteredPlaces.length === 0 ? (
-          <div className="text-center py-10">
-            <p className="text-gray-400 mb-2">
-              {searchTerm ? 'Arama sonucu bulunamadı' : 'Bu kategoride mekan bulunamadı'}
-            </p>
-            {searchTerm && (
-              <button onClick={() => setSearchTerm('')} className="text-orange-500 text-sm">
-                Aramayı temizle
-              </button>
-            )}
-            {selectedCategory !== 'all' && (
-              <button onClick={() => setSelectedCategory('all')} className="text-orange-500 text-sm block mx-auto mt-2">
-                Tüm mekanları göster
-              </button>
-            )}
-          </div>
         ) : (
           <>
-            {mode === 'takeaway' && (
-              <div className="bg-purple-500/10 border border-purple-500/30 rounded-xl p-3 mb-4">
-                <p className="text-purple-300 text-sm text-center">
-                  📦 Paket sipariş modu - ORDER etiketli mekanlardan sipariş verebilirsiniz
-                </p>
+            {filteredPlaces.length === 0 ? (
+              <div className="text-center py-10">
+                <p className="text-gray-400 mb-2">Mekan bulunamadı</p>
+                <button onClick={() => { setSearchTerm(''); setSelectedCategory('all'); }} className="text-orange-500 text-sm">
+                  Filtreleri temizle
+                </button>
               </div>
+            ) : (
+              <>
+                {filteredPlaces.map(place => (
+                  <button 
+                    key={place.id} 
+                    onClick={() => handlePlaceClick(place)} 
+                    className="w-full bg-[#1a1a1a] rounded-xl p-4 text-left hover:bg-[#222] transition-colors"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="font-semibold">{place.name}</h3>
+                          {place.isOrderEnabled && (
+                            <span className="px-2 py-0.5 bg-orange-500/20 text-orange-500 text-xs rounded-full font-medium">ORDER</span>
+                          )}
+                          {place.isOpen !== undefined && (
+                            <span className={`px-2 py-0.5 text-xs rounded-full ${place.isOpen ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                              {place.isOpen ? 'Açık' : 'Kapalı'}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-400 mt-1">{place.address || `${place.distance} km`}</p>
+                        <div className="flex items-center gap-3 mt-2">
+                          {place.rating && (
+                            <span className="flex items-center gap-1 text-sm">
+                              <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
+                              {place.rating.toFixed(1)}
+                            </span>
+                          )}
+                          <span className="text-sm text-gray-500">{place.distance} km</span>
+                        </div>
+                      </div>
+                      <div className="w-12 h-12 bg-[#242424] rounded-lg flex items-center justify-center text-2xl ml-3">
+                        {place.emoji}
+                      </div>
+                    </div>
+                  </button>
+                ))}
+                
+                {loadingMore && (
+                  <div className="flex items-center justify-center py-4">
+                    <Loader2 className="w-5 h-5 text-orange-500 animate-spin mr-2" />
+                    <span className="text-sm text-gray-400">Daha fazla mekan yükleniyor...</span>
+                  </div>
+                )}
+                
+                <p className="text-center text-sm text-gray-500 pt-2">
+                  <span className="text-orange-500 font-medium">{filteredPlaces.filter(p => p.isOrderEnabled).length}</span> ORDER
+                  {filteredPlaces.filter(p => !p.isOrderEnabled).length > 0 && (
+                    <> • <span className="text-gray-300">{filteredPlaces.filter(p => !p.isOrderEnabled).length}</span> çevredeki</>
+                  )}
+                </p>
+              </>
             )}
-            
-            {filteredPlaces.map(place => (
-              <button 
-                key={place.id} 
-                onClick={() => handlePlaceClick(place)} 
-                className="w-full bg-[#1a1a1a] rounded-xl p-4 text-left hover:bg-[#222] transition-colors"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="font-semibold">{place.name}</h3>
-                      {place.isOrderEnabled && (
-                        <span className="px-2 py-0.5 bg-orange-500/20 text-orange-500 text-xs rounded-full font-medium">ORDER</span>
-                      )}
-                      {place.isOpen !== undefined && (
-                        <span className={`px-2 py-0.5 text-xs rounded-full ${place.isOpen ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                          {place.isOpen ? 'Açık' : 'Kapalı'}
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-sm text-gray-400 mt-1">
-                      {place.address || place.district || `${place.distance} km uzakta`}
-                    </p>
-                    <div className="flex items-center gap-3 mt-2">
-                      {place.rating && (
-                        <span className="flex items-center gap-1 text-sm">
-                          <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                          {place.rating.toFixed(1)}
-                        </span>
-                      )}
-                      <span className="text-sm text-gray-500">{place.distance} km</span>
-                      {place.priceLevel && (
-                        <span className="text-sm text-gray-500">{'₺'.repeat(place.priceLevel)}</span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="w-12 h-12 bg-[#242424] rounded-lg flex items-center justify-center text-2xl ml-3">
-                    {place.emoji}
-                  </div>
-                </div>
-              </button>
-            ))}
-            
-            <p className="text-center text-sm text-gray-500 pt-2">
-              <span className="text-orange-500 font-medium">{filteredPlaces.filter(p => p.isOrderEnabled).length}</span> ORDER mekan
-              {filteredPlaces.filter(p => !p.isOrderEnabled).length > 0 && (
-                <> • <span className="text-gray-300">{filteredPlaces.filter(p => !p.isOrderEnabled).length}</span> çevredeki mekan</>
-              )}
-            </p>
           </>
         )}
       </div>
