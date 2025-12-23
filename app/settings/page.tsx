@@ -3,24 +3,17 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/AuthContext'
+import { useI18n, languages } from '@/lib/i18n'
 import {
   Settings, Bell, Moon, Globe, Shield, HelpCircle,
   FileText, ChevronRight, LogOut, Loader2, Volume2,
   Fingerprint, User, ArrowLeft
 } from 'lucide-react'
 
-type Language = 'tr' | 'en' | 'ar' | 'fa'
-
-const languages: { code: Language; name: string; flag: string }[] = [
-  { code: 'tr', name: 'Türkçe', flag: '🇹🇷' },
-  { code: 'en', name: 'English', flag: '🇬🇧' },
-  { code: 'ar', name: 'العربية', flag: '🇸🇦' },
-  { code: 'fa', name: 'فارسی', flag: '🇮🇷' },
-]
-
 export default function SettingsPage() {
   const router = useRouter()
   const { user, signOut } = useAuth()
+  const { t, locale, setLocale } = useI18n()
   const [mounted, setMounted] = useState(false)
   
   // Settings state
@@ -29,20 +22,10 @@ export default function SettingsPage() {
   const [darkMode, setDarkMode] = useState(true)
   const [biometricEnabled, setBiometricEnabled] = useState(false)
   const [pinEnabled, setPinEnabled] = useState(false)
-  const [language, setLanguage] = useState<Language>('tr')
 
   useEffect(() => {
     setMounted(true)
-    // Load settings from localStorage
-    const savedLanguage = localStorage.getItem('order-locale') as Language
-    if (savedLanguage) setLanguage(savedLanguage)
   }, [])
-
-  const handleLanguageChange = (code: Language) => {
-    setLanguage(code)
-    localStorage.setItem('order-locale', code)
-    // In real app, this would trigger i18n change
-  }
 
   const handleSignOut = async () => {
     await signOut()
@@ -64,7 +47,7 @@ export default function SettingsPage() {
         <button onClick={() => router.back()} className="p-2 -ml-2">
           <ArrowLeft className="w-6 h-6" />
         </button>
-        <h1 className="text-2xl font-bold">Ayarlar</h1>
+        <h1 className="text-2xl font-bold">{t.nav?.settings || 'Settings'}</h1>
       </div>
 
       {/* Profile Link */}
@@ -79,7 +62,7 @@ export default function SettingsPage() {
             </div>
             <div className="flex-1 text-left">
               <p className="font-semibold">{user.user_metadata?.full_name || user.email}</p>
-              <p className="text-sm text-gray-400">Profili görüntüle</p>
+              <p className="text-sm text-gray-400">{t.settings?.viewProfile || 'View profile'}</p>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-500" />
           </button>
@@ -88,12 +71,14 @@ export default function SettingsPage() {
 
       {/* Notifications */}
       <div className="px-4 mb-6">
-        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Bildirimler</h2>
+        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+          {t.settings?.notifications || 'Notifications'}
+        </h2>
         <div className="bg-[#1a1a1a] rounded-2xl overflow-hidden">
           <div className="flex items-center justify-between p-4 border-b border-white/5">
             <div className="flex items-center gap-3">
               <Bell className="w-5 h-5 text-orange-500" />
-              <span>Push Bildirimleri</span>
+              <span>{t.settings?.pushNotifications || 'Push Notifications'}</span>
             </div>
             <button
               onClick={() => setPushEnabled(!pushEnabled)}
@@ -105,7 +90,7 @@ export default function SettingsPage() {
           <div className="flex items-center justify-between p-4">
             <div className="flex items-center gap-3">
               <Volume2 className="w-5 h-5 text-blue-500" />
-              <span>Bildirim Sesi</span>
+              <span>{t.settings?.notificationSound || 'Notification Sound'}</span>
             </div>
             <button
               onClick={() => setSoundEnabled(!soundEnabled)}
@@ -119,12 +104,14 @@ export default function SettingsPage() {
 
       {/* Appearance */}
       <div className="px-4 mb-6">
-        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Görünüm</h2>
+        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+          {t.settings?.appearance || 'Appearance'}
+        </h2>
         <div className="bg-[#1a1a1a] rounded-2xl overflow-hidden">
           <div className="flex items-center justify-between p-4 border-b border-white/5">
             <div className="flex items-center gap-3">
               <Moon className="w-5 h-5 text-purple-500" />
-              <span>Karanlık Mod</span>
+              <span>{t.settings?.darkMode || 'Dark Mode'}</span>
             </div>
             <button
               onClick={() => setDarkMode(!darkMode)}
@@ -138,21 +125,21 @@ export default function SettingsPage() {
           <div className="p-4">
             <div className="flex items-center gap-3 mb-3">
               <Globe className="w-5 h-5 text-green-500" />
-              <span>Dil</span>
+              <span>{t.settings?.language || 'Language'}</span>
             </div>
             <div className="grid grid-cols-2 gap-2">
               {languages.map((lang) => (
                 <button
                   key={lang.code}
-                  onClick={() => handleLanguageChange(lang.code)}
+                  onClick={() => setLocale(lang.code)}
                   className={`flex items-center gap-2 p-3 rounded-xl transition-colors ${
-                    language === lang.code 
+                    locale === lang.code 
                       ? 'bg-orange-500 text-white' 
                       : 'bg-[#2a2a2a] text-gray-300 hover:bg-[#3a3a3a]'
                   }`}
                 >
                   <span>{lang.flag}</span>
-                  <span className="text-sm">{lang.name}</span>
+                  <span className="text-sm">{lang.nativeName}</span>
                 </button>
               ))}
             </div>
@@ -162,14 +149,16 @@ export default function SettingsPage() {
 
       {/* Security */}
       <div className="px-4 mb-6">
-        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Güvenlik</h2>
+        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+          {t.settings?.security || 'Security'}
+        </h2>
         <div className="bg-[#1a1a1a] rounded-2xl overflow-hidden">
           <div className="flex items-center justify-between p-4 border-b border-white/5">
             <div className="flex items-center gap-3">
               <Fingerprint className="w-5 h-5 text-green-500" />
               <div>
-                <span>Biyometrik Giriş</span>
-                <p className="text-xs text-gray-500">Face ID / Parmak İzi</p>
+                <span>{t.settings?.biometricLogin || 'Biometric Login'}</span>
+                <p className="text-xs text-gray-500">Face ID / {t.settings?.fingerprint || 'Fingerprint'}</p>
               </div>
             </div>
             <button
@@ -183,8 +172,8 @@ export default function SettingsPage() {
             <div className="flex items-center gap-3">
               <Shield className="w-5 h-5 text-blue-500" />
               <div>
-                <span>PIN Kodu</span>
-                <p className="text-xs text-gray-500">4-6 haneli güvenlik kodu</p>
+                <span>{t.settings?.pinCode || 'PIN Code'}</span>
+                <p className="text-xs text-gray-500">{t.settings?.pinCodeDesc || '4-6 digit security code'}</p>
               </div>
             </div>
             <button
@@ -199,33 +188,35 @@ export default function SettingsPage() {
 
       {/* Support */}
       <div className="px-4 mb-6">
-        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Destek</h2>
+        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+          {t.settings?.support || 'Support'}
+        </h2>
         <div className="bg-[#1a1a1a] rounded-2xl overflow-hidden">
           <button className="w-full flex items-center justify-between p-4 border-b border-white/5">
             <div className="flex items-center gap-3">
               <HelpCircle className="w-5 h-5 text-yellow-500" />
-              <span>Yardım Merkezi</span>
+              <span>{t.settings?.helpCenter || 'Help Center'}</span>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-500" />
           </button>
           <button className="w-full flex items-center justify-between p-4 border-b border-white/5">
             <div className="flex items-center gap-3">
               <FileText className="w-5 h-5 text-gray-400" />
-              <span>Bize Ulaşın</span>
+              <span>{t.settings?.contactUs || 'Contact Us'}</span>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-500" />
           </button>
           <button className="w-full flex items-center justify-between p-4 border-b border-white/5">
             <div className="flex items-center gap-3">
               <FileText className="w-5 h-5 text-gray-400" />
-              <span>Kullanım Koşulları</span>
+              <span>{t.settings?.termsOfService || 'Terms of Service'}</span>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-500" />
           </button>
           <button className="w-full flex items-center justify-between p-4">
             <div className="flex items-center gap-3">
               <FileText className="w-5 h-5 text-gray-400" />
-              <span>Gizlilik Politikası</span>
+              <span>{t.settings?.privacyPolicy || 'Privacy Policy'}</span>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-500" />
           </button>
@@ -240,7 +231,7 @@ export default function SettingsPage() {
             className="w-full flex items-center justify-center gap-2 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-500 font-medium"
           >
             <LogOut className="w-5 h-5" />
-            Çıkış Yap
+            {t.auth?.logout || 'Sign Out'}
           </button>
         </div>
       )}
