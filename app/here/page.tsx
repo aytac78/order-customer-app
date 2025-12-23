@@ -3,104 +3,303 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { 
-  ArrowLeft, MapPin, Users, Radio, MessageCircle, 
-  Settings, Eye, EyeOff, Loader2, UserCircle,
-  Coffee, Navigation, ChevronRight, Sparkles
+  ArrowLeft, MapPin, Users, Heart, X, MessageCircle, 
+  Send, ChevronLeft, Sparkles, Coffee, Wine, Music,
+  Camera, Instagram, Check, Star
 } from 'lucide-react'
-import { usePresence, NearbyUser } from '@/lib/usePresence'
 import { useAuth } from '@/lib/AuthContext'
-import { useLocation } from '@/lib/LocationContext'
-import { supabase } from '@/lib/supabase'
 
-interface VenueWithUsers {
+interface HereUser {
   id: string
   name: string
-  district: string
-  user_count: number
+  age: number
+  avatar: string
+  bio: string
+  interests: string[]
+  photos: string[]
+  instagram?: string
+  isOnline: boolean
+  distance: string
 }
+
+interface Match {
+  id: string
+  user: HereUser
+  matchedAt: string
+  lastMessage?: string
+  unreadCount: number
+}
+
+interface Message {
+  id: string
+  senderId: string
+  text: string
+  timestamp: string
+  isRead: boolean
+}
+
+// Demo users at venue
+const demoUsers: HereUser[] = [
+  {
+    id: 'u1',
+    name: 'Elif',
+    age: 26,
+    avatar: '👩‍🦰',
+    bio: 'Kahve tutkunu ☕ Kitap kurdu 📚 Seyahat hayranı ✈️',
+    interests: ['Kahve', 'Kitap', 'Seyahat', 'Fotoğraf'],
+    photos: [],
+    instagram: 'elif_travels',
+    isOnline: true,
+    distance: '2m'
+  },
+  {
+    id: 'u2',
+    name: 'Kaan',
+    age: 28,
+    avatar: '👨‍💼',
+    bio: 'Yazılımcı 💻 Müzik sever 🎵 Spor yapmayı seviyorum',
+    interests: ['Teknoloji', 'Müzik', 'Fitness', 'Film'],
+    photos: [],
+    instagram: 'kaan_dev',
+    isOnline: true,
+    distance: '5m'
+  },
+  {
+    id: 'u3',
+    name: 'Zeynep',
+    age: 24,
+    avatar: '👩‍🎨',
+    bio: 'Tasarımcı 🎨 Yoga instructor 🧘‍♀️ Vegan 🌱',
+    interests: ['Tasarım', 'Yoga', 'Vegan', 'Doğa'],
+    photos: [],
+    instagram: 'zeynep_art',
+    isOnline: true,
+    distance: '3m'
+  },
+  {
+    id: 'u4',
+    name: 'Burak',
+    age: 30,
+    avatar: '👨‍🍳',
+    bio: 'Şef 👨‍🍳 Yemek bloggerı 📝 İyi şarap sever 🍷',
+    interests: ['Yemek', 'Şarap', 'Seyahat', 'Fotoğraf'],
+    photos: [],
+    instagram: 'burak_chef',
+    isOnline: false,
+    distance: '8m'
+  },
+  {
+    id: 'u5',
+    name: 'Deniz',
+    age: 27,
+    avatar: '👩‍💻',
+    bio: 'Product Manager 📊 Dans etmeyi seviyorum 💃 Kedi annesi 🐱',
+    interests: ['İş', 'Dans', 'Kediler', 'Netflix'],
+    photos: [],
+    instagram: 'deniz_pm',
+    isOnline: true,
+    distance: '1m'
+  },
+]
+
+// Demo matches
+const demoMatches: Match[] = [
+  {
+    id: 'm1',
+    user: demoUsers[0],
+    matchedAt: new Date(Date.now() - 3600000).toISOString(),
+    lastMessage: 'Merhaba! Nasılsın? 😊',
+    unreadCount: 2
+  },
+  {
+    id: 'm2',
+    user: demoUsers[2],
+    matchedAt: new Date(Date.now() - 86400000).toISOString(),
+    lastMessage: 'Bu mekan çok güzel!',
+    unreadCount: 0
+  },
+]
+
+type TabType = 'discover' | 'matches' | 'chat'
 
 export default function HerePage() {
   const router = useRouter()
   const { user } = useAuth()
-  const { location } = useLocation()
-  const { 
-    nearbyUsers, 
-    settings, 
-    loading,
-    updateSettings,
-    fetchNearbyUsers,
-    checkInToVenue
-  } = usePresence()
+  const [mounted, setMounted] = useState(false)
+  const [activeTab, setActiveTab] = useState<TabType>('discover')
+  const [currentUserIndex, setCurrentUserIndex] = useState(0)
+  const [matches, setMatches] = useState<Match[]>(demoMatches)
+  const [likedUsers, setLikedUsers] = useState<string[]>([])
+  const [passedUsers, setPassedUsers] = useState<string[]>([])
+  const [showMatch, setShowMatch] = useState(false)
+  const [newMatchUser, setNewMatchUser] = useState<HereUser | null>(null)
+  
+  // Chat state
+  const [selectedMatch, setSelectedMatch] = useState<Match | null>(null)
+  const [messages, setMessages] = useState<Message[]>([])
+  const [newMessage, setNewMessage] = useState('')
 
-  const [activeTab, setActiveTab] = useState<'nearby' | 'venues'>('nearby')
-  const [radius, setRadius] = useState(1)
-  const [nearbyVenues, setNearbyVenues] = useState<VenueWithUsers[]>([])
-  const [venuesLoading, setVenuesLoading] = useState(false)
+  const currentVenue = {
+    id: 'v1',
+    name: "Nihal's Break Point",
+    userCount: demoUsers.length
+  }
 
   useEffect(() => {
-    if (settings.is_discoverable) {
-      fetchNearbyUsers(radius)
-    }
-    fetchNearbyVenues()
-  }, [radius, settings.is_discoverable])
+    setMounted(true)
+  }, [])
 
-  const fetchNearbyVenues = async () => {
-    if (!location) return
-    setVenuesLoading(true)
+  const availableUsers = demoUsers.filter(
+    u => !likedUsers.includes(u.id) && !passedUsers.includes(u.id)
+  )
+  const currentUser = availableUsers[0]
 
-    // Yakındaki mekanları çek (basit sorgu)
-    const { data: venues } = await supabase
-      .from('venues')
-      .select('id, name, district')
-      .limit(20)
-
-    if (venues) {
-      // Her mekan için aktif check-in sayısını al
-      const venuesWithCounts = await Promise.all(
-        venues.map(async (venue) => {
-          const { count } = await supabase
-            .from('venue_checkins')
-            .select('*', { count: 'exact', head: true })
-            .eq('venue_id', venue.id)
-            .eq('is_active', true)
-
-          return {
-            ...venue,
-            user_count: count || 0
-          }
-        })
-      )
-
-      // Kullanıcı sayısına göre sırala
-      setNearbyVenues(venuesWithCounts.sort((a, b) => b.user_count - a.user_count))
-    }
-    setVenuesLoading(false)
-  }
-
-  const handleCheckIn = async (venueId: string) => {
-    const success = await checkInToVenue(venueId, 'manual')
-    if (success) {
-      router.push(`/here/venue/${venueId}`)
+  const handleLike = () => {
+    if (!currentUser) return
+    
+    setLikedUsers(prev => [...prev, currentUser.id])
+    
+    // 50% match chance for demo
+    if (Math.random() > 0.5) {
+      setNewMatchUser(currentUser)
+      setShowMatch(true)
+      setMatches(prev => [{
+        id: `m-${Date.now()}`,
+        user: currentUser,
+        matchedAt: new Date().toISOString(),
+        unreadCount: 0
+      }, ...prev])
     }
   }
 
-  const handleStartChat = (userId: string) => {
-    router.push(`/messages/new?user=${userId}`)
+  const handlePass = () => {
+    if (!currentUser) return
+    setPassedUsers(prev => [...prev, currentUser.id])
   }
 
-  if (!user) {
+  const handleSendMessage = () => {
+    if (!newMessage.trim() || !selectedMatch) return
+    
+    const msg: Message = {
+      id: `msg-${Date.now()}`,
+      senderId: 'me',
+      text: newMessage,
+      timestamp: new Date().toISOString(),
+      isRead: false
+    }
+    setMessages(prev => [...prev, msg])
+    setNewMessage('')
+    
+    // Auto reply after 2s
+    setTimeout(() => {
+      const replies = [
+        'Harika! Ben de öyle düşünüyorum 😊',
+        'Kesinlikle katılıyorum!',
+        'Çok tatlısın 💕',
+        'Haha, aynen öyle!',
+        'Burada mısın hala? Buluşalım mı?'
+      ]
+      const reply: Message = {
+        id: `msg-${Date.now()}`,
+        senderId: selectedMatch.user.id,
+        text: replies[Math.floor(Math.random() * replies.length)],
+        timestamp: new Date().toISOString(),
+        isRead: false
+      }
+      setMessages(prev => [...prev, reply])
+    }, 2000)
+  }
+
+  const openChat = (match: Match) => {
+    setSelectedMatch(match)
+    setMessages([
+      {
+        id: 'msg-1',
+        senderId: match.user.id,
+        text: match.lastMessage || 'Merhaba! 👋',
+        timestamp: match.matchedAt,
+        isRead: true
+      }
+    ])
+    setActiveTab('chat')
+  }
+
+  const formatTime = (dateStr: string) => {
+    const date = new Date(dateStr)
+    const now = new Date()
+    const diff = now.getTime() - date.getTime()
+    
+    if (diff < 3600000) return `${Math.floor(diff / 60000)}dk`
+    if (diff < 86400000) return `${Math.floor(diff / 3600000)}sa`
+    return date.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })
+  }
+
+  if (!mounted) {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center p-4">
-        <div className="text-center">
-          <Sparkles className="w-16 h-16 text-purple-400 mx-auto mb-4" />
-          <h1 className="text-xl font-bold mb-2">HERE - Sosyal Keşif</h1>
-          <p className="text-gray-400 mb-6">Etrafındakileri keşfetmek için giriş yap</p>
-          <button
-            onClick={() => router.push('/auth')}
-            className="px-8 py-3 bg-purple-500 rounded-xl font-medium"
-          >
-            Giriş Yap
+      <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  // Chat View
+  if (activeTab === 'chat' && selectedMatch) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col">
+        {/* Chat Header */}
+        <div className="sticky top-0 z-10 bg-[#1a1a1a] border-b border-white/10 p-4 flex items-center gap-4">
+          <button onClick={() => { setActiveTab('matches'); setSelectedMatch(null); }}>
+            <ChevronLeft className="w-6 h-6" />
           </button>
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center text-xl">
+            {selectedMatch.user.avatar}
+          </div>
+          <div className="flex-1">
+            <h2 className="font-semibold">{selectedMatch.user.name}</h2>
+            <p className="text-xs text-green-500">Çevrimiçi</p>
+          </div>
+        </div>
+
+        {/* Messages */}
+        <div className="flex-1 p-4 space-y-3 overflow-y-auto">
+          {messages.map(msg => (
+            <div
+              key={msg.id}
+              className={`flex ${msg.senderId === 'me' ? 'justify-end' : 'justify-start'}`}
+            >
+              <div className={`max-w-[75%] px-4 py-2 rounded-2xl ${
+                msg.senderId === 'me' 
+                  ? 'bg-orange-500 rounded-br-md' 
+                  : 'bg-[#2a2a2a] rounded-bl-md'
+              }`}>
+                <p>{msg.text}</p>
+                <p className={`text-xs mt-1 ${msg.senderId === 'me' ? 'text-orange-200' : 'text-gray-500'}`}>
+                  {formatTime(msg.timestamp)}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Input */}
+        <div className="p-4 border-t border-white/10 bg-[#1a1a1a]">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+              placeholder="Mesaj yaz..."
+              className="flex-1 px-4 py-3 bg-[#2a2a2a] rounded-full focus:outline-none focus:ring-2 focus:ring-orange-500"
+            />
+            <button
+              onClick={handleSendMessage}
+              disabled={!newMessage.trim()}
+              className="p-3 bg-orange-500 rounded-full disabled:opacity-50"
+            >
+              <Send className="w-5 h-5" />
+            </button>
+          </div>
         </div>
       </div>
     )
@@ -109,227 +308,233 @@ export default function HerePage() {
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white pb-24">
       {/* Header */}
-      <header className="sticky top-0 bg-gradient-to-b from-purple-900/50 to-[#0a0a0a] px-4 py-4 z-10">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <button onClick={() => router.back()} className="p-2 -ml-2">
-              <ArrowLeft className="w-6 h-6" />
-            </button>
-            <div>
-              <h1 className="text-xl font-bold flex items-center gap-2">
-                HERE
-                {settings.is_discoverable && (
-                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                )}
-              </h1>
-              <p className="text-sm text-gray-400">
-                {location?.district || 'Konum alınıyor...'}
-              </p>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => updateSettings({ is_discoverable: !settings.is_discoverable })}
-              className={`p-2 rounded-lg transition-colors ${
-                settings.is_discoverable 
-                  ? 'bg-green-500/20 text-green-400' 
-                  : 'bg-gray-700 text-gray-400'
-              }`}
-            >
-              {settings.is_discoverable ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
-            </button>
-            <button
-              onClick={() => router.push('/here/settings')}
-              className="p-2 rounded-lg bg-gray-700 text-gray-400"
-            >
-              <Settings className="w-5 h-5" />
-            </button>
+      <div className="sticky top-0 z-10 bg-[#0a0a0a] border-b border-white/10">
+        <div className="flex items-center gap-4 p-4">
+          <button onClick={() => router.back()}>
+            <ArrowLeft className="w-6 h-6" />
+          </button>
+          <div className="flex-1">
+            <h1 className="font-bold text-lg flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-pink-500" />
+              HERE
+            </h1>
+            <p className="text-sm text-gray-400 flex items-center gap-1">
+              <MapPin className="w-3 h-3" />
+              {currentVenue.name} • {currentVenue.userCount} kişi burada
+            </p>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-2">
+        <div className="flex px-4 pb-4 gap-2">
           <button
-            onClick={() => setActiveTab('nearby')}
-            className={`flex-1 py-2 rounded-xl font-medium transition-colors ${
-              activeTab === 'nearby' 
-                ? 'bg-purple-500 text-white' 
+            onClick={() => setActiveTab('discover')}
+            className={`flex-1 py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors ${
+              activeTab === 'discover'
+                ? 'bg-gradient-to-r from-pink-500 to-orange-500 text-white'
                 : 'bg-[#1a1a1a] text-gray-400'
             }`}
           >
-            <Radio className="w-4 h-4 inline mr-2" />
-            Yakındakiler
+            <Users className="w-4 h-4" />
+            Keşfet
           </button>
           <button
-            onClick={() => setActiveTab('venues')}
-            className={`flex-1 py-2 rounded-xl font-medium transition-colors ${
-              activeTab === 'venues' 
-                ? 'bg-purple-500 text-white' 
+            onClick={() => setActiveTab('matches')}
+            className={`flex-1 py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors relative ${
+              activeTab === 'matches'
+                ? 'bg-gradient-to-r from-pink-500 to-orange-500 text-white'
                 : 'bg-[#1a1a1a] text-gray-400'
             }`}
           >
-            <Coffee className="w-4 h-4 inline mr-2" />
-            Mekanlar
+            <MessageCircle className="w-4 h-4" />
+            Mesajlar
+            {matches.filter(m => m.unreadCount > 0).length > 0 && (
+              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-xs flex items-center justify-center">
+                {matches.filter(m => m.unreadCount > 0).length}
+              </span>
+            )}
           </button>
         </div>
-      </header>
+      </div>
 
-      {/* Content */}
-      <div className="p-4">
-        {activeTab === 'nearby' ? (
-          <>
-            {/* Mesafe Seçici */}
-            <div className="flex gap-2 mb-4">
-              {[0.5, 1, 3, 5].map(r => (
-                <button
-                  key={r}
-                  onClick={() => setRadius(r)}
-                  className={`flex-1 py-2 rounded-xl text-sm transition-colors ${
-                    radius === r 
-                      ? 'bg-pink-500 text-white' 
-                      : 'bg-[#1a1a1a] text-gray-400'
-                  }`}
-                >
-                  {r < 1 ? `${r * 1000}m` : `${r}km`}
-                </button>
-              ))}
-            </div>
-
-            {!settings.is_discoverable ? (
-              <div className="text-center py-12">
-                <EyeOff className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                <h2 className="text-lg font-semibold mb-2">Görünmez Moddasın</h2>
-                <p className="text-gray-400 mb-4">
-                  Başkalarını görmek için keşfedilebilir ol
-                </p>
-                <button
-                  onClick={() => updateSettings({ is_discoverable: true, show_nearby: true })}
-                  className="px-6 py-2 bg-purple-500 rounded-xl"
-                >
-                  Keşfedilebilir Ol
-                </button>
-              </div>
-            ) : loading ? (
-              <div className="text-center py-12">
-                <Loader2 className="w-10 h-10 text-purple-400 mx-auto mb-4 animate-spin" />
-                <p className="text-gray-400">Yakındakiler aranıyor...</p>
-              </div>
-            ) : nearbyUsers.length > 0 ? (
-              <div className="space-y-3">
-                <p className="text-sm text-gray-400 mb-2">
-                  {nearbyUsers.length} kişi {radius < 1 ? `${radius * 1000}m` : `${radius}km`} içinde
-                </p>
-                {nearbyUsers.map(nearby => (
-                  <NearbyUserCard 
-                    key={nearby.user_id} 
-                    user={nearby}
-                    onChat={() => handleStartChat(nearby.user_id)}
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <UserCircle className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-                <h2 className="text-lg font-semibold mb-2">Yakınında Kimse Yok</h2>
-                <p className="text-gray-400">
-                  Mesafeyi artırarak daha fazla kişi bulabilirsin
-                </p>
-              </div>
-            )}
-          </>
-        ) : (
-          <>
-            {/* Mekanlar */}
-            {venuesLoading ? (
-              <div className="text-center py-12">
-                <Loader2 className="w-10 h-10 text-orange-400 mx-auto mb-4 animate-spin" />
-                <p className="text-gray-400">Mekanlar yükleniyor...</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <p className="text-sm text-gray-400 mb-2">
-                  {nearbyVenues.filter(v => v.user_count > 0).length} mekanda aktif kullanıcı
-                </p>
-                {nearbyVenues.map(venue => (
-                  <div
-                    key={venue.id}
-                    className="bg-[#1a1a1a] rounded-xl p-4 flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                        venue.user_count > 0 ? 'bg-orange-500/20' : 'bg-gray-700'
-                      }`}>
-                        <Coffee className={`w-6 h-6 ${
-                          venue.user_count > 0 ? 'text-orange-400' : 'text-gray-500'
-                        }`} />
-                      </div>
-                      <div>
-                        <p className="font-medium">{venue.name}</p>
-                        <p className="text-sm text-gray-500">{venue.district}</p>
-                      </div>
+      {/* Discover Tab - Swipe Cards */}
+      {activeTab === 'discover' && (
+        <div className="p-4">
+          {currentUser ? (
+            <div className="relative">
+              {/* Card */}
+              <div className="bg-[#1a1a1a] rounded-3xl overflow-hidden">
+                {/* Avatar/Photo */}
+                <div className="h-80 bg-gradient-to-br from-pink-500 via-purple-500 to-orange-500 flex items-center justify-center relative">
+                  <span className="text-9xl">{currentUser.avatar}</span>
+                  {currentUser.isOnline && (
+                    <div className="absolute top-4 right-4 px-3 py-1 bg-green-500 rounded-full text-xs font-medium flex items-center gap-1">
+                      <div className="w-2 h-2 bg-white rounded-full" />
+                      Burada
                     </div>
-                    
-                    <div className="flex items-center gap-3">
-                      {venue.user_count > 0 && (
-                        <div className="flex items-center gap-1 text-orange-400">
-                          <Users className="w-4 h-4" />
-                          <span className="text-sm">{venue.user_count}</span>
-                        </div>
+                  )}
+                  <div className="absolute bottom-4 left-4 right-4">
+                    <div className="flex items-end justify-between">
+                      <div>
+                        <h2 className="text-2xl font-bold">{currentUser.name}, {currentUser.age}</h2>
+                        <p className="text-sm text-white/80 flex items-center gap-1">
+                          <MapPin className="w-3 h-3" />
+                          {currentUser.distance} uzaklıkta
+                        </p>
+                      </div>
+                      {currentUser.instagram && (
+                        <a 
+                          href={`https://instagram.com/${currentUser.instagram}`}
+                          target="_blank"
+                          className="p-2 bg-white/20 backdrop-blur-sm rounded-full"
+                        >
+                          <Instagram className="w-5 h-5" />
+                        </a>
                       )}
-                      <button
-                        onClick={() => handleCheckIn(venue.id)}
-                        className="px-3 py-1.5 bg-purple-500/20 text-purple-400 rounded-lg text-sm"
-                      >
-                        Check-in
-                      </button>
                     </div>
                   </div>
-                ))}
+                </div>
+
+                {/* Info */}
+                <div className="p-4 space-y-4">
+                  <p className="text-gray-300">{currentUser.bio}</p>
+                  
+                  <div className="flex flex-wrap gap-2">
+                    {currentUser.interests.map((interest, i) => (
+                      <span 
+                        key={i}
+                        className="px-3 py-1 bg-[#2a2a2a] rounded-full text-sm"
+                      >
+                        {interest}
+                      </span>
+                    ))}
+                  </div>
+                </div>
               </div>
-            )}
-          </>
-        )}
-      </div>
-    </div>
-  )
-}
 
-// Yakındaki Kullanıcı Kartı
-function NearbyUserCard({ user, onChat }: { user: NearbyUser; onChat: () => void }) {
-  const distanceText = user.distance_km < 1 
-    ? `${Math.round(user.distance_km * 1000)}m`
-    : `${user.distance_km.toFixed(1)}km`
-
-  return (
-    <div className="bg-[#1a1a1a] rounded-xl p-4 flex items-center gap-4">
-      <div className="w-14 h-14 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center overflow-hidden">
-        {user.profile?.avatar_url ? (
-          <img src={user.profile.avatar_url} alt="" className="w-full h-full object-cover" />
-        ) : (
-          <span className="text-lg font-bold text-white">
-            {user.profile?.display_name?.[0]?.toUpperCase() || '?'}
-          </span>
-        )}
-      </div>
-      
-      <div className="flex-1">
-        <p className="font-medium">{user.profile?.display_name || 'Anonim'}</p>
-        <div className="flex items-center gap-2 text-sm text-gray-500">
-          <MapPin className="w-3 h-3" />
-          <span>{distanceText} uzakta</span>
+              {/* Action Buttons */}
+              <div className="flex justify-center gap-6 mt-6">
+                <button
+                  onClick={handlePass}
+                  className="w-16 h-16 bg-[#1a1a1a] border-2 border-red-500 rounded-full flex items-center justify-center hover:bg-red-500/20 transition-colors"
+                >
+                  <X className="w-8 h-8 text-red-500" />
+                </button>
+                <button
+                  onClick={handleLike}
+                  className="w-20 h-20 bg-gradient-to-r from-pink-500 to-orange-500 rounded-full flex items-center justify-center shadow-lg shadow-pink-500/30 hover:scale-105 transition-transform"
+                >
+                  <Heart className="w-10 h-10" />
+                </button>
+                <button
+                  onClick={() => {/* Super like */}}
+                  className="w-16 h-16 bg-[#1a1a1a] border-2 border-blue-500 rounded-full flex items-center justify-center hover:bg-blue-500/20 transition-colors"
+                >
+                  <Star className="w-8 h-8 text-blue-500" />
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-16">
+              <div className="w-24 h-24 bg-[#1a1a1a] rounded-full flex items-center justify-center mb-4">
+                <Users className="w-12 h-12 text-gray-600" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Şimdilik bu kadar!</h3>
+              <p className="text-gray-400 text-center">Bu mekandaki herkesi gördün. Daha sonra tekrar kontrol et.</p>
+            </div>
+          )}
         </div>
-        {user.profile?.bio && (
-          <p className="text-sm text-gray-400 mt-1 line-clamp-1">{user.profile.bio}</p>
-        )}
-      </div>
+      )}
 
-      <button
-        onClick={onChat}
-        className="p-3 rounded-xl bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 transition-colors"
-      >
-        <MessageCircle className="w-5 h-5" />
-      </button>
+      {/* Matches Tab */}
+      {activeTab === 'matches' && (
+        <div className="p-4 space-y-4">
+          {matches.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-16">
+              <div className="w-24 h-24 bg-[#1a1a1a] rounded-full flex items-center justify-center mb-4">
+                <Heart className="w-12 h-12 text-gray-600" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Henüz eşleşme yok</h3>
+              <p className="text-gray-400 text-center">Keşfet sekmesinden beğenmeye başla!</p>
+            </div>
+          ) : (
+            <>
+              <h3 className="text-sm font-medium text-gray-400">Eşleşmeler ({matches.length})</h3>
+              {matches.map(match => (
+                <button
+                  key={match.id}
+                  onClick={() => openChat(match)}
+                  className="w-full bg-[#1a1a1a] rounded-2xl p-4 flex items-center gap-4 text-left hover:bg-[#222] transition-colors"
+                >
+                  <div className="relative">
+                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center text-2xl">
+                      {match.user.avatar}
+                    </div>
+                    {match.user.isOnline && (
+                      <div className="absolute bottom-0 right-0 w-4 h-4 bg-green-500 rounded-full border-2 border-[#1a1a1a]" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold">{match.user.name}</h3>
+                      <span className="text-xs text-gray-500">{formatTime(match.matchedAt)}</span>
+                    </div>
+                    <p className="text-sm text-gray-400 truncate">{match.lastMessage || 'Yeni eşleşme! 👋'}</p>
+                  </div>
+                  {match.unreadCount > 0 && (
+                    <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center text-xs font-bold">
+                      {match.unreadCount}
+                    </div>
+                  )}
+                </button>
+              ))}
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Match Modal */}
+      {showMatch && newMatchUser && (
+        <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
+          <div className="text-center">
+            <div className="flex justify-center items-center gap-4 mb-6">
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center text-5xl">
+                👤
+              </div>
+              <Heart className="w-12 h-12 text-pink-500 fill-pink-500 animate-pulse" />
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center text-5xl">
+                {newMatchUser.avatar}
+              </div>
+            </div>
+            <h2 className="text-3xl font-bold bg-gradient-to-r from-pink-500 to-orange-500 bg-clip-text text-transparent mb-2">
+              Eşleşme!
+            </h2>
+            <p className="text-gray-400 mb-8">Sen ve {newMatchUser.name} birbirinizi beğendiniz!</p>
+            <div className="flex gap-4">
+              <button
+                onClick={() => {
+                  setShowMatch(false)
+                  setNewMatchUser(null)
+                }}
+                className="flex-1 py-3 border border-white/20 rounded-xl font-medium"
+              >
+                Keşfetmeye Devam Et
+              </button>
+              <button
+                onClick={() => {
+                  setShowMatch(false)
+                  const match = matches.find(m => m.user.id === newMatchUser.id)
+                  if (match) openChat(match)
+                  setNewMatchUser(null)
+                }}
+                className="flex-1 py-3 bg-gradient-to-r from-pink-500 to-orange-500 rounded-xl font-medium"
+              >
+                Mesaj Gönder
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
