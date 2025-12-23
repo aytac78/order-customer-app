@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { 
   Search, MapPin, Star, X, Loader2, Package, RefreshCw, SlidersHorizontal,
   Check, Wine, Beer, UtensilsCrossed, Leaf, Baby, Car, Music, Radio,
-  Waves, Sun, Calendar, DollarSign, Filter, Sparkles, Users, Heart
+  Waves, Sun, Calendar, DollarSign, Filter, Sparkles, Users, Heart, Coffee, ChevronDown
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
@@ -39,10 +39,15 @@ interface Place {
   features?: string[]
 }
 
+interface DrinkFilter {
+  type: string
+  maxPrice: number
+}
+
 interface Filters {
   categories: string[]
   priceLevel: number[]
-  beerPriceMax: number | null
+  drinkFilter: DrinkFilter | null
   features: string[]
   dietary: string[]
   entertainment: string[]
@@ -67,11 +72,17 @@ const priceLevels = [
   { level: 4, label: '₺₺₺₺', desc: 'Lüks' },
 ]
 
-const beerPriceOptions = [
-  { max: 150, label: '150₺ ve altı' },
-  { max: 200, label: '200₺ ve altı' },
-  { max: 300, label: '300₺ ve altı' },
-  { max: 500, label: '500₺ ve altı' },
+const drinkTypes = [
+  { id: 'beer', label: 'Bira', icon: Beer, examples: 'Efes, Tuborg, Corona', defaultMax: 300 },
+  { id: 'cocktail', label: 'Kokteyl', icon: Wine, examples: 'Mojito, Margarita', defaultMax: 500 },
+  { id: 'wine_glass', label: 'Şarap (Kadeh)', icon: Wine, examples: '', defaultMax: 200 },
+  { id: 'wine_bottle', label: 'Şarap (Şişe)', icon: Wine, examples: '', defaultMax: 1500 },
+  { id: 'raki', label: 'Rakı', icon: Wine, examples: 'Yeni Rakı, Efe', defaultMax: 2000 },
+  { id: 'whiskey', label: 'Viski', icon: Wine, examples: 'JD, Chivas', defaultMax: 3000 },
+  { id: 'vodka_shot', label: 'Votka (Shot)', icon: Wine, examples: 'Smirnoff', defaultMax: 200 },
+  { id: 'vodka_bottle', label: 'Votka (Şişe)', icon: Wine, examples: 'Smirnoff, Belvedere', defaultMax: 3000 },
+  { id: 'soft_drink', label: 'Meşrubat', icon: Coffee, examples: 'Kola, Soda', defaultMax: 100 },
+  { id: 'coffee', label: 'Kahve', icon: Coffee, examples: 'Latte, Americano', defaultMax: 200 },
 ]
 
 const featureOptions = [
@@ -118,16 +129,22 @@ function DiscoverContent() {
   const [loadingGoogle, setLoadingGoogle] = useState(false)
   const [searching, setSearching] = useState(false)
   const [showFilterModal, setShowFilterModal] = useState(false)
+  const [showDrinkModal, setShowDrinkModal] = useState(false)
   const [activeFilterCount, setActiveFilterCount] = useState(0)
   const [userLocation, setUserLocation] = useState<{lat: number, lng: number, address: string}>({ 
     lat: 40.9662, lng: 29.0751, address: 'Konum alınıyor...' 
   })
+  
+  // Drink filter temp state
+  const [selectedDrinkType, setSelectedDrinkType] = useState<string>('')
+  const [drinkMaxPrice, setDrinkMaxPrice] = useState<string>('')
+  
   const searchTimeoutRef = useRef<NodeJS.Timeout>()
 
   const [filters, setFilters] = useState<Filters>({
     categories: [],
     priceLevel: [],
-    beerPriceMax: null,
+    drinkFilter: null,
     features: [],
     dietary: [],
     entertainment: [],
@@ -148,7 +165,6 @@ function DiscoverContent() {
     countActiveFilters()
   }, [filters, allPlaces])
 
-  // Debounced search
   useEffect(() => {
     if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current)
 
@@ -170,7 +186,7 @@ function DiscoverContent() {
     let count = 0
     if (filters.categories.length > 0) count++
     if (filters.priceLevel.length > 0) count++
-    if (filters.beerPriceMax) count++
+    if (filters.drinkFilter) count++
     if (filters.features.length > 0) count++
     if (filters.dietary.length > 0) count++
     if (filters.entertainment.length > 0) count++
@@ -242,7 +258,6 @@ function DiscoverContent() {
     setPlaces(orderPlaces.sort((a, b) => (a.distance || 999) - (b.distance || 999)))
     setLoading(false)
 
-    // Google Places
     setLoadingGoogle(true)
     try {
       const res = await fetch(`/api/places?lat=${lat}&lng=${lng}&radius=3000&type=restaurant`)
@@ -335,49 +350,43 @@ function DiscoverContent() {
   const applyFilters = () => {
     let result = [...allPlaces]
 
-    // Arama - sadece ORDER mekanlarında filtrele
-    if (filters.searchQuery && filters.searchQuery.length >= 2) {
-      // Arama varsa Google'a bırak, burada filtre uygulama
-      return
-    }
+    if (filters.searchQuery && filters.searchQuery.length >= 2) return
 
-    // Kategori
     if (filters.categories.length > 0) {
       result = result.filter(p => filters.categories.includes(p.category))
     }
 
-    // Fiyat seviyesi
     if (filters.priceLevel.length > 0) {
       result = result.filter(p => p.price_level && filters.priceLevel.includes(p.price_level))
     }
 
-    // Bira fiyatı
-    if (filters.beerPriceMax) {
-      result = result.filter(p => !p.beer_price_max || p.beer_price_max <= filters.beerPriceMax!)
+    // İçecek filtresi
+    if (filters.drinkFilter) {
+      result = result.filter(p => {
+        // Şimdilik beer ve cocktail için kontrol
+        if (filters.drinkFilter!.type === 'beer' && p.beer_price_max) {
+          return p.beer_price_max <= filters.drinkFilter!.maxPrice
+        }
+        if (filters.drinkFilter!.type === 'cocktail' && p.cocktail_price_max) {
+          return p.cocktail_price_max <= filters.drinkFilter!.maxPrice
+        }
+        // Diğer içecek türleri için şimdilik true dön (veri olmadığı için)
+        return true
+      })
     }
 
-    // Özellikler
     if (filters.features.length > 0) {
-      result = result.filter(p => {
-        return filters.features.every(f => (p as any)[f] === true)
-      })
+      result = result.filter(p => filters.features.every(f => (p as any)[f] === true))
     }
 
-    // Diyet
     if (filters.dietary.length > 0) {
-      result = result.filter(p => {
-        return filters.dietary.every(d => (p as any)[d] === true)
-      })
+      result = result.filter(p => filters.dietary.every(d => (p as any)[d] === true))
     }
 
-    // Eğlence
     if (filters.entertainment.length > 0) {
-      result = result.filter(p => {
-        return filters.entertainment.some(e => (p as any)[e] === true)
-      })
+      result = result.filter(p => filters.entertainment.some(e => (p as any)[e] === true))
     }
 
-    // Bugün rezervasyon
     if (filters.reservationToday) {
       result = result.filter(p => p.reservation_available_today === true)
     }
@@ -395,17 +404,38 @@ function DiscoverContent() {
     })
   }
 
+  const applyDrinkFilter = () => {
+    if (selectedDrinkType && drinkMaxPrice) {
+      setFilters(prev => ({
+        ...prev,
+        drinkFilter: {
+          type: selectedDrinkType,
+          maxPrice: parseInt(drinkMaxPrice)
+        }
+      }))
+    }
+    setShowDrinkModal(false)
+  }
+
+  const clearDrinkFilter = () => {
+    setFilters(prev => ({ ...prev, drinkFilter: null }))
+    setSelectedDrinkType('')
+    setDrinkMaxPrice('')
+  }
+
   const clearFilters = () => {
     setFilters({
       categories: [],
       priceLevel: [],
-      beerPriceMax: null,
+      drinkFilter: null,
       features: [],
       dietary: [],
       entertainment: [],
       reservationToday: false,
       searchQuery: ''
     })
+    setSelectedDrinkType('')
+    setDrinkMaxPrice('')
   }
 
   const handlePlaceClick = (place: Place) => {
@@ -468,16 +498,11 @@ function DiscoverContent() {
               onClick={() => setFilters(prev => ({ ...prev, searchQuery: '' }))} 
               className="absolute right-3 top-1/2 -translate-y-1/2"
             >
-              {searching ? (
-                <Loader2 className="w-4 h-4 text-orange-500 animate-spin" />
-              ) : (
-                <X className="w-4 h-4 text-gray-500" />
-              )}
+              {searching ? <Loader2 className="w-4 h-4 text-orange-500 animate-spin" /> : <X className="w-4 h-4 text-gray-500" />}
             </button>
           )}
         </div>
 
-        {/* Hızlı Kategori Filtreleri */}
         <div className="flex gap-2 mt-3 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-hide">
           {categories.map(cat => (
             <button 
@@ -512,10 +537,10 @@ function DiscoverContent() {
               <button onClick={() => toggleArrayFilter('categories', c)}><X className="w-3 h-3" /></button>
             </span>
           ))}
-          {filters.beerPriceMax && (
+          {filters.drinkFilter && (
             <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded-full text-xs flex items-center gap-1">
-              Bira: {filters.beerPriceMax}₺
-              <button onClick={() => setFilters(prev => ({ ...prev, beerPriceMax: null }))}><X className="w-3 h-3" /></button>
+              {drinkTypes.find(d => d.id === filters.drinkFilter?.type)?.label}: max {filters.drinkFilter.maxPrice}₺
+              <button onClick={clearDrinkFilter}><X className="w-3 h-3" /></button>
             </span>
           )}
           {filters.dietary.map(d => (
@@ -524,15 +549,19 @@ function DiscoverContent() {
               <button onClick={() => toggleArrayFilter('dietary', d)}><X className="w-3 h-3" /></button>
             </span>
           ))}
+          {filters.entertainment.map(e => (
+            <span key={e} className="px-2 py-1 bg-purple-500/20 text-purple-400 rounded-full text-xs flex items-center gap-1">
+              {entertainmentOptions.find(opt => opt.id === e)?.label}
+              <button onClick={() => toggleArrayFilter('entertainment', e)}><X className="w-3 h-3" /></button>
+            </span>
+          ))}
           {filters.reservationToday && (
-            <span className="px-2 py-1 bg-purple-500/20 text-purple-400 rounded-full text-xs flex items-center gap-1">
+            <span className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs flex items-center gap-1">
               Bugün Müsait
               <button onClick={() => setFilters(prev => ({ ...prev, reservationToday: false }))}><X className="w-3 h-3" /></button>
             </span>
           )}
-          <button onClick={clearFilters} className="text-xs text-red-400 underline ml-2">
-            Temizle
-          </button>
+          <button onClick={clearFilters} className="text-xs text-red-400 underline ml-2">Temizle</button>
         </div>
       )}
 
@@ -545,19 +574,13 @@ function DiscoverContent() {
           </div>
         ) : places.length === 0 ? (
           <div className="text-center py-10">
-            <p className="text-gray-400 mb-2">
-              {filters.searchQuery ? `"${filters.searchQuery}" için sonuç bulunamadı` : 'Mekan bulunamadı'}
-            </p>
-            <button onClick={clearFilters} className="text-orange-500 text-sm">
-              Filtreleri temizle
-            </button>
+            <p className="text-gray-400 mb-2">{filters.searchQuery ? `"${filters.searchQuery}" için sonuç bulunamadı` : 'Mekan bulunamadı'}</p>
+            <button onClick={clearFilters} className="text-orange-500 text-sm">Filtreleri temizle</button>
           </div>
         ) : (
           <>
             {filters.searchQuery && (
-              <p className="text-sm text-gray-400 mb-2">
-                "{filters.searchQuery}" için <span className="text-orange-500 font-medium">{places.length}</span> sonuç
-              </p>
+              <p className="text-sm text-gray-400 mb-2">"{filters.searchQuery}" için <span className="text-orange-500 font-medium">{places.length}</span> sonuç</p>
             )}
             
             {places.map(place => (
@@ -581,7 +604,6 @@ function DiscoverContent() {
                     </div>
                     <p className="text-sm text-gray-400 mt-1">{place.address || `${place.distance} km`}</p>
                     
-                    {/* Özellik ikonları */}
                     {place.isOrderEnabled && (
                       <div className="flex items-center gap-2 mt-2 flex-wrap">
                         {place.has_gluten_free && <span className="text-xs bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded">Glutensiz</span>}
@@ -600,14 +622,10 @@ function DiscoverContent() {
                         </span>
                       )}
                       <span className="text-sm text-gray-500">{place.distance} km</span>
-                      {place.price_level && (
-                        <span className="text-sm text-gray-500">{'₺'.repeat(place.price_level)}</span>
-                      )}
+                      {place.price_level && <span className="text-sm text-gray-500">{'₺'.repeat(place.price_level)}</span>}
                     </div>
                   </div>
-                  <div className="w-12 h-12 bg-[#242424] rounded-lg flex items-center justify-center text-2xl ml-3">
-                    {place.emoji}
-                  </div>
+                  <div className="w-12 h-12 bg-[#242424] rounded-lg flex items-center justify-center text-2xl ml-3">{place.emoji}</div>
                 </div>
               </button>
             ))}
@@ -637,9 +655,7 @@ function DiscoverContent() {
           <div className="bg-[#1a1a1a] w-full max-h-[85vh] rounded-t-3xl overflow-hidden">
             <div className="sticky top-0 bg-[#1a1a1a] border-b border-white/10 px-4 py-4 flex items-center justify-between">
               <h2 className="text-lg font-bold">Tüm Filtreler</h2>
-              <button onClick={() => setShowFilterModal(false)}>
-                <X className="w-6 h-6" />
-              </button>
+              <button onClick={() => setShowFilterModal(false)}><X className="w-6 h-6" /></button>
             </div>
 
             <div className="overflow-y-auto max-h-[calc(85vh-140px)] p-4 space-y-6">
@@ -656,9 +672,7 @@ function DiscoverContent() {
                       key={cat.id}
                       onClick={() => toggleArrayFilter('categories', cat.id)}
                       className={`px-4 py-2 rounded-xl text-sm transition-colors flex items-center gap-2 ${
-                        filters.categories.includes(cat.id)
-                          ? 'bg-orange-500 text-white'
-                          : 'bg-[#242424] text-gray-300'
+                        filters.categories.includes(cat.id) ? 'bg-orange-500 text-white' : 'bg-[#242424] text-gray-300'
                       }`}
                     >
                       <span>{cat.emoji}</span>
@@ -680,9 +694,7 @@ function DiscoverContent() {
                       key={p.level}
                       onClick={() => toggleArrayFilter('priceLevel', p.level)}
                       className={`px-4 py-2 rounded-xl text-sm transition-colors ${
-                        filters.priceLevel.includes(p.level)
-                          ? 'bg-green-500 text-white'
-                          : 'bg-[#242424] text-gray-300'
+                        filters.priceLevel.includes(p.level) ? 'bg-green-500 text-white' : 'bg-[#242424] text-gray-300'
                       }`}
                     >
                       {p.label} <span className="text-xs opacity-70">({p.desc})</span>
@@ -691,30 +703,42 @@ function DiscoverContent() {
                 </div>
               </div>
 
-              {/* Bira Fiyatı */}
+              {/* İçecek Fiyatı - Yeni Esnek Tasarım */}
               <div>
                 <h3 className="font-semibold mb-3 flex items-center gap-2">
                   <Beer className="w-4 h-4 text-orange-500" />
-                  Bira Fiyatı (Max)
+                  İçecek Fiyatı
                 </h3>
-                <div className="flex flex-wrap gap-2">
-                  {beerPriceOptions.map(opt => (
-                    <button
-                      key={opt.max}
-                      onClick={() => setFilters(prev => ({ 
-                        ...prev, 
-                        beerPriceMax: prev.beerPriceMax === opt.max ? null : opt.max 
-                      }))}
-                      className={`px-4 py-2 rounded-xl text-sm transition-colors ${
-                        filters.beerPriceMax === opt.max
-                          ? 'bg-yellow-500 text-white'
-                          : 'bg-[#242424] text-gray-300'
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
+                
+                {filters.drinkFilter ? (
+                  <div className="bg-yellow-500/20 border border-yellow-500 rounded-xl p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium text-yellow-400">
+                          {drinkTypes.find(d => d.id === filters.drinkFilter?.type)?.label}
+                        </p>
+                        <p className="text-sm text-gray-400">Max {filters.drinkFilter.maxPrice}₺</p>
+                      </div>
+                      <button onClick={clearDrinkFilter} className="p-2 hover:bg-white/10 rounded-lg">
+                        <X className="w-5 h-5 text-yellow-400" />
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowDrinkModal(true)}
+                    className="w-full px-4 py-4 rounded-xl bg-[#242424] text-gray-300 flex items-center justify-between"
+                  >
+                    <span className="flex items-center gap-3">
+                      <Wine className="w-5 h-5" />
+                      <div className="text-left">
+                        <p>İçecek türü ve fiyat belirle</p>
+                        <p className="text-xs text-gray-500">Bira, kokteyl, şarap, viski...</p>
+                      </div>
+                    </span>
+                    <ChevronDown className="w-5 h-5" />
+                  </button>
+                )}
               </div>
 
               {/* Diyet Seçenekleri */}
@@ -729,9 +753,7 @@ function DiscoverContent() {
                       key={opt.id}
                       onClick={() => toggleArrayFilter('dietary', opt.id)}
                       className={`w-full px-4 py-3 rounded-xl text-sm transition-colors flex items-center justify-between ${
-                        filters.dietary.includes(opt.id)
-                          ? 'bg-green-500/20 border border-green-500'
-                          : 'bg-[#242424] text-gray-300'
+                        filters.dietary.includes(opt.id) ? 'bg-green-500/20 border border-green-500' : 'bg-[#242424] text-gray-300'
                       }`}
                     >
                       <span className="flex items-center gap-3">
@@ -756,9 +778,7 @@ function DiscoverContent() {
                       key={opt.id}
                       onClick={() => toggleArrayFilter('entertainment', opt.id)}
                       className={`w-full px-4 py-3 rounded-xl text-sm transition-colors flex items-center justify-between ${
-                        filters.entertainment.includes(opt.id)
-                          ? 'bg-purple-500/20 border border-purple-500'
-                          : 'bg-[#242424] text-gray-300'
+                        filters.entertainment.includes(opt.id) ? 'bg-purple-500/20 border border-purple-500' : 'bg-[#242424] text-gray-300'
                       }`}
                     >
                       <span className="flex items-center gap-3">
@@ -783,9 +803,7 @@ function DiscoverContent() {
                       key={opt.id}
                       onClick={() => toggleArrayFilter('features', opt.id)}
                       className={`px-4 py-3 rounded-xl text-sm transition-colors flex items-center gap-2 ${
-                        filters.features.includes(opt.id)
-                          ? 'bg-blue-500/20 border border-blue-500'
-                          : 'bg-[#242424] text-gray-300'
+                        filters.features.includes(opt.id) ? 'bg-blue-500/20 border border-blue-500' : 'bg-[#242424] text-gray-300'
                       }`}
                     >
                       <opt.icon className="w-4 h-4" />
@@ -800,9 +818,7 @@ function DiscoverContent() {
                 <button
                   onClick={() => setFilters(prev => ({ ...prev, reservationToday: !prev.reservationToday }))}
                   className={`w-full px-4 py-4 rounded-xl text-sm transition-colors flex items-center justify-between ${
-                    filters.reservationToday
-                      ? 'bg-orange-500/20 border border-orange-500'
-                      : 'bg-[#242424] text-gray-300'
+                    filters.reservationToday ? 'bg-orange-500/20 border border-orange-500' : 'bg-[#242424] text-gray-300'
                   }`}
                 >
                   <span className="flex items-center gap-3">
@@ -818,17 +834,98 @@ function DiscoverContent() {
             </div>
 
             <div className="sticky bottom-0 bg-[#1a1a1a] border-t border-white/10 p-4 flex gap-3">
-              <button
-                onClick={clearFilters}
-                className="flex-1 py-3 rounded-xl border border-white/20 text-white font-medium"
-              >
+              <button onClick={clearFilters} className="flex-1 py-3 rounded-xl border border-white/20 text-white font-medium">
                 Temizle
               </button>
-              <button
-                onClick={() => setShowFilterModal(false)}
-                className="flex-1 py-3 rounded-xl bg-orange-500 text-white font-medium"
-              >
+              <button onClick={() => setShowFilterModal(false)} className="flex-1 py-3 rounded-xl bg-orange-500 text-white font-medium">
                 {places.length} Sonuç Göster
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Drink Filter Modal */}
+      {showDrinkModal && (
+        <div className="fixed inset-0 z-[60] bg-black/80 flex items-center justify-center p-4">
+          <div className="bg-[#1a1a1a] w-full max-w-md rounded-2xl overflow-hidden">
+            <div className="p-4 border-b border-white/10 flex items-center justify-between">
+              <h2 className="text-lg font-bold">İçecek Filtresi</h2>
+              <button onClick={() => setShowDrinkModal(false)}><X className="w-6 h-6" /></button>
+            </div>
+
+            <div className="p-4 space-y-4">
+              {/* İçecek Türü */}
+              <div>
+                <p className="text-sm text-gray-400 mb-2">İçecek Türü Seç</p>
+                <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto">
+                  {drinkTypes.map(drink => (
+                    <button
+                      key={drink.id}
+                      onClick={() => {
+                        setSelectedDrinkType(drink.id)
+                        if (!drinkMaxPrice) setDrinkMaxPrice(drink.defaultMax.toString())
+                      }}
+                      className={`px-3 py-3 rounded-xl text-sm transition-colors text-left ${
+                        selectedDrinkType === drink.id ? 'bg-yellow-500 text-black' : 'bg-[#242424] text-gray-300'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <drink.icon className="w-4 h-4" />
+                        <span className="font-medium">{drink.label}</span>
+                      </div>
+                      {drink.examples && (
+                        <p className="text-xs opacity-60 mt-1">{drink.examples}</p>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Max Fiyat */}
+              <div>
+                <p className="text-sm text-gray-400 mb-2">Maximum Fiyat (₺)</p>
+                <div className="relative">
+                  <input
+                    type="number"
+                    value={drinkMaxPrice}
+                    onChange={(e) => setDrinkMaxPrice(e.target.value)}
+                    placeholder="Örn: 300"
+                    className="w-full px-4 py-3 bg-[#242424] rounded-xl text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-yellow-500"
+                  />
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">₺</span>
+                </div>
+                
+                {/* Hızlı Seçim */}
+                <div className="flex gap-2 mt-2">
+                  {[100, 200, 300, 500, 1000].map(price => (
+                    <button
+                      key={price}
+                      onClick={() => setDrinkMaxPrice(price.toString())}
+                      className={`px-3 py-1 rounded-lg text-xs ${
+                        drinkMaxPrice === price.toString() ? 'bg-yellow-500 text-black' : 'bg-[#333] text-gray-400'
+                      }`}
+                    >
+                      {price}₺
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="p-4 border-t border-white/10 flex gap-3">
+              <button 
+                onClick={() => setShowDrinkModal(false)} 
+                className="flex-1 py-3 rounded-xl border border-white/20 text-white font-medium"
+              >
+                İptal
+              </button>
+              <button 
+                onClick={applyDrinkFilter}
+                disabled={!selectedDrinkType || !drinkMaxPrice}
+                className="flex-1 py-3 rounded-xl bg-yellow-500 text-black font-medium disabled:opacity-50"
+              >
+                Uygula
               </button>
             </div>
           </div>
