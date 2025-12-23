@@ -398,21 +398,21 @@ export default function VenueMenuPage() {
 
       {/* Cart Modal */}
       {showCart && (
-        <div className="fixed inset-0 bg-black/80 z-50 flex flex-col justify-end">
-          <div className="bg-[#1a1a1a] rounded-t-3xl w-full max-h-[70vh] flex flex-col">
+        <div className="fixed inset-0 bg-black/90 z-[100]">
+          <div className="h-full flex flex-col">
             {/* Header */}
-            <div className="p-4 border-b border-white/10 flex items-center justify-between flex-shrink-0">
+            <div className="p-4 border-b border-white/10 flex items-center justify-between flex-shrink-0 bg-[#1a1a1a]">
               <h2 className="text-lg font-bold">Sepetim ({cartItemCount})</h2>
-              <button onClick={() => setShowCart(false)}>
+              <button onClick={() => setShowCart(false)} className="p-2 hover:bg-white/10 rounded-full">
                 <X className="w-6 h-6" />
               </button>
             </div>
 
             {/* Cart Items - Scrollable */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-[#0a0a0a]">
               {cart.map(item => (
-                <div key={item.product.id} className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-orange-500/20 to-red-500/20 flex items-center justify-center flex-shrink-0">
+                <div key={item.product.id} className="flex items-center gap-4 bg-[#1a1a1a] p-3 rounded-xl">
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-orange-500/20 to-red-500/20 flex items-center justify-center flex-shrink-0">
                     <span className="text-2xl">🍽️</span>
                   </div>
                   <div className="flex-1">
@@ -435,7 +435,7 @@ export default function VenueMenuPage() {
             </div>
 
             {/* Footer - Always visible */}
-            <div className="p-4 border-t border-white/10 flex-shrink-0 bg-[#1a1a1a]">
+            <div className="p-4 border-t border-white/10 flex-shrink-0 bg-[#1a1a1a] pb-6">
               <div className="flex justify-between mb-4">
                 <span className="text-gray-400">Toplam</span>
                 <span className="text-xl font-bold">₺{cartTotal.toLocaleString()}</span>
@@ -443,9 +443,9 @@ export default function VenueMenuPage() {
               {usingDemoData ? (
                 <button
                   onClick={() => setShowCart(false)}
-                  className="w-full py-4 bg-gray-700 rounded-2xl font-bold text-gray-300"
+                  className="w-full py-4 bg-orange-500 rounded-2xl font-bold"
                 >
-                  Demo Menü - Kapat
+                  Kapat
                 </button>
               ) : (
                 <button
