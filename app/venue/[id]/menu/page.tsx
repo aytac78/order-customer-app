@@ -19,52 +19,14 @@ interface Product {
   image_url?: string
   category_id: string
   is_available: boolean
-  orderCount?: number
-  likeCount?: number
-  isPopular?: boolean
+  is_popular: boolean
+  order_count?: number
 }
 
 interface CartItem {
   product: Product
   quantity: number
 }
-
-const demoCategories: Category[] = [
-  { id: 'cat-0', name: '🔥 Popüler', sort_order: 0 },
-  { id: 'cat-1', name: 'Başlangıçlar', sort_order: 1 },
-  { id: 'cat-2', name: 'Ana Yemekler', sort_order: 2 },
-  { id: 'cat-3', name: 'Pizzalar', sort_order: 3 },
-  { id: 'cat-4', name: 'Deniz Ürünleri', sort_order: 4 },
-  { id: 'cat-5', name: 'İçecekler', sort_order: 5 },
-  { id: 'cat-6', name: 'Tatlılar', sort_order: 6 },
-]
-
-const demoProducts: Product[] = [
-  // Popüler ürünler (en çok sipariş + beğeni)
-  { id: 'p-12', name: 'Izgara Levrek', description: 'Taze levrek, limon, roka', price: 320, category_id: 'cat-4', is_available: true, orderCount: 89, likeCount: 156, isPopular: true },
-  { id: 'p-7', name: 'Adana Kebap', description: 'Acılı dana kıyma, lavaş', price: 250, category_id: 'cat-2', is_available: true, orderCount: 76, likeCount: 134, isPopular: true },
-  { id: 'p-19', name: 'Künefe', description: 'Sıcak künefe, kaymak, fıstık', price: 140, category_id: 'cat-6', is_available: true, orderCount: 68, likeCount: 112, isPopular: true },
-  { id: 'p-9', name: 'Margherita', description: 'Domates sos, mozzarella, fesleğen', price: 165, category_id: 'cat-3', is_available: true, orderCount: 54, likeCount: 98, isPopular: true },
-  
-  // Normal ürünler
-  { id: 'p-1', name: 'Mercimek Çorbası', description: 'Geleneksel tarif ile hazırlanan', price: 85, category_id: 'cat-1', is_available: true, orderCount: 32, likeCount: 45 },
-  { id: 'p-2', name: 'Humus', description: 'Nohut püresi, tahin, zeytinyağı', price: 95, category_id: 'cat-1', is_available: true, orderCount: 28, likeCount: 38 },
-  { id: 'p-3', name: 'Sigara Böreği', description: 'Peynirli el açması (4 adet)', price: 110, category_id: 'cat-1', is_available: true, orderCount: 41, likeCount: 52 },
-  { id: 'p-4', name: 'Karışık Meze', description: 'Humus, haydari, patlıcan salatası', price: 180, category_id: 'cat-1', is_available: true, orderCount: 35, likeCount: 48 },
-  { id: 'p-5', name: 'Izgara Köfte', description: 'Dana kıyma, pilav ve salata ile', price: 220, category_id: 'cat-2', is_available: true, orderCount: 45, likeCount: 67 },
-  { id: 'p-6', name: 'Tavuk Şiş', description: 'Marine tavuk göğsü, sebzeli pilav', price: 195, category_id: 'cat-2', is_available: true, orderCount: 38, likeCount: 54 },
-  { id: 'p-8', name: 'Karışık Izgara', description: 'Köfte, tavuk, kuzu (2 kişilik)', price: 450, category_id: 'cat-2', is_available: true, orderCount: 29, likeCount: 76 },
-  { id: 'p-10', name: 'Karışık Pizza', description: 'Sucuk, sosis, mantar, biber', price: 195, category_id: 'cat-3', is_available: true, orderCount: 42, likeCount: 61 },
-  { id: 'p-11', name: 'Pepperoni', description: 'Bol pepperoni, mozzarella', price: 185, category_id: 'cat-3', is_available: true, orderCount: 36, likeCount: 55 },
-  { id: 'p-13', name: 'Karides Güveç', description: 'Karides, domates, sarımsak', price: 280, category_id: 'cat-4', is_available: true, orderCount: 31, likeCount: 68 },
-  { id: 'p-14', name: 'Kalamar Tava', description: 'Çıtır kalamar, tartar sos', price: 240, category_id: 'cat-4', is_available: true, orderCount: 27, likeCount: 42 },
-  { id: 'p-15', name: 'Türk Kahvesi', description: 'Geleneksel Türk kahvesi', price: 45, category_id: 'cat-5', is_available: true, orderCount: 67, likeCount: 34 },
-  { id: 'p-16', name: 'Ayran', description: 'Ev yapımı ayran', price: 25, category_id: 'cat-5', is_available: true, orderCount: 89, likeCount: 28 },
-  { id: 'p-17', name: 'Taze Portakal Suyu', description: 'Taze sıkılmış', price: 55, category_id: 'cat-5', is_available: true, orderCount: 45, likeCount: 38 },
-  { id: 'p-18', name: 'Limonata', description: 'Ev yapımı limonata', price: 45, category_id: 'cat-5', is_available: true, orderCount: 52, likeCount: 41 },
-  { id: 'p-20', name: 'Sütlaç', description: 'Fırında sütlaç', price: 75, category_id: 'cat-6', is_available: true, orderCount: 34, likeCount: 45 },
-  { id: 'p-21', name: 'Baklava', description: 'Antep fıstıklı (4 dilim)', price: 160, category_id: 'cat-6', is_available: true, orderCount: 41, likeCount: 72 },
-]
 
 export default function VenueMenuPage() {
   const params = useParams()
@@ -74,6 +36,9 @@ export default function VenueMenuPage() {
 
   const [mounted, setMounted] = useState(false)
   const [venue, setVenue] = useState<any>(null)
+  const [categories, setCategories] = useState<Category[]>([])
+  const [products, setProducts] = useState<Product[]>([])
+  const [popularProducts, setPopularProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
@@ -85,19 +50,77 @@ export default function VenueMenuPage() {
 
   useEffect(() => {
     setMounted(true)
-    loadVenue()
+    loadVenueData()
   }, [venueId])
 
-  const loadVenue = async () => {
+  const loadVenueData = async () => {
+    setLoading(true)
     try {
-      const { data } = await supabase
+      // 1. Mekan bilgisi
+      const { data: venueData } = await supabase
         .from('venues')
-        .select('id, name, logo_url')
+        .select('id, name, logo_url, emoji')
         .eq('id', venueId)
         .single()
-      if (data) setVenue(data)
-    } catch (err) {
-      console.error(err)
+      
+      if (venueData) setVenue(venueData)
+
+      // 2. Kategoriler
+      const { data: categoriesData } = await supabase
+        .from('menu_categories')
+        .select('id, name, sort_order')
+        .eq('venue_id', venueId)
+        .order('sort_order')
+
+      // 3. Ürünler
+      const { data: productsData } = await supabase
+        .from('menu_items')
+        .select('id, name, description, price, image_url, category_id, is_available, is_popular')
+        .eq('venue_id', venueId)
+        .eq('is_available', true)
+
+      // 4. Son 7 günün siparişlerinden popülerlik hesapla
+      const weekAgo = new Date()
+      weekAgo.setDate(weekAgo.getDate() - 7)
+      
+      const { data: ordersData } = await supabase
+        .from('orders')
+        .select('items')
+        .eq('venue_id', venueId)
+        .gte('created_at', weekAgo.toISOString())
+        .in('status', ['completed', 'served', 'ready', 'preparing', 'confirmed'])
+
+      // Ürün bazında sipariş sayısını hesapla
+      const itemCounts: Record<string, number> = {}
+      ordersData?.forEach(order => {
+        if (order.items && Array.isArray(order.items)) {
+          order.items.forEach((item: any) => {
+            const itemName = item.name || item.product_name
+            if (itemName) {
+              itemCounts[itemName] = (itemCounts[itemName] || 0) + (item.quantity || 1)
+            }
+          })
+        }
+      })
+
+      // Ürünlere sipariş sayısı ekle
+      const productsWithCounts = productsData?.map(product => ({
+        ...product,
+        order_count: itemCounts[product.name] || 0
+      })) || []
+
+      // Popüler ürünler: is_popular=true VEYA son 7 günde 5+ sipariş
+      const popular = productsWithCounts
+        .filter(p => p.is_popular || (p.order_count && p.order_count >= 5))
+        .sort((a, b) => (b.order_count || 0) - (a.order_count || 0))
+        .slice(0, 6)
+
+      setCategories(categoriesData || [])
+      setProducts(productsWithCounts)
+      setPopularProducts(popular)
+
+    } catch (error) {
+      console.error('Menü yüklenemedi:', error)
     } finally {
       setLoading(false)
     }
@@ -134,47 +157,33 @@ export default function VenueMenuPage() {
   const cartTotal = cart.reduce((sum, item) => sum + (item.product.price * item.quantity), 0)
   const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0)
 
-  // Popüler ürünler (en çok sipariş + beğeni)
-  const popularProducts = demoProducts
-    .filter(p => p.isPopular)
-    .sort((a, b) => ((b.orderCount || 0) + (b.likeCount || 0)) - ((a.orderCount || 0) + (a.likeCount || 0)))
-
-  const filteredProducts = demoProducts.filter(product => {
+  // Filtreleme
+  const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase())
-    
-    // Popüler kategorisi seçildiyse
-    if (selectedCategory === 'cat-0') {
-      return matchesSearch && product.isPopular
-    }
-    
-    const matchesCategory = !selectedCategory || product.category_id === selectedCategory
-    return matchesSearch && matchesCategory && !product.isPopular
+    const matchesCategory = !selectedCategory || selectedCategory === 'popular' || product.category_id === selectedCategory
+    return matchesSearch && matchesCategory
   })
 
-  // Popüler seçiliyse farklı, değilse normal gruplama
-  const productsByCategory = selectedCategory === 'cat-0' 
-    ? [{ category: demoCategories[0], products: popularProducts }]
-    : demoCategories.slice(1).map(cat => ({
-        category: cat,
-        products: filteredProducts.filter(p => p.category_id === cat.id)
-      })).filter(group => group.products.length > 0)
-
-  if (!mounted || loading) {
-    return (
-      <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
-      </div>
-    )
-  }
+  // Kategoriye göre grupla
+  const productsByCategory = categories.map(cat => ({
+    category: cat,
+    products: filteredProducts.filter(p => p.category_id === cat.id)
+  })).filter(group => group.products.length > 0)
 
   // Product Card Component
   const ProductCard = ({ product, showStats = false }: { product: Product, showStats?: boolean }) => {
     const quantity = getCartQuantity(product.id)
+    const isPopular = product.is_popular || (product.order_count && product.order_count >= 5)
+    
     return (
       <div className="bg-[#1a1a1a] rounded-2xl p-4 flex gap-4">
-        <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-orange-500/20 to-red-500/20 flex items-center justify-center flex-shrink-0 relative">
-          <span className="text-2xl">🍽️</span>
-          {product.isPopular && showStats && (
+        <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-orange-500/20 to-red-500/20 flex items-center justify-center flex-shrink-0 relative overflow-hidden">
+          {product.image_url ? (
+            <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+          ) : (
+            <span className="text-2xl">🍽️</span>
+          )}
+          {isPopular && showStats && (
             <div className="absolute -top-1 -right-1 w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center">
               <Flame className="w-3 h-3" />
             </div>
@@ -187,18 +196,11 @@ export default function VenueMenuPage() {
           )}
           
           {/* Stats for popular items */}
-          {showStats && (product.orderCount || product.likeCount) && (
+          {showStats && product.order_count !== undefined && product.order_count > 0 && (
             <div className="flex items-center gap-3 mt-1">
-              {product.orderCount && (
-                <span className="text-xs text-gray-500 flex items-center gap-1">
-                  <TrendingUp className="w-3 h-3 text-green-500" /> {product.orderCount} sipariş
-                </span>
-              )}
-              {product.likeCount && (
-                <span className="text-xs text-gray-500 flex items-center gap-1">
-                  <Heart className="w-3 h-3 text-red-500" /> {product.likeCount}
-                </span>
-              )}
+              <span className="text-xs text-gray-500 flex items-center gap-1">
+                <TrendingUp className="w-3 h-3 text-green-500" /> {product.order_count} sipariş
+              </span>
             </div>
           )}
           
@@ -228,6 +230,14 @@ export default function VenueMenuPage() {
     )
   }
 
+  if (!mounted || loading) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white pb-32">
       {/* Header */}
@@ -239,7 +249,7 @@ export default function VenueMenuPage() {
           <div className="flex-1">
             <h1 className="font-bold text-lg">{venue?.name || 'Menü'}</h1>
             <p className="text-sm text-gray-400">
-              {demoProducts.length} ürün
+              {products.length} ürün
               {getOrderModeLabel() && (
                 <span className="text-orange-500"> • {getOrderModeLabel()}</span>
               )}
@@ -261,7 +271,7 @@ export default function VenueMenuPage() {
           </div>
         </div>
 
-        {/* Categories - Popüler ilk sırada */}
+        {/* Categories */}
         <div className="px-4 pb-4 overflow-x-auto">
           <div className="flex gap-2">
             <button
@@ -270,16 +280,24 @@ export default function VenueMenuPage() {
             >
               Tümü
             </button>
-            {demoCategories.map(cat => (
+            {popularProducts.length > 0 && (
+              <button
+                onClick={() => setSelectedCategory('popular')}
+                className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                  selectedCategory === 'popular' 
+                    ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white' 
+                    : 'bg-[#1a1a1a] text-gray-400'
+                }`}
+              >
+                🔥 Popüler
+              </button>
+            )}
+            {categories.map(cat => (
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
                 className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                  selectedCategory === cat.id 
-                    ? cat.id === 'cat-0' 
-                      ? 'bg-gradient-to-r from-orange-500 to-red-500 text-white' 
-                      : 'bg-orange-500 text-white' 
-                    : 'bg-[#1a1a1a] text-gray-400'
+                  selectedCategory === cat.id ? 'bg-orange-500 text-white' : 'bg-[#1a1a1a] text-gray-400'
                 }`}
               >
                 {cat.name}
@@ -302,7 +320,7 @@ export default function VenueMenuPage() {
         </div>
       )}
 
-      {/* BU MEKANDA POPÜLER - Her zaman en üstte (sadece tümü veya popüler seçili değilse) */}
+      {/* BU MEKANDA POPÜLER - Sadece "Tümü" seçiliyken göster */}
       {!selectedCategory && popularProducts.length > 0 && (
         <div className="p-4">
           <div className="flex items-center gap-2 mb-3">
@@ -311,12 +329,12 @@ export default function VenueMenuPage() {
             </div>
             <div>
               <h2 className="text-lg font-bold">Bu Mekanda Popüler</h2>
-              <p className="text-xs text-gray-400">En çok sipariş edilen ve beğenilen</p>
+              <p className="text-xs text-gray-400">En çok sipariş edilen ürünler</p>
             </div>
           </div>
           
           <div className="space-y-3">
-            {popularProducts.slice(0, 4).map((product, index) => (
+            {popularProducts.map((product, index) => (
               <div key={product.id} className="relative">
                 {index < 3 && (
                   <div className={`absolute -top-1 -left-1 z-10 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
@@ -334,22 +352,46 @@ export default function VenueMenuPage() {
         </div>
       )}
 
-      {/* Products by Category */}
-      <div className="p-4 space-y-6">
-        {productsByCategory.map(({ category, products: catProducts }) => (
-          <div key={category.id}>
-            <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
-              {category.id === 'cat-0' && <Flame className="w-5 h-5 text-orange-500" />}
-              {category.name}
-            </h2>
-            <div className="space-y-3">
-              {catProducts.map(product => (
-                <ProductCard key={product.id} product={product} showStats={category.id === 'cat-0'} />
-              ))}
+      {/* Popüler kategorisi seçiliyse */}
+      {selectedCategory === 'popular' && (
+        <div className="p-4 space-y-3">
+          {popularProducts.map((product, index) => (
+            <div key={product.id} className="relative">
+              {index < 3 && (
+                <div className={`absolute -top-1 -left-1 z-10 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                  index === 0 ? 'bg-yellow-500' : index === 1 ? 'bg-gray-400' : 'bg-amber-700'
+                }`}>
+                  {index + 1}
+                </div>
+              )}
+              <ProductCard product={product} showStats={true} />
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
+
+      {/* Products by Category */}
+      {selectedCategory !== 'popular' && (
+        <div className="p-4 space-y-6">
+          {productsByCategory.map(({ category, products: catProducts }) => (
+            <div key={category.id}>
+              <h2 className="text-lg font-semibold mb-3">{category.name}</h2>
+              <div className="space-y-3">
+                {catProducts.map(product => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
+              </div>
+            </div>
+          ))}
+
+          {productsByCategory.length === 0 && (
+            <div className="text-center py-12 text-gray-500">
+              <Search className="w-12 h-12 mx-auto mb-3 opacity-50" />
+              <p>Ürün bulunamadı</p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Cart Button */}
       {canOrder && cartItemCount > 0 && (
@@ -383,8 +425,12 @@ export default function VenueMenuPage() {
             <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-[#0a0a0a]">
               {cart.map(item => (
                 <div key={item.product.id} className="flex items-center gap-4 bg-[#1a1a1a] p-3 rounded-xl">
-                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-orange-500/20 to-red-500/20 flex items-center justify-center">
-                    <span className="text-xl">🍽️</span>
+                  <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-orange-500/20 to-red-500/20 flex items-center justify-center overflow-hidden">
+                    {item.product.image_url ? (
+                      <img src={item.product.image_url} alt={item.product.name} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-xl">🍽️</span>
+                    )}
                   </div>
                   <div className="flex-1">
                     <h3 className="font-medium">{item.product.name}</h3>
@@ -405,26 +451,37 @@ export default function VenueMenuPage() {
                 <span className="text-xl font-bold">₺{cartTotal.toLocaleString()}</span>
               </div>
               <button 
-                onClick={() => {
-                  const newOrder = {
-                    id: `order-${Date.now()}`,
-                    order_number: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
-                    venue_id: venueId,
-                    venue_name: venue?.name || 'Mekan',
-                    table_number: tableId || undefined,
-                    type: tableId ? 'dine_in' : 'takeaway',
-                    status: 'pending',
-                    total: cartTotal,
-                    items: cart.map(item => ({
-                      name: item.product.name,
-                      quantity: item.quantity,
-                      price: item.product.price
-                    })),
-                    created_at: new Date().toISOString()
+                onClick={async () => {
+                  // Siparişi Supabase'e kaydet
+                  const orderNumber = `ORD-${Math.floor(1000 + Math.random() * 9000)}`
+                  
+                  const { data, error } = await supabase
+                    .from('orders')
+                    .insert({
+                      venue_id: venueId,
+                      order_number: orderNumber,
+                      table_number: tableId || null,
+                      type: tableId ? 'dine_in' : 'takeaway',
+                      status: 'pending',
+                      subtotal: cartTotal,
+                      total: cartTotal,
+                      items: cart.map(item => ({
+                        product_id: item.product.id,
+                        name: item.product.name,
+                        quantity: item.quantity,
+                        price: item.product.price,
+                        total: item.product.price * item.quantity
+                      }))
+                    })
+                    .select()
+                    .single()
+
+                  if (error) {
+                    console.error('Sipariş hatası:', error)
+                    alert('Sipariş gönderilemedi!')
+                    return
                   }
-                  const existingOrders = JSON.parse(localStorage.getItem('user_orders') || '[]')
-                  existingOrders.unshift(newOrder)
-                  localStorage.setItem('user_orders', JSON.stringify(existingOrders))
+
                   setCart([])
                   setShowCart(false)
                   router.push('/orders')
