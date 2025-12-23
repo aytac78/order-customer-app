@@ -4,7 +4,6 @@ import { useState, useEffect, useRef, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { ChevronLeft, Minus, Plus, ShoppingCart, X, Send, Lock, QrCode, Camera, AlertCircle } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
-import { Html5Qrcode } from 'html5-qrcode'
 
 interface MenuItem {
   id: string
@@ -56,8 +55,7 @@ function ScanPageContent() {
   // QR Scanner states
   const [isScanning, setIsScanning] = useState(false)
   const [scanError, setScanError] = useState<string | null>(null)
-  const [cameraPermission, setCameraPermission] = useState<'granted' | 'denied' | 'prompt'>('prompt')
-  const scannerRef = useRef<Html5Qrcode | null>(null)
+  const scannerRef = useRef<any>(null)
   
   const canOrder = !!venueSlug && !!tableFromUrl
 
@@ -72,6 +70,13 @@ function ScanPageContent() {
       stopScanner()
     }
   }, [venueSlug])
+
+  // Scanner başlatma - isScanning true olunca çalışır
+  useEffect(() => {
+    if (isScanning) {
+      initScanner()
+    }
+  }, [isScanning])
 
   const loadVenueAndMenu = async (slug: string) => {
     const { data: venueData } = await supabase
@@ -110,22 +115,19 @@ function ScanPageContent() {
     setLoading(false)
   }
 
-  const startScanner = async () => {
-    setScanError(null)
+  const initScanner = async () => {
+    // DOM'un hazır olmasını bekle
+    await new Promise(resolve => setTimeout(resolve, 100))
     
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
-      stream.getTracks().forEach(track => track.stop())
-      setCameraPermission('granted')
-    } catch (err) {
-      setCameraPermission('denied')
-      setScanError('Kamera izni gerekli. Lütfen tarayıcı ayarlarından kamera iznini verin.')
+    const readerElement = document.getElementById('qr-reader')
+    if (!readerElement) {
+      setScanError('QR okuyucu yüklenemedi. Sayfayı yenileyin.')
+      setIsScanning(false)
       return
     }
 
-    setIsScanning(true)
-    
     try {
+      const { Html5Qrcode } = await import('html5-qrcode')
       const html5Qrcode = new Html5Qrcode('qr-reader')
       scannerRef.current = html5Qrcode
       
@@ -142,7 +144,11 @@ function ScanPageContent() {
       )
     } catch (err: any) {
       console.error('Scanner error:', err)
-      setScanError('Kamera başlatılamadı. Lütfen tekrar deneyin.')
+      if (err.toString().includes('Permission')) {
+        setScanError('Kamera izni gerekli. Tarayıcı ayarlarından izin verin.')
+      } else {
+        setScanError('Kamera başlatılamadı: ' + (err.message || err.toString()))
+      }
       setIsScanning(false)
     }
   }
@@ -162,9 +168,6 @@ function ScanPageContent() {
   const handleQRCodeScanned = (decodedText: string) => {
     stopScanner()
     
-    // QR içeriğini parse et
-    // Beklenen format: https://order-app-customer.vercel.app/scan?venue=slug&table=5
-    // veya: order://venue/slug/table/5
     try {
       let venueSlug = ''
       let tableNum = ''
@@ -178,7 +181,6 @@ function ScanPageContent() {
         venueSlug = parts[1] || ''
         tableNum = parts[3] || ''
       } else {
-        // Sadece venue slug olabilir
         venueSlug = decodedText
       }
       
@@ -193,6 +195,11 @@ function ScanPageContent() {
     } catch (err) {
       setScanError('QR kod okunamadı. Lütfen tekrar deneyin.')
     }
+  }
+
+  const startScanner = () => {
+    setScanError(null)
+    setIsScanning(true)
   }
 
   const addToCart = (item: MenuItem) => {
@@ -289,7 +296,10 @@ function ScanPageContent() {
         <div className="flex-1 flex flex-col items-center justify-center p-6">
           {isScanning ? (
             <div className="w-full max-w-sm">
-              <div id="qr-reader" className="w-full rounded-2xl overflow-hidden mb-4" />
+              <div 
+                id="qr-reader" 
+                className="w-full aspect-square rounded-2xl overflow-hidden mb-4 bg-black"
+              />
               <button 
                 onClick={stopScanner}
                 className="w-full py-4 bg-red-500/20 border border-red-500/30 rounded-xl text-red-500 font-medium"
