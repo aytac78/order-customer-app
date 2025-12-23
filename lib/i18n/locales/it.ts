@@ -95,4 +95,40 @@ export const it: TranslationKeys = {
     hazelnutSyrup: "Sciroppo alla nocciola",
     chocolate: "Cioccolato"
   },
+
+  addresses: {
+    title: "Indirizzi",
+    myAddresses: "I miei indirizzi",
+    addAddress: "Aggiungi indirizzo",
+    editAddress: "Modifica indirizzo",
+    deleteAddress: "Elimina indirizzo",
+    home: "Casa",
+    work: "Lavoro",
+    other: "Altro",
+    setDefault: "Imposta come predefinito",
+    defaultAddress: "Indirizzo predefinito"
+  },
+
+  settings: {
+    title: "Impostazioni",
+    viewProfile: "Visualizza profilo",
+    notifications: "Notifiche",
+    pushNotifications: "Notifiche push",
+    notificationSound: "Suono notifiche",
+    appearance: "Aspetto",
+    darkMode: "Modalità scura",
+    language: "Lingua",
+    security: "Sicurezza",
+    biometricLogin: "Accesso biometrico",
+    fingerprint: "Impronta digitale",
+    pinCode: "Codice PIN",
+    pinCodeDesc: "Codice di sicurezza 4-6 cifre",
+    support: "Supporto",
+    helpCenter: "Centro assistenza",
+    contactUs: "Contattaci",
+    termsOfService: "Termini di servizio",
+    privacyPolicy: "Privacy policy",
+    account: "Account",
+    deleteAccount: "Elimina account"
+  },
 };

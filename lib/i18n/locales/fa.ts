@@ -123,4 +123,40 @@ export const fa: TranslationKeys = {
     hazelnutSyrup: "شربت فندق",
     chocolate: "شکلات"
   },
+
+  addresses: {
+    title: "آدرس‌ها",
+    myAddresses: "آدرس‌های من",
+    addAddress: "افزودن آدرس",
+    editAddress: "ویرایش آدرس",
+    deleteAddress: "حذف آدرس",
+    home: "خانه",
+    work: "محل کار",
+    other: "سایر",
+    setDefault: "تنظیم به عنوان پیش‌فرض",
+    defaultAddress: "آدرس پیش‌فرض"
+  },
+
+  settings: {
+    title: "تنظیمات",
+    viewProfile: "مشاهده پروفایل",
+    notifications: "اعلان‌ها",
+    pushNotifications: "اعلان‌های فوری",
+    notificationSound: "صدای اعلان",
+    appearance: "ظاهر",
+    darkMode: "حالت تاریک",
+    language: "زبان",
+    security: "امنیت",
+    biometricLogin: "ورود بیومتریک",
+    fingerprint: "اثر انگشت",
+    pinCode: "کد پین",
+    pinCodeDesc: "کد امنیتی ۴-۶ رقمی",
+    support: "پشتیبانی",
+    helpCenter: "مرکز راهنما",
+    contactUs: "تماس با ما",
+    termsOfService: "شرایط خدمات",
+    privacyPolicy: "سیاست حریم خصوصی",
+    account: "حساب کاربری",
+    deleteAccount: "حذف حساب"
+  },
 };
