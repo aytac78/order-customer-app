@@ -258,6 +258,15 @@ export default function HerePage() {
             <h2 className="font-semibold">{selectedMatch.user.name}</h2>
             <p className="text-xs text-green-500">Çevrimiçi</p>
           </div>
+          {selectedMatch.user.instagram && (
+            <a 
+              href={`https://instagram.com/${selectedMatch.user.instagram}`}
+              target="_blank"
+              className="p-2 bg-white/10 rounded-full"
+            >
+              <Instagram className="w-5 h-5 text-pink-500" />
+            </a>
+          )}
         </div>
 
         {/* Messages */}
@@ -382,15 +391,7 @@ export default function HerePage() {
                           {currentUser.distance} uzaklıkta
                         </p>
                       </div>
-                      {currentUser.instagram && (
-                        <a 
-                          href={`https://instagram.com/${currentUser.instagram}`}
-                          target="_blank"
-                          className="p-2 bg-white/20 backdrop-blur-sm rounded-full"
-                        >
-                          <Instagram className="w-5 h-5" />
-                        </a>
-                      )}
+                      {/* Instagram sadece eşleşme sonrası görünür */}
                     </div>
                   </div>
                 </div>
