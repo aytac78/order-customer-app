@@ -9,6 +9,7 @@ import {
   Flame, Award, Users, ArrowRight, Loader2, MapPin, Calendar
 } from 'lucide-react'
 import { useAuth } from '@/lib/AuthContext'
+import LanguageSelector from '@/components/LanguageSelector'
 
 interface PopularVenue {
   id: string
@@ -135,16 +136,19 @@ export default function HomePage() {
           <h1 className="text-xl font-bold">Merhaba 👋</h1>
           <p className="text-gray-400">Ne yapmak istersin?</p>
         </div>
-        <button 
-          onClick={() => router.push(user ? '/profile' : '/login')}
-          className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center overflow-hidden"
-        >
-          {profile?.avatar_url ? (
-            <img src={profile.avatar_url} alt="" className="w-10 h-10 object-cover" />
-          ) : (
-            <span className="text-lg font-bold">{profile?.full_name?.[0] || user?.email?.[0]?.toUpperCase() || 'A'}</span>
-          )}
-        </button>
+        <div className="flex items-center gap-2">
+          <LanguageSelector />
+          <button 
+            onClick={() => router.push(user ? '/profile' : '/login')}
+            className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center overflow-hidden"
+          >
+            {profile?.avatar_url ? (
+              <img src={profile.avatar_url} alt="" className="w-10 h-10 object-cover" />
+            ) : (
+              <span className="text-lg font-bold">{profile?.full_name?.[0] || user?.email?.[0]?.toUpperCase() || 'A'}</span>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Search */}
