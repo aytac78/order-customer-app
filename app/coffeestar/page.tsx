@@ -189,7 +189,7 @@ export default function CoffeestarPage() {
               </div>
               <div>
                 <h1 className="font-bold text-lg">Coffeestar</h1>
-                <p className="text-xs text-amber-400">☕ Kahvenin Michelin Yıldızı</p>
+                <p className="text-xs text-amber-400">☕ Kahvenin yıldızı</p>
               </div>
             </div>
             
