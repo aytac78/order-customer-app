@@ -742,13 +742,13 @@ function EditProfileModal({ profile, onClose, onSave }: any) {
 
   return (
     <div className="fixed inset-0 bg-black/90 z-50 flex items-end">
-      <div className="w-full bg-[#1a1a1a] rounded-t-3xl max-h-[90vh] overflow-y-auto">
-        <div className="p-4 border-b border-white/10 flex items-center justify-between sticky top-0 bg-[#1a1a1a]">
+      <div className="w-full bg-[#1a1a1a] rounded-t-3xl max-h-[85vh] flex flex-col">
+        <div className="p-4 border-b border-white/10 flex items-center justify-between">
           <h2 className="text-lg font-bold">Profili Düzenle</h2>
           <button onClick={onClose} className="p-2"><X className="w-6 h-6" /></button>
         </div>
 
-        <div className="p-4 space-y-4">
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
           <div>
             <label className="text-sm text-gray-400 mb-1 block">Ad Soyad</label>
             <input
@@ -775,7 +775,7 @@ function EditProfileModal({ profile, onClose, onSave }: any) {
             <textarea
               value={bio}
               onChange={(e) => setBio(e.target.value)}
-              rows={3}
+              rows={2}
               placeholder="Kendinizden bahsedin..."
               className="w-full p-3 bg-[#2a2a2a] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-500 resize-none"
             />
@@ -806,7 +806,9 @@ function EditProfileModal({ profile, onClose, onSave }: any) {
               className="w-full p-3 bg-[#2a2a2a] rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-orange-500"
             />
           </div>
+        </div>
 
+        <div className="p-4 border-t border-white/10">
           <button
             onClick={handleSave}
             disabled={saving}

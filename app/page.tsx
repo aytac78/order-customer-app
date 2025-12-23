@@ -71,18 +71,27 @@ export default function HomePage() {
 
   const getUserLocation = () => {
     if (navigator.geolocation) {
+      // 5 saniye timeout ekle
+      const timeoutId = setTimeout(() => {
+        console.log('Konum zaman aşımı, varsayılan kullanılıyor')
+        setUserLocation({ lat: 37.0344, lon: 27.4305 })
+      }, 5000)
+
       navigator.geolocation.getCurrentPosition(
         (position) => {
+          clearTimeout(timeoutId)
           setUserLocation({
             lat: position.coords.latitude,
             lon: position.coords.longitude
           })
         },
         (error) => {
-          console.log('Konum alınamadı, varsayılan kullanılıyor')
+          clearTimeout(timeoutId)
+          console.log('Konum alınamadı, varsayılan kullanılıyor:', error.message)
           // Default: Bodrum
           setUserLocation({ lat: 37.0344, lon: 27.4305 })
-        }
+        },
+        { timeout: 5000, enableHighAccuracy: false }
       )
     } else {
       // Default: Bodrum
@@ -104,19 +113,18 @@ export default function HomePage() {
         .from('venues')
         .select('id, name, category, emoji, rating, lat, lon, district')
         .eq('is_active', true)
-        .not('lat', 'is', null)
-        .not('lon', 'is', null)
 
-      if (venuesError) throw venuesError
+      if (venuesError) {
+        console.error('Venues error:', venuesError)
+        setLoading(false)
+        return
+      }
 
       // Siparişleri getir (son 24 saat)
       const { data: orders, error: ordersError } = await supabase
         .from('orders')
         .select('venue_id, items')
         .gte('created_at', today.toISOString())
-        .in('status', ['completed', 'served', 'ready', 'preparing', 'confirmed'])
-
-      if (ordersError) throw ordersError
 
       // Venue başına sipariş sayısını hesapla
       const venueOrderCounts: Record<string, number> = {}
@@ -126,21 +134,34 @@ export default function HomePage() {
         }
       })
 
-      // Mesafe hesapla ve filtrele (50km içindeki mekanlar)
+      // Mesafe hesapla ve filtrele (100km içindeki mekanlar)
       const venuesWithDistance = venues?.map(venue => {
+        // lat/lon yoksa varsayılan mesafe ver
+        const venueLat = venue.lat || 37.0344
+        const venueLon = venue.lon || 27.4305
         const distance = calculateDistance(
           userLocation.lat, userLocation.lon,
-          venue.lat, venue.lon
+          venueLat, venueLon
         )
         return {
           ...venue,
+          lat: venueLat,
+          lon: venueLon,
           distance,
           order_count: venueOrderCounts[venue.id] || 0
         }
-      }).filter(v => v.distance <= 50) // 50km içi
+      }).filter(v => v.distance <= 100) || [] // 100km içi
 
-      // Sipariş sayısına göre sırala
-      const sortedVenues = venuesWithDistance?.sort((a, b) => b.order_count - a.order_count).slice(0, 10) || []
+      // Sipariş sayısına göre sırala, sipariş yoksa rating'e göre
+      const sortedVenues = venuesWithDistance
+        .sort((a, b) => {
+          if (b.order_count !== a.order_count) {
+            return b.order_count - a.order_count
+          }
+          return (b.rating || 0) - (a.rating || 0)
+        })
+        .slice(0, 10)
+      
       setPopularVenues(sortedVenues)
 
       // 2. Popüler yemekleri getir (items JSON'dan)
