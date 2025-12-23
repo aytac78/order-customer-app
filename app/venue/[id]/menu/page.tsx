@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
-import { ArrowLeft, Search, Loader2, Plus, Minus, X, ShoppingCart } from 'lucide-react'
+import { ArrowLeft, Search, Loader2, Plus, Minus, X, QrCode } from 'lucide-react'
 
 interface Category {
   id: string
@@ -65,20 +65,32 @@ export default function VenueMenuPage() {
   const router = useRouter()
   const venueId = params.id as string
 
+  // Hydration fix - mounted state
+  const [mounted, setMounted] = useState(false)
   const [venue, setVenue] = useState<any>(null)
-  const [categories, setCategories] = useState<Category[]>(demoCategories)
-  const [products, setProducts] = useState<Product[]>(demoProducts)
+  const [categories] = useState<Category[]>(demoCategories)
+  const [products] = useState<Product[]>(demoProducts)
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [cart, setCart] = useState<CartItem[]>([])
   const [showCart, setShowCart] = useState(false)
+  
+  // Sipariş modları
+  const [tableId, setTableId] = useState<string | null>(null)
   const [orderMode, setOrderMode] = useState<string | null>(null)
 
   useEffect(() => {
-    // Check order mode from localStorage
-    const mode = localStorage.getItem('order_mode')
-    setOrderMode(mode)
+    setMounted(true)
+    
+    // LocalStorage'dan değerleri al
+    if (typeof window !== 'undefined') {
+      const mode = localStorage.getItem('order_mode')
+      const table = localStorage.getItem('current_table_id')
+      setOrderMode(mode)
+      setTableId(table)
+    }
+    
     loadVenue()
   }, [venueId])
 
@@ -97,10 +109,18 @@ export default function VenueMenuPage() {
     }
   }
 
-  const isTakeawayMode = orderMode === 'takeaway'
+  // Sipariş verebilme koşulu: QR kod ile masaya oturmuş olmalı VEYA paket modu
+  // Keşfetten gelince sipariş YOK
+  const canOrder = mounted && (tableId !== null || orderMode === 'takeaway')
+  
+  const getOrderModeLabel = () => {
+    if (tableId) return `Masa ${tableId}`
+    if (orderMode === 'takeaway') return 'Paket Sipariş'
+    return null
+  }
 
   const addToCart = (product: Product) => {
-    if (!isTakeawayMode) return
+    if (!canOrder) return
     setCart(prev => {
       const existing = prev.find(item => item.product.id === product.id)
       if (existing) {
@@ -135,7 +155,8 @@ export default function VenueMenuPage() {
     products: filteredProducts.filter(p => p.category_id === cat.id)
   })).filter(group => group.products.length > 0)
 
-  if (loading) {
+  // Loading veya mounted değilse loading göster
+  if (!mounted || loading) {
     return (
       <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
@@ -155,7 +176,9 @@ export default function VenueMenuPage() {
             <h1 className="font-bold text-lg">{venue?.name || 'Menü'}</h1>
             <p className="text-sm text-gray-400">
               {products.length} ürün
-              {isTakeawayMode && <span className="text-orange-500"> • Paket Sipariş</span>}
+              {getOrderModeLabel() && (
+                <span className="text-orange-500"> • {getOrderModeLabel()}</span>
+              )}
             </p>
           </div>
         </div>
@@ -179,7 +202,7 @@ export default function VenueMenuPage() {
           <div className="flex gap-2">
             <button
               onClick={() => setSelectedCategory(null)}
-              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${!selectedCategory ? 'bg-orange-500 text-white' : 'bg-[#1a1a1a] text-gray-400'}`}
+              className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${!selectedCategory ? 'bg-orange-500 text-white' : 'bg-[#1a1a1a] text-gray-400'}`}
             >
               Tümü
             </button>
@@ -187,7 +210,7 @@ export default function VenueMenuPage() {
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap ${selectedCategory === cat.id ? 'bg-orange-500 text-white' : 'bg-[#1a1a1a] text-gray-400'}`}
+                className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${selectedCategory === cat.id ? 'bg-orange-500 text-white' : 'bg-[#1a1a1a] text-gray-400'}`}
               >
                 {cat.name}
               </button>
@@ -195,6 +218,19 @@ export default function VenueMenuPage() {
           </div>
         </div>
       </div>
+
+      {/* Sipariş veremiyorsa bilgi göster */}
+      {!canOrder && (
+        <div className="mx-4 mt-4 p-4 bg-blue-500/20 border border-blue-500/30 rounded-2xl">
+          <div className="flex items-center gap-3">
+            <QrCode className="w-8 h-8 text-blue-400" />
+            <div>
+              <p className="font-medium text-blue-300">Sipariş vermek için</p>
+              <p className="text-sm text-blue-400">Masadaki QR kodu okutun veya Paket seçeneğini kullanın</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Products */}
       <div className="p-4 space-y-6">
@@ -217,8 +253,8 @@ export default function VenueMenuPage() {
                       <div className="flex items-center justify-between mt-2">
                         <span className="text-lg font-bold text-orange-500">₺{product.price}</span>
                         
-                        {/* Sadece paket modunda sepete ekleme butonu göster */}
-                        {isTakeawayMode && (
+                        {/* Sadece sipariş verebiliyorsa buton göster */}
+                        {canOrder && (
                           quantity > 0 ? (
                             <div className="flex items-center gap-2 bg-orange-500 rounded-full px-2 py-1">
                               <button onClick={() => removeFromCart(product.id)} className="p-1">
@@ -245,8 +281,8 @@ export default function VenueMenuPage() {
         ))}
       </div>
 
-      {/* Cart Button - Only in takeaway mode */}
-      {isTakeawayMode && cartItemCount > 0 && (
+      {/* Cart Button */}
+      {canOrder && cartItemCount > 0 && (
         <div className="fixed bottom-20 left-0 right-0 p-4 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a] to-transparent">
           <button
             onClick={() => setShowCart(true)}
@@ -298,7 +334,15 @@ export default function VenueMenuPage() {
                 <span className="text-gray-400">Toplam</span>
                 <span className="text-xl font-bold">₺{cartTotal.toLocaleString()}</span>
               </div>
-              <button className="w-full py-4 bg-orange-500 rounded-2xl font-bold">
+              <button 
+                onClick={() => {
+                  // TODO: Sipariş gönder
+                  alert('Sipariş gönderildi!')
+                  setCart([])
+                  setShowCart(false)
+                }}
+                className="w-full py-4 bg-orange-500 rounded-2xl font-bold"
+              >
                 Siparişi Onayla
               </button>
             </div>
