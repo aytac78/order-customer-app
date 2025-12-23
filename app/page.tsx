@@ -123,9 +123,9 @@ export default function HomePage() {
     const tomorrow = new Date(today)
     tomorrow.setDate(tomorrow.getDate() + 1)
     
-    if (date.toDateString() === today.toDateString()) return t('dates.today') || 'Today'
-    if (date.toDateString() === tomorrow.toDateString()) return t('dates.tomorrow') || 'Tomorrow'
-    return date.toLocaleDateString(locale === 'tr' ? 'tr-TR' : locale === 'fa' ? 'fa-IR' : locale === 'ar' ? 'ar-SA' : 'en-US', { day: 'numeric', month: 'short' })
+    if (date.toDateString() === today.toDateString()) return t.dates?.today || 'Today'
+    if (date.toDateString() === tomorrow.toDateString()) return t.dates?.tomorrow || 'Tomorrow'
+    return date.toLocaleDateString(locale === 'fa' ? 'fa-IR' : locale === 'ar' ? 'ar-SA' : locale === 'it' ? 'it-IT' : locale === 'tr' ? 'tr-TR' : 'en-US', { day: 'numeric', month: 'short' })
   }
 
   if (!mounted) return null
@@ -135,8 +135,8 @@ export default function HomePage() {
       {/* Header */}
       <div className="p-4 flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold">{t('home.hello')} 👋</h1>
-          <p className="text-gray-400">{t('home.whatToDo')}</p>
+          <h1 className="text-xl font-bold">{t.home?.hello || 'Hello'} 👋</h1>
+          <p className="text-gray-400">{t.home?.whatToDo || 'What would you like to do?'}</p>
         </div>
         <div className="flex items-center gap-2">
           <LanguageSelector />
@@ -160,7 +160,7 @@ export default function HomePage() {
           className="w-full flex items-center gap-3 px-4 py-3 bg-[#1a1a1a] rounded-2xl text-gray-400"
         >
           <Search className="w-5 h-5" />
-          <span>{t('home.searchPlaceholder')}</span>
+          <span>{t.home?.searchPlaceholder || 'Search venue or food...'}</span>
         </button>
       </div>
 
@@ -171,19 +171,19 @@ export default function HomePage() {
             <div className="w-11 h-11 bg-gradient-to-br from-red-500 to-orange-500 rounded-xl flex items-center justify-center">
               <QrCode className="w-5 h-5" />
             </div>
-            <span className="text-[10px] font-medium">{t('home.scanQR')}</span>
+            <span className="text-[10px] font-medium">{t.home?.scanQR || 'Scan QR'}</span>
           </button>
           <button onClick={() => router.push('/discover')} className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-2xl">
             <div className="w-11 h-11 bg-gradient-to-br from-orange-500 to-yellow-500 rounded-xl flex items-center justify-center">
               <Search className="w-5 h-5" />
             </div>
-            <span className="text-[10px] font-medium">{t('home.discover')}</span>
+            <span className="text-[10px] font-medium">{t.home?.discover || 'Discover'}</span>
           </button>
           <button onClick={() => router.push('/orders')} className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-2xl">
             <div className="w-11 h-11 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
               <Package className="w-5 h-5" />
             </div>
-            <span className="text-[10px] font-medium">{t('home.takeaway')}</span>
+            <span className="text-[10px] font-medium">{t.home?.takeaway || 'Takeaway'}</span>
           </button>
           <button onClick={() => router.push('/coffeestar')} className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-2xl">
             <div className="w-11 h-11 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center">
@@ -206,10 +206,10 @@ export default function HomePage() {
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold flex items-center gap-2">
               <Calendar className="w-4 h-4 text-purple-500" />
-              {t('home.upcomingEvents')}
+              {t.home?.upcomingEvents || 'Upcoming Events'}
             </h3>
             <button onClick={() => router.push('/events')} className="text-purple-500 text-sm flex items-center gap-1">
-              {t('common.seeAll')} <ChevronRight className="w-4 h-4" />
+              {t.common?.seeAll || 'See All'} <ChevronRight className="w-4 h-4" />
             </button>
           </div>
           
@@ -224,7 +224,7 @@ export default function HomePage() {
                   <span className="text-4xl">{event.title.match(/^\p{Emoji}/u)?.[0] || '✨'}</span>
                   {event.is_featured && (
                     <div className="absolute top-2 right-2 px-2 py-0.5 bg-purple-500 rounded-full text-[10px] font-bold">
-                      {t('events.featured') || 'FEATURED'}
+                      {t.events?.featured || 'FEATURED'}
                     </div>
                   )}
                 </div>
@@ -252,9 +252,9 @@ export default function HomePage() {
       <div className="px-4 mt-4">
         <div className="flex items-center gap-2 mb-1">
           <Flame className="w-5 h-5 text-orange-500" />
-          <h2 className="text-lg font-bold">{t('discover.popular') || "Today's Popular"}</h2>
+          <h2 className="text-lg font-bold">{t.discover?.popular || "Today's Popular"}</h2>
         </div>
-        <p className="text-xs text-gray-500 mb-4">{t('discover.updatedDaily') || 'Updated daily at 15:00'}</p>
+        <p className="text-xs text-gray-500 mb-4">{t.discover?.updatedDaily || 'Updated daily at 15:00'}</p>
       </div>
 
       {loading ? (
@@ -268,10 +268,10 @@ export default function HomePage() {
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold flex items-center gap-2">
                 <Award className="w-4 h-4 text-yellow-500" />
-                {t('home.popularVenues')}
+                {t.home?.popularVenues || 'Popular Venues'}
               </h3>
               <button onClick={() => router.push('/discover')} className="text-orange-500 text-sm flex items-center gap-1">
-                {t('common.seeAll')} <ChevronRight className="w-4 h-4" />
+                {t.common?.seeAll || 'See All'} <ChevronRight className="w-4 h-4" />
               </button>
             </div>
             
@@ -295,13 +295,13 @@ export default function HomePage() {
                     </div>
                     <div className="p-3">
                       <h4 className="font-semibold text-sm truncate">{venue.name}</h4>
-                      <p className="text-xs text-gray-400">{venue.category || t('common.venue')}</p>
+                      <p className="text-xs text-gray-400">{venue.category || t.common?.venue || 'Restaurant'}</p>
                       <div className="flex items-center justify-between mt-2">
                         <div className="flex items-center gap-1">
                           <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
                           <span className="text-xs">{venue.rating?.toFixed(1) || '4.5'}</span>
                         </div>
-                        <span className="text-xs text-gray-500">{venue.order_count || 0} {t('orders.orders') || 'orders'}</span>
+                        <span className="text-xs text-gray-500">{venue.order_count || 0} {t.orders?.orders || 'orders'}</span>
                       </div>
                     </div>
                   </button>
@@ -310,7 +310,7 @@ export default function HomePage() {
             ) : (
               <div className="text-center py-8 text-gray-500">
                 <MapPin className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">{t('discover.noVenues') || 'No venues yet'}</p>
+                <p className="text-sm">{t.discover?.noVenues || 'No venues yet'}</p>
               </div>
             )}
           </div>
@@ -320,7 +320,7 @@ export default function HomePage() {
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold flex items-center gap-2">
                 <Heart className="w-4 h-4 text-red-500" />
-                {t('discover.topOrdered') || 'Most Ordered'}
+                {t.discover?.topOrdered || 'Most Ordered'}
               </h3>
             </div>
             
@@ -347,7 +347,7 @@ export default function HomePage() {
                     <div className="flex-1 min-w-0">
                       <h4 className="font-semibold">{dish.name}</h4>
                       <p className="text-sm text-gray-400 truncate">{dish.venue_name}</p>
-                      <span className="text-xs text-gray-500">{dish.order_count} {t('orders.orders') || 'orders'}</span>
+                      <span className="text-xs text-gray-500">{dish.order_count} {t.orders?.orders || 'orders'}</span>
                     </div>
                     <div className="text-right">
                       <p className="font-bold text-orange-500">₺{dish.price}</p>
@@ -359,7 +359,7 @@ export default function HomePage() {
             ) : (
               <div className="text-center py-8 text-gray-500">
                 <Flame className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">{t('orders.noOrders') || 'No orders yet'}</p>
+                <p className="text-sm">{t.orders?.noOrders || 'No orders yet'}</p>
               </div>
             )}
           </div>
