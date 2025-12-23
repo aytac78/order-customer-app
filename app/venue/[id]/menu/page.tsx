@@ -78,17 +78,32 @@ export default function VenueMenuPage() {
   
   // Sipariş modları
   const [tableId, setTableId] = useState<string | null>(null)
-  const [orderMode, setOrderMode] = useState<string | null>(null)
+  const [canOrderState, setCanOrderState] = useState(false)
 
   useEffect(() => {
     setMounted(true)
     
-    // LocalStorage'dan değerleri al
+    // Sipariş kontrolü: URL parametresi VEYA QR ile gelen table_id
     if (typeof window !== 'undefined') {
-      const mode = localStorage.getItem('order_mode')
-      const table = localStorage.getItem('current_table_id')
-      setOrderMode(mode)
-      setTableId(table)
+      const urlParams = new URLSearchParams(window.location.search)
+      const tableFromUrl = urlParams.get('table')
+      const orderEnabled = urlParams.get('order') === 'true'
+      const tableFromStorage = localStorage.getItem('current_table_id')
+      
+      // QR kod ile geldiyse table_id olur
+      if (tableFromUrl) {
+        setTableId(tableFromUrl)
+        localStorage.setItem('current_table_id', tableFromUrl)
+        setCanOrderState(true)
+      } else if (tableFromStorage && urlParams.get('from') === 'qr') {
+        // QR'dan geliyorsa storage'daki table_id'yi kullan
+        setTableId(tableFromStorage)
+        setCanOrderState(true)
+      } else if (orderEnabled) {
+        // Paket sipariş için explicit parametre
+        setCanOrderState(true)
+      }
+      // Keşfetten geliyorsa canOrderState = false kalır
     }
     
     loadVenue()
@@ -111,11 +126,11 @@ export default function VenueMenuPage() {
 
   // Sipariş verebilme koşulu: QR kod ile masaya oturmuş olmalı VEYA paket modu
   // Keşfetten gelince sipariş YOK
-  const canOrder = mounted && (tableId !== null || orderMode === 'takeaway')
+  const canOrder = mounted && canOrderState
   
   const getOrderModeLabel = () => {
     if (tableId) return `Masa ${tableId}`
-    if (orderMode === 'takeaway') return 'Paket Sipariş'
+    if (canOrderState) return 'Paket Sipariş'
     return null
   }
 
@@ -336,10 +351,35 @@ export default function VenueMenuPage() {
               </div>
               <button 
                 onClick={() => {
-                  // TODO: Sipariş gönder
-                  alert('Sipariş gönderildi!')
+                  // Siparişi localStorage'a kaydet
+                  const newOrder = {
+                    id: `order-${Date.now()}`,
+                    order_number: `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
+                    venue_id: venueId,
+                    venue_name: venue?.name || 'Mekan',
+                    table_number: tableId || undefined,
+                    type: tableId ? 'dine_in' : 'takeaway',
+                    status: 'pending',
+                    total: cartTotal,
+                    items: cart.map(item => ({
+                      name: item.product.name,
+                      quantity: item.quantity,
+                      price: item.product.price
+                    })),
+                    created_at: new Date().toISOString()
+                  }
+                  
+                  // Mevcut siparişleri al ve yenisini ekle
+                  const existingOrders = JSON.parse(localStorage.getItem('user_orders') || '[]')
+                  existingOrders.unshift(newOrder)
+                  localStorage.setItem('user_orders', JSON.stringify(existingOrders))
+                  
+                  // Sepeti temizle ve kapat
                   setCart([])
                   setShowCart(false)
+                  
+                  // Siparişler sayfasına yönlendir
+                  router.push('/orders')
                 }}
                 className="w-full py-4 bg-orange-500 rounded-2xl font-bold"
               >
