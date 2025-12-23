@@ -2,141 +2,139 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Heart, Star, MapPin, Bell } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
-import { useAuth } from '@/lib/AuthContext'
-import { useI18n } from '@/lib/i18n'
+import { Heart, MapPin, Star, Loader2 } from 'lucide-react'
 
-interface FavoriteWithVenue {
+interface FavoriteVenue {
   id: string
-  user_id: string
-  venue_id: string
-  created_at: string
-  venue_uuid: string
-  venue_name: string
-  venue_slug: string
-  venue_address: string
-  venue_district: string
-  venue_rating: number
-  venue_cuisine_type: string
+  name: string
+  category?: string
+  rating?: number
+  address?: string
+  image_url?: string
 }
 
 export default function FavoritesPage() {
   const router = useRouter()
-  const { user, loading: authLoading } = useAuth()
-  const { t } = useI18n()
-  const [favorites, setFavorites] = useState<FavoriteWithVenue[]>([])
+  const [favorites, setFavorites] = useState<FavoriteVenue[]>([])
   const [loading, setLoading] = useState(true)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    if (!authLoading) {
-      if (user) loadFavorites()
-      else setLoading(false)
-    }
-  }, [user, authLoading])
+    setMounted(true)
+    loadFavorites()
+  }, [])
 
-  const loadFavorites = async () => {
-    if (!user) { setLoading(false); return }
+  const loadFavorites = () => {
+    if (typeof window === 'undefined') return
     
     try {
-      // View kullanarak favorites + venue bilgilerini al
-      const { data, error } = await supabase
-        .from('favorites_with_venues')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-      
-      if (error) {
-        console.error('Favorites error:', error)
+      const stored = localStorage.getItem('favorite_venues')
+      if (stored) {
+        setFavorites(JSON.parse(stored))
       }
-      
-      if (data) setFavorites(data)
-    } catch (err) {
-      console.error('Error:', err)
+    } catch (e) {
+      console.error('Favorites load error:', e)
     }
     setLoading(false)
   }
 
-  const removeFavorite = async (id: string) => {
-    await supabase.from('favorites').delete().eq('id', id)
-    setFavorites(prev => prev.filter(f => f.id !== id))
+  const removeFavorite = (venueId: string) => {
+    const updated = favorites.filter(f => f.id !== venueId)
+    setFavorites(updated)
+    localStorage.setItem('favorite_venues', JSON.stringify(updated))
   }
 
-  if (authLoading || loading) {
+  const getCategoryLabel = (category?: string) => {
+    const labels: Record<string, string> = {
+      restaurant: 'Restoran', cafe: 'Kafe', bar: 'Bar', 
+      night_club: 'Gece Kulübü', fast_food: 'Fast Food', 
+      bakery: 'Fırın', beach_club: 'Beach Club',
+    }
+    return labels[category || ''] || 'Mekan'
+  }
+
+  if (!mounted || loading) {
     return (
       <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-orange-500 border-t-transparent rounded-full animate-spin" />
-      </div>
-    )
-  }
-
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center p-4 pb-24">
-        <div className="text-center">
-          <Heart className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-          <h2 className="text-xl font-bold mb-2">{t.auth.login}</h2>
-          <p className="text-gray-400 mb-4">{t.favorites.loginToSee || 'Favorilerinizi görmek için giriş yapın'}</p>
-          <button onClick={() => router.push('/auth')} className="px-6 py-3 bg-orange-500 rounded-xl font-medium">
-            {t.auth.login}
-          </button>
-        </div>
+        <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
       </div>
     )
   }
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white pb-24">
-      <header className="sticky top-0 z-40 bg-[#0a0a0a] border-b border-white/5 px-4 py-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button onClick={() => router.back()} className="w-10 h-10 rounded-full bg-[#1a1a1a] flex items-center justify-center">
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-            <h1 className="text-xl font-bold">{t.favorites.title}</h1>
-          </div>
-          <button className="w-10 h-10 rounded-full bg-[#1a1a1a] flex items-center justify-center">
-            <Bell className="w-5 h-5 text-gray-400" />
-          </button>
-        </div>
-      </header>
+      {/* Header */}
+      <div className="sticky top-0 z-10 bg-[#0a0a0a] border-b border-white/10 p-4">
+        <h1 className="text-xl font-bold">Favorilerim</h1>
+        <p className="text-sm text-gray-400">{favorites.length} mekan</p>
+      </div>
 
-      <div className="p-4 space-y-3">
+      {/* Favorites List */}
+      <div className="p-4 space-y-4">
         {favorites.length === 0 ? (
-          <div className="text-center py-12">
-            <Heart className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-            <h2 className="text-lg font-semibold mb-2">{t.favorites.noFavorites}</h2>
-            <p className="text-gray-400 mb-4">{t.favorites.noFavoritesDesc}</p>
-            <button onClick={() => router.push('/discover')} className="px-6 py-3 bg-orange-500 rounded-xl font-medium">
-              {t.favorites.discoverVenues}
+          <div className="flex flex-col items-center justify-center py-16">
+            <div className="w-20 h-20 bg-[#1a1a1a] rounded-full flex items-center justify-center mb-4">
+              <Heart className="w-10 h-10 text-gray-600" />
+            </div>
+            <p className="text-gray-400 text-center">Henüz favori mekanınız yok</p>
+            <p className="text-sm text-gray-500 text-center mt-1">Beğendiğiniz mekanları kalp ikonuna tıklayarak ekleyin</p>
+            <button
+              onClick={() => router.push('/discover')}
+              className="mt-6 px-6 py-3 bg-orange-500 rounded-xl font-medium"
+            >
+              Mekanları Keşfet
             </button>
           </div>
         ) : (
-          favorites.map(fav => (
-            <div key={fav.id} className="bg-[#1a1a1a] rounded-xl p-4 border border-white/5">
-              <div className="flex items-start justify-between">
-                <button 
-                  onClick={() => router.push(`/venue/${fav.venue_slug || fav.venue_uuid}`)}
-                  className="flex-1 text-left"
+          favorites.map(venue => (
+            <div
+              key={venue.id}
+              className="bg-[#1a1a1a] rounded-2xl overflow-hidden"
+            >
+              <div className="flex">
+                {/* Image */}
+                <div 
+                  onClick={() => router.push(`/venue/${venue.id}`)}
+                  className="w-28 h-28 bg-gradient-to-br from-orange-500 to-red-500 flex-shrink-0 cursor-pointer"
                 >
-                  <h3 className="font-semibold text-lg">{fav.venue_name}</h3>
-                  <div className="flex items-center gap-2 mt-1 flex-wrap">
-                    <div className="flex items-center gap-1 text-sm text-gray-400">
-                      <MapPin className="w-4 h-4" />
-                      <span>{fav.venue_district}</span>
+                  {venue.image_url ? (
+                    <img src={venue.image_url} alt={venue.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-3xl font-bold">
+                      {venue.name.charAt(0)}
                     </div>
-                    {fav.venue_cuisine_type && (
-                      <span className="text-sm text-orange-500">{fav.venue_cuisine_type}</span>
-                    )}
-                    {fav.venue_rating && (
-                      <div className="flex items-center gap-1">
+                  )}
+                </div>
+
+                {/* Info */}
+                <div 
+                  onClick={() => router.push(`/venue/${venue.id}`)}
+                  className="flex-1 p-3 cursor-pointer"
+                >
+                  <h3 className="font-semibold">{venue.name}</h3>
+                  <p className="text-sm text-gray-400">{getCategoryLabel(venue.category)}</p>
+                  
+                  <div className="flex items-center gap-3 mt-2">
+                    {venue.rating && (
+                      <span className="flex items-center gap-1 text-sm">
                         <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                        <span className="text-sm">{fav.venue_rating}</span>
-                      </div>
+                        {venue.rating.toFixed(1)}
+                      </span>
+                    )}
+                    {venue.address && (
+                      <span className="flex items-center gap-1 text-xs text-gray-500">
+                        <MapPin className="w-3 h-3" />
+                        <span className="truncate max-w-[120px]">{venue.address.split(',')[0]}</span>
+                      </span>
                     )}
                   </div>
-                </button>
-                <button onClick={() => removeFavorite(fav.id)} className="p-2">
+                </div>
+
+                {/* Remove Button */}
+                <button
+                  onClick={() => removeFavorite(venue.id)}
+                  className="p-4 self-center"
+                >
                   <Heart className="w-6 h-6 text-red-500 fill-red-500" />
                 </button>
               </div>

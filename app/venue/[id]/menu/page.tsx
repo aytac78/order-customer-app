@@ -83,24 +83,25 @@ export default function VenueMenuPage() {
   useEffect(() => {
     setMounted(true)
     
-    // Sipariş kontrolü: URL parametresi VEYA QR ile gelen table_id
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search)
       const tableFromUrl = urlParams.get('table')
-      const orderEnabled = urlParams.get('order') === 'true'
+      const orderMode = localStorage.getItem('order_mode')
       const tableFromStorage = localStorage.getItem('current_table_id')
       
-      // QR kod ile geldiyse table_id olur
+      // QR kod ile geldiyse
       if (tableFromUrl) {
         setTableId(tableFromUrl)
         localStorage.setItem('current_table_id', tableFromUrl)
         setCanOrderState(true)
-      } else if (tableFromStorage && urlParams.get('from') === 'qr') {
-        // QR'dan geliyorsa storage'daki table_id'yi kullan
+      } 
+      // Storage'da table varsa
+      else if (tableFromStorage) {
         setTableId(tableFromStorage)
         setCanOrderState(true)
-      } else if (orderEnabled) {
-        // Paket sipariş için explicit parametre
+      }
+      // Paket modu seçilmişse
+      else if (orderMode === 'takeaway') {
         setCanOrderState(true)
       }
       // Keşfetten geliyorsa canOrderState = false kalır
