@@ -8,8 +8,8 @@ import {
   ArrowLeft, Star, MapPin, Clock, Phone, Navigation,
   Heart, Share2, Calendar, ChevronRight, Loader2, AlertCircle,
   CreditCard, UtensilsCrossed, Wifi, Dog, Cigarette, Music,
-  Car, Sun, Instagram, Image as ImageIcon, X, ChevronLeft,
-  Martini, Utensils, Coffee, Leaf, Baby, Accessibility,
+  Car, Sun, Instagram, X, ChevronLeft,
+  Martini, Utensils, Leaf, Baby, Accessibility,
   Zap, Snowflake, CreditCard as CardIcon, Globe
 } from 'lucide-react'
 
@@ -54,22 +54,32 @@ const featureConfig: Record<string, { icon: any; label: string; color: string }>
   reservation_required: { icon: Calendar, label: 'Rezervasyon Önerilir', color: 'text-orange-500 bg-orange-500/20' },
 }
 
-// Cuisine type labels
-const cuisineLabels: Record<string, string> = {
-  turkish: 'Türk Mutfağı',
-  italian: 'İtalyan',
-  japanese: 'Japon',
-  chinese: 'Çin',
-  mexican: 'Meksika',
-  indian: 'Hint',
-  french: 'Fransız',
-  mediterranean: 'Akdeniz',
-  seafood: 'Deniz Ürünleri',
-  steakhouse: 'Steakhouse',
-  vegetarian: 'Vejetaryen',
-  international: 'Dünya Mutfağı',
-  cafe: 'Kafe',
-  fastfood: 'Fast Food',
+// Demo data generator based on venue category
+const getDemoFeatures = (category?: string): string[] => {
+  const baseFeatures = ['wifi', 'credit_card', 'air_conditioning']
+  
+  switch (category) {
+    case 'restaurant':
+      return [...baseFeatures, 'turkish_cuisine', 'parking', 'reservation_required']
+    case 'cafe':
+      return [...baseFeatures, 'outdoor_seating', 'pet_friendly']
+    case 'bar':
+      return [...baseFeatures, 'cocktails', 'live_music', 'smoking_area']
+    case 'beach_club':
+      return [...baseFeatures, 'outdoor_seating', 'cocktails', 'parking']
+    case 'night_club':
+      return [...baseFeatures, 'live_music', 'cocktails']
+    default:
+      return baseFeatures
+  }
+}
+
+const getDemoPhotos = (mainImage?: string): string[] => {
+  // Eğer ana görsel varsa onu kullan, yoksa placeholder
+  if (mainImage) {
+    return [mainImage]
+  }
+  return []
 }
 
 export default function VenuePage() {
@@ -106,11 +116,6 @@ export default function VenuePage() {
         return
       }
 
-      // Demo features if not set (for testing)
-      if (!data.features || data.features.length === 0) {
-        data.features = ['wifi', 'credit_card', 'air_conditioning']
-      }
-
       setVenue(data)
     } catch (err) {
       console.error('Venue error:', err)
@@ -135,14 +140,13 @@ export default function VenuePage() {
   }
 
   const openInstagram = () => {
-    if (venue?.instagram_url) {
-      window.open(venue.instagram_url, '_blank')
-    }
+    // Demo Instagram - mekan adından username oluştur
+    const username = venue?.name?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'orderapp'
+    window.open(`https://instagram.com/${username}`, '_blank')
   }
 
   const toggleFavorite = () => {
     setIsFavorite(!isFavorite)
-    // TODO: Save to Supabase
   }
 
   const shareVenue = async () => {
@@ -175,14 +179,6 @@ export default function VenuePage() {
     return labels[category || ''] || 'Mekan'
   }
 
-  // Get all photos for gallery
-  const getAllPhotos = () => {
-    const photos: string[] = []
-    if (venue?.image_url) photos.push(venue.image_url)
-    if (venue?.photos) photos.push(...venue.photos)
-    return photos
-  }
-
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center">
@@ -207,7 +203,10 @@ export default function VenuePage() {
     )
   }
 
-  const photos = getAllPhotos()
+  // Demo veriler - veritabanında yoksa bunları kullan
+  const features = venue.features?.length ? venue.features : getDemoFeatures(venue.category)
+  const photos = getDemoPhotos(venue.image_url)
+  const hasInstagram = true // Demo için her zaman göster
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white pb-24">
@@ -263,22 +262,20 @@ export default function VenuePage() {
             )}
             <div className="flex-1">
               <h1 className="text-xl font-bold">{venue.name}</h1>
-              <div className="flex items-center gap-4 mt-2 flex-wrap">
+              <div className="flex items-center gap-3 mt-2 flex-wrap">
                 {venue.rating && (
                   <span className="flex items-center gap-1 text-sm">
                     <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
                     {venue.rating.toFixed(1)}
                   </span>
                 )}
-                {venue.cuisine_type && (
-                  <span className="text-sm text-gray-400">
-                    {cuisineLabels[venue.cuisine_type] || venue.cuisine_type}
-                  </span>
-                )}
+                <span className="text-sm text-gray-400">
+                  {getCategoryLabel(venue.category)}
+                </span>
                 {venue.address && (
                   <span className="flex items-center gap-1 text-sm text-gray-400">
                     <MapPin className="w-4 h-4" />
-                    <span className="truncate max-w-[150px]">{venue.address.split(',')[0]}</span>
+                    <span className="truncate max-w-[120px]">{venue.address.split(',')[0]}</span>
                   </span>
                 )}
               </div>
@@ -342,16 +339,21 @@ export default function VenuePage() {
         <h2 className="text-lg font-semibold mb-3">Mekan Hakkında</h2>
         
         {/* Description */}
-        {venue.description && (
+        {venue.description ? (
           <p className="text-gray-400 text-sm mb-4 leading-relaxed">
             {venue.description}
+          </p>
+        ) : (
+          <p className="text-gray-400 text-sm mb-4 leading-relaxed">
+            {venue.name}, {getCategoryLabel(venue.category).toLowerCase()} kategorisinde hizmet veren bir mekandır. 
+            Keyifli bir deneyim için sizi bekliyoruz.
           </p>
         )}
 
         {/* Features Grid */}
-        {venue.features && venue.features.length > 0 && (
+        {features.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-4">
-            {venue.features.map((feature) => {
+            {features.map((feature) => {
               const config = featureConfig[feature]
               if (!config) return null
               const Icon = config.icon
@@ -370,7 +372,7 @@ export default function VenuePage() {
 
         {/* Instagram & Website Links */}
         <div className="flex gap-3 mb-4">
-          {venue.instagram_url && (
+          {hasInstagram && (
             <button
               onClick={openInstagram}
               className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex-1"
@@ -395,17 +397,9 @@ export default function VenuePage() {
           <div className="mb-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-medium">Fotoğraflar</h3>
-              {photos.length > 3 && (
-                <button 
-                  onClick={() => { setGalleryIndex(0); setShowGallery(true); }}
-                  className="text-sm text-orange-500"
-                >
-                  Tümünü Gör ({photos.length})
-                </button>
-              )}
             </div>
             <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4">
-              {photos.slice(0, 5).map((photo, index) => (
+              {photos.map((photo, index) => (
                 <button
                   key={index}
                   onClick={() => { setGalleryIndex(index); setShowGallery(true); }}
@@ -416,11 +410,6 @@ export default function VenuePage() {
                     alt={`${venue.name} ${index + 1}`}
                     className="w-28 h-28 rounded-xl object-cover"
                   />
-                  {index === 4 && photos.length > 5 && (
-                    <div className="absolute inset-0 bg-black/60 rounded-xl flex items-center justify-center">
-                      <span className="text-lg font-bold">+{photos.length - 5}</span>
-                    </div>
-                  )}
                 </button>
               ))}
             </div>
@@ -452,7 +441,7 @@ export default function VenuePage() {
       )}
 
       {/* Working Hours */}
-      {venue.working_hours && (
+      {venue.working_hours && typeof venue.working_hours === 'object' && Object.keys(venue.working_hours).length > 0 && (
         <div className="px-4 mt-4">
           <div className="bg-[#1a1a1a] rounded-2xl p-4">
             <div className="flex items-center gap-3 mb-3">
@@ -464,16 +453,14 @@ export default function VenuePage() {
                 <p className="text-sm text-green-500">Şu an açık</p>
               </div>
             </div>
-            {typeof venue.working_hours === 'object' && (
-              <div className="space-y-2 text-sm">
-                {Object.entries(venue.working_hours).map(([day, hours]: [string, any]) => (
-                  <div key={day} className="flex justify-between">
-                    <span className="text-gray-400 capitalize">{day}</span>
-                    <span>{hours.open} - {hours.close}</span>
-                  </div>
-                ))}
-              </div>
-            )}
+            <div className="space-y-2 text-sm">
+              {Object.entries(venue.working_hours).map(([day, hours]: [string, any]) => (
+                <div key={day} className="flex justify-between">
+                  <span className="text-gray-400 capitalize">{day}</span>
+                  <span>{hours?.open || '09:00'} - {hours?.close || '22:00'}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}
@@ -500,37 +487,24 @@ export default function VenuePage() {
           </div>
 
           {/* Navigation */}
-          <div className="flex items-center justify-center gap-4 p-4">
-            <button
-              onClick={() => setGalleryIndex(Math.max(0, galleryIndex - 1))}
-              disabled={galleryIndex === 0}
-              className="p-3 bg-white/10 rounded-full disabled:opacity-30"
-            >
-              <ChevronLeft className="w-6 h-6" />
-            </button>
-            <button
-              onClick={() => setGalleryIndex(Math.min(photos.length - 1, galleryIndex + 1))}
-              disabled={galleryIndex === photos.length - 1}
-              className="p-3 bg-white/10 rounded-full disabled:opacity-30"
-            >
-              <ChevronRight className="w-6 h-6" />
-            </button>
-          </div>
-
-          {/* Thumbnails */}
-          <div className="flex gap-2 p-4 overflow-x-auto justify-center">
-            {photos.map((photo, index) => (
+          {photos.length > 1 && (
+            <div className="flex items-center justify-center gap-4 p-4">
               <button
-                key={index}
-                onClick={() => setGalleryIndex(index)}
-                className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden ${
-                  index === galleryIndex ? 'ring-2 ring-orange-500' : 'opacity-50'
-                }`}
+                onClick={() => setGalleryIndex(Math.max(0, galleryIndex - 1))}
+                disabled={galleryIndex === 0}
+                className="p-3 bg-white/10 rounded-full disabled:opacity-30"
               >
-                <img src={photo} alt="" className="w-full h-full object-cover" />
+                <ChevronLeft className="w-6 h-6" />
               </button>
-            ))}
-          </div>
+              <button
+                onClick={() => setGalleryIndex(Math.min(photos.length - 1, galleryIndex + 1))}
+                disabled={galleryIndex === photos.length - 1}
+                className="p-3 bg-white/10 rounded-full disabled:opacity-30"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>
