@@ -86,25 +86,18 @@ export default function VenueMenuPage() {
     if (typeof window !== 'undefined') {
       const urlParams = new URLSearchParams(window.location.search)
       const tableFromUrl = urlParams.get('table')
-      const orderMode = localStorage.getItem('order_mode')
-      const tableFromStorage = localStorage.getItem('current_table_id')
+      const orderParam = urlParams.get('order')
       
-      // QR kod ile geldiyse
+      // QR kod ile geldiyse (table parametresi var)
       if (tableFromUrl) {
         setTableId(tableFromUrl)
-        localStorage.setItem('current_table_id', tableFromUrl)
         setCanOrderState(true)
       } 
-      // Storage'da table varsa
-      else if (tableFromStorage) {
-        setTableId(tableFromStorage)
+      // URL'de order=true varsa (Paket modundan geldi)
+      else if (orderParam === 'true') {
         setCanOrderState(true)
       }
-      // Paket modu seçilmişse
-      else if (orderMode === 'takeaway') {
-        setCanOrderState(true)
-      }
-      // Keşfetten geliyorsa canOrderState = false kalır
+      // Keşfetten geliyorsa (parametre yok) = sipariş YOK
     }
     
     loadVenue()

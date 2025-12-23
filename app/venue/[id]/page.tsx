@@ -264,7 +264,14 @@ export default function VenuePage() {
           <Calendar className="w-5 h-5 text-orange-500" />
           <span className="text-xs">Rezervasyon</span>
         </button>
-        <button onClick={() => router.push(`/venue/${venueId}/menu`)} className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-xl active:scale-95 transition-transform">
+        <button onClick={() => {
+          // Paket modunda order=true parametresi ekle
+          const orderMode = typeof window !== 'undefined' ? localStorage.getItem('order_mode') : null
+          const menuUrl = orderMode === 'takeaway' 
+            ? `/venue/${venueId}/menu?order=true`
+            : `/venue/${venueId}/menu`
+          router.push(menuUrl)
+        }} className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-xl active:scale-95 transition-transform">
           <UtensilsCrossed className="w-5 h-5 text-green-500" />
           <span className="text-xs">Menü</span>
         </button>
