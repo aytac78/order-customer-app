@@ -2,17 +2,19 @@
 
 import { usePathname, useRouter } from 'next/navigation';
 import { Home, Wallet, MessageSquare, Cog } from 'lucide-react';
-
-const navItems = [
-  { href: '/', icon: Home, label: 'Ana Sayfa' },
-  { href: '/bill', icon: Wallet, label: 'Hesap' },
-  { href: '/messages', icon: MessageSquare, label: 'Mesajlar' },
-  { href: '/settings', icon: Cog, label: 'Ayarlar' },
-];
+import { useI18n } from '@/lib/i18n';
 
 export function BottomNav() {
   const pathname = usePathname();
   const router = useRouter();
+  const { t } = useI18n();
+
+  const navItems = [
+    { href: '/', icon: Home, label: t.nav?.home || 'Home' },
+    { href: '/bill', icon: Wallet, label: t.nav?.wallet || 'Bill' },
+    { href: '/messages', icon: MessageSquare, label: t.nav?.messages || 'Messages' },
+    { href: '/settings', icon: Cog, label: t.nav?.settings || 'Settings' },
+  ];
 
   // Hide on certain pages
   const hiddenPaths = ['/login', '/onboarding', '/scan', '/auth'];
