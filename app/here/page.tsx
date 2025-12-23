@@ -5,21 +5,44 @@ import { useRouter } from 'next/navigation'
 import { 
   ArrowLeft, MapPin, Users, Heart, X, MessageCircle, 
   Send, ChevronLeft, Sparkles, Clock, Navigation,
-  Instagram, Zap, CheckCircle, Building2
+  Instagram, Zap, CheckCircle, Building2, Settings,
+  Eye, EyeOff, LogOut, Shield, Flag, Ban, ExternalLink,
+  ChevronRight, User, Calendar, Filter, AlertTriangle
 } from 'lucide-react'
+import { supabase } from '@/lib/supabase'
+
+// Types
+interface HereProfile {
+  id: string
+  user_id: string
+  nickname: string
+  bio: string
+  avatar_url?: string
+  avatar_blur: boolean
+  orientation: string
+  looking_for: string
+  age_range_min: number
+  age_range_max: number
+  gender: string
+  birth_date?: string
+  is_visible: boolean
+  invisible_mode: boolean
+}
 
 interface HereUser {
   id: string
-  name: string
+  nickname: string
   age: number
   avatar: string
   bio: string
   interests: string[]
-  instagram?: string
+  gender: string
+  orientation: string
   isHere: boolean
   lastSeenMinutes: number
-  distance?: number // metre cinsinden
+  distance?: number
   venue?: string
+  avatar_blur: boolean
 }
 
 interface Match {
@@ -29,6 +52,8 @@ interface Match {
   matchedAt: string
   lastMessage?: string
   unreadCount: number
+  chatApproved: boolean
+  movedToTitChat: boolean
 }
 
 interface Message {
@@ -45,6 +70,39 @@ interface Venue {
   activeUsers: number
 }
 
+// Constants
+const orientationOptions = [
+  { id: 'hetero', label: 'Heteroseksüel' },
+  { id: 'gay', label: 'Gay' },
+  { id: 'lesbian', label: 'Lezbiyen' },
+  { id: 'bisexual', label: 'Biseksüel' },
+  { id: 'other', label: 'Diğer' },
+  { id: 'prefer_not_say', label: 'Belirtmek istemiyorum' },
+]
+
+const lookingForOptions = [
+  { id: 'men', label: 'Erkekler' },
+  { id: 'women', label: 'Kadınlar' },
+  { id: 'everyone', label: 'Herkes' },
+]
+
+const genderOptions = [
+  { id: 'male', label: 'Erkek' },
+  { id: 'female', label: 'Kadın' },
+  { id: 'non_binary', label: 'Non-binary' },
+  { id: 'other', label: 'Diğer' },
+]
+
+const ageRanges = [
+  { min: 18, max: 25, label: '18-25' },
+  { min: 25, max: 35, label: '25-35' },
+  { min: 35, max: 45, label: '35-45' },
+  { min: 45, max: 99, label: '45+' },
+]
+
+const avatarEmojis = ['👤', '😊', '🙂', '😎', '🤓', '🧔', '👩', '👨', '🧑', '👱‍♀️', '👱', '🧑‍🦰', '👩‍🦰', '🧑‍🦱', '👩‍🦱', '🧑‍🦳', '👴', '👵']
+
+// Demo Data
 const currentVenue: Venue = {
   id: 'v1',
   name: "Nihal's Break Point",
@@ -52,55 +110,146 @@ const currentVenue: Venue = {
   activeUsers: 5
 }
 
-// Mekandaki kullanıcılar
 const usersAtVenue: HereUser[] = [
-  { id: 'u1', name: 'Elif', age: 26, avatar: '👩‍🦰', bio: 'Kahve tutkunu ☕ Kitap kurdu 📚', interests: ['Kahve', 'Kitap', 'Seyahat'], instagram: 'elif_travels', isHere: true, lastSeenMinutes: 2, venue: "Nihal's Break Point" },
-  { id: 'u2', name: 'Kaan', age: 28, avatar: '👨‍💼', bio: 'Yazılımcı 💻 Müzik sever 🎵', interests: ['Teknoloji', 'Müzik', 'Film'], instagram: 'kaan_dev', isHere: true, lastSeenMinutes: 5, venue: "Nihal's Break Point" },
-  { id: 'u3', name: 'Zeynep', age: 24, avatar: '👩‍🎨', bio: 'Tasarımcı 🎨 Yoga lover 🧘‍♀️', interests: ['Tasarım', 'Yoga', 'Doğa'], instagram: 'zeynep_art', isHere: true, lastSeenMinutes: 0, venue: "Nihal's Break Point" },
+  { id: 'u1', nickname: 'KahveSever', age: 26, avatar: '👩‍🦰', bio: 'Kahve tutkunu ☕ Kitap kurdu 📚', interests: ['Kahve', 'Kitap', 'Seyahat'], gender: 'female', orientation: 'hetero', isHere: true, lastSeenMinutes: 2, venue: "Nihal's Break Point", avatar_blur: false },
+  { id: 'u2', nickname: 'TechGuy', age: 28, avatar: '👨‍💼', bio: 'Yazılımcı 💻 Müzik sever 🎵', interests: ['Teknoloji', 'Müzik', 'Film'], gender: 'male', orientation: 'hetero', isHere: true, lastSeenMinutes: 5, venue: "Nihal's Break Point", avatar_blur: true },
+  { id: 'u3', nickname: 'ArtLover', age: 24, avatar: '👩‍🎨', bio: 'Tasarımcı 🎨 Yoga lover 🧘‍♀️', interests: ['Tasarım', 'Yoga', 'Doğa'], gender: 'female', orientation: 'bisexual', isHere: true, lastSeenMinutes: 0, venue: "Nihal's Break Point", avatar_blur: false },
 ]
 
-// Yakındaki kullanıcılar (mesafeye göre)
 const nearbyUsers: HereUser[] = [
-  { id: 'u4', name: 'Burak', age: 30, avatar: '👨‍🍳', bio: 'Gurme 🍷 Yemek bloggerı', interests: ['Yemek', 'Şarap', 'Fotoğraf'], instagram: 'burak_chef', isHere: false, lastSeenMinutes: 10, distance: 150, venue: 'Cafe Nero' },
-  { id: 'u5', name: 'Deniz', age: 27, avatar: '👩‍💻', bio: 'PM 📊 Dans etmeyi seviyorum 💃', interests: ['İş', 'Dans', 'Netflix'], instagram: 'deniz_pm', isHere: false, lastSeenMinutes: 3, distance: 320, venue: 'Starbucks' },
-  { id: 'u6', name: 'Cem', age: 29, avatar: '🧔', bio: 'Fotoğrafçı 📸 Gezgin', interests: ['Fotoğraf', 'Seyahat', 'Doğa'], instagram: 'cem_photo', isHere: false, lastSeenMinutes: 15, distance: 500, venue: 'Kahve Dünyası' },
-  { id: 'u7', name: 'Selin', age: 25, avatar: '👩‍🎤', bio: 'Müzisyen 🎸 Gece kuşu 🦉', interests: ['Müzik', 'Konser', 'Sanat'], instagram: 'selin_music', isHere: false, lastSeenMinutes: 8, distance: 750, venue: 'Jazz Bar' },
+  { id: 'u4', nickname: 'FoodieChef', age: 30, avatar: '👨‍🍳', bio: 'Gurme 🍷 Yemek bloggerı', interests: ['Yemek', 'Şarap', 'Fotoğraf'], gender: 'male', orientation: 'gay', isHere: false, lastSeenMinutes: 10, distance: 150, venue: 'Cafe Nero', avatar_blur: false },
+  { id: 'u5', nickname: 'DancerPM', age: 27, avatar: '👩‍💻', bio: 'PM 📊 Dans etmeyi seviyorum 💃', interests: ['İş', 'Dans', 'Netflix'], gender: 'female', orientation: 'hetero', isHere: false, lastSeenMinutes: 3, distance: 320, venue: 'Starbucks', avatar_blur: true },
 ]
 
-const demoMatches: Match[] = [
-  { id: 'm1', user: usersAtVenue[0], venue: currentVenue, matchedAt: new Date(Date.now() - 3600000).toISOString(), lastMessage: 'Merhaba! Nasılsın? 😊', unreadCount: 2 },
-  { id: 'm2', user: usersAtVenue[2], venue: currentVenue, matchedAt: new Date(Date.now() - 86400000).toISOString(), lastMessage: 'Bu mekan çok güzel!', unreadCount: 0 },
-]
-
-type TabType = 'venue' | 'nearby' | 'messages' | 'chat'
+type TabType = 'venue' | 'nearby' | 'messages' | 'chat' | 'profile' | 'setup'
 
 export default function HerePage() {
   const router = useRouter()
   const [mounted, setMounted] = useState(false)
   const [activeTab, setActiveTab] = useState<TabType>('venue')
-  const [matches, setMatches] = useState<Match[]>(demoMatches)
+  const [hasProfile, setHasProfile] = useState(false)
+  const [profile, setProfile] = useState<HereProfile | null>(null)
+  const [isCheckedIn, setIsCheckedIn] = useState(false)
+  const [checkoutTimer, setCheckoutTimer] = useState<number | null>(null)
+  
+  // Profile Setup State
+  const [setupStep, setSetupStep] = useState(1)
+  const [nickname, setNickname] = useState('')
+  const [bio, setBio] = useState('')
+  const [selectedAvatar, setSelectedAvatar] = useState('👤')
+  const [avatarBlur, setAvatarBlur] = useState(true)
+  const [gender, setGender] = useState('')
+  const [orientation, setOrientation] = useState('prefer_not_say')
+  const [lookingFor, setLookingFor] = useState('everyone')
+  const [ageRangeMin, setAgeRangeMin] = useState(18)
+  const [ageRangeMax, setAgeRangeMax] = useState(99)
+  const [birthYear, setBirthYear] = useState('')
+  
+  // Matching State
+  const [matches, setMatches] = useState<Match[]>([])
   const [likedUsers, setLikedUsers] = useState<string[]>([])
   const [passedUsers, setPassedUsers] = useState<string[]>([])
   const [showMatch, setShowMatch] = useState(false)
   const [newMatchUser, setNewMatchUser] = useState<HereUser | null>(null)
-  const [isCheckedIn, setIsCheckedIn] = useState(false)
+  
+  // Chat State
   const [selectedMatch, setSelectedMatch] = useState<Match | null>(null)
   const [messages, setMessages] = useState<Message[]>([])
   const [newMessage, setNewMessage] = useState('')
+  const [showTitChatModal, setShowTitChatModal] = useState(false)
+  
+  // Filter State
+  const [showFilters, setShowFilters] = useState(false)
+  const [filterGender, setFilterGender] = useState<string[]>([])
+  const [filterAgeRange, setFilterAgeRange] = useState<{min: number, max: number} | null>(null)
 
   useEffect(() => {
     setMounted(true)
+    checkProfile()
   }, [])
 
-  // Mekanda gösterilecek kullanıcılar
-  const availableVenueUsers = usersAtVenue.filter(u => !likedUsers.includes(u.id) && !passedUsers.includes(u.id))
+  const checkProfile = async () => {
+    // Demo: Check if profile exists
+    const savedProfile = localStorage.getItem('here_profile')
+    if (savedProfile) {
+      setProfile(JSON.parse(savedProfile))
+      setHasProfile(true)
+    }
+  }
+
+  const saveProfile = () => {
+    const newProfile: HereProfile = {
+      id: `profile-${Date.now()}`,
+      user_id: 'demo-user',
+      nickname,
+      bio,
+      avatar_url: selectedAvatar,
+      avatar_blur: avatarBlur,
+      orientation,
+      looking_for: lookingFor,
+      age_range_min: ageRangeMin,
+      age_range_max: ageRangeMax,
+      gender,
+      birth_date: birthYear ? `${birthYear}-01-01` : undefined,
+      is_visible: true,
+      invisible_mode: false,
+    }
+    localStorage.setItem('here_profile', JSON.stringify(newProfile))
+    setProfile(newProfile)
+    setHasProfile(true)
+    setActiveTab('venue')
+  }
+
+  const handleCheckIn = () => {
+    setIsCheckedIn(true)
+    // 15 dakika sonra otomatik checkout (demo için 15 saniye)
+    // Gerçekte ödeme sonrası tetiklenir
+  }
+
+  const handleCheckOut = () => {
+    setIsCheckedIn(false)
+    setCheckoutTimer(null)
+  }
+
+  const startAutoCheckout = () => {
+    // Hesap ödendikten sonra 15 dk timer başlat
+    setCheckoutTimer(15 * 60) // 15 dakika
+    const interval = setInterval(() => {
+      setCheckoutTimer(prev => {
+        if (prev === null || prev <= 1) {
+          clearInterval(interval)
+          handleCheckOut()
+          return null
+        }
+        return prev - 1
+      })
+    }, 1000)
+  }
+
+  // Filter users based on preferences
+  const filterUsers = (users: HereUser[]) => {
+    return users.filter(user => {
+      // Gender filter
+      if (filterGender.length > 0 && !filterGender.includes(user.gender)) return false
+      
+      // Age filter
+      if (filterAgeRange && (user.age < filterAgeRange.min || user.age > filterAgeRange.max)) return false
+      
+      // Looking for filter (from profile)
+      if (profile) {
+        if (profile.looking_for === 'men' && user.gender !== 'male') return false
+        if (profile.looking_for === 'women' && user.gender !== 'female') return false
+      }
+      
+      return true
+    })
+  }
+
+  const availableVenueUsers = filterUsers(usersAtVenue.filter(u => !likedUsers.includes(u.id) && !passedUsers.includes(u.id)))
   const currentVenueUser = availableVenueUsers[0]
 
-  // Yakında gösterilecek kullanıcılar
-  const availableNearbyUsers = nearbyUsers.filter(u => !likedUsers.includes(u.id) && !passedUsers.includes(u.id))
+  const availableNearbyUsers = filterUsers(nearbyUsers.filter(u => !likedUsers.includes(u.id) && !passedUsers.includes(u.id)))
   const currentNearbyUser = availableNearbyUsers[0]
-
-  const handleCheckIn = () => setIsCheckedIn(true)
 
   const handleLike = (user: HereUser) => {
     setLikedUsers(prev => [...prev, user.id])
@@ -109,7 +258,8 @@ export default function HerePage() {
       setShowMatch(true)
       setMatches(prev => [{
         id: `m-${Date.now()}`, user, venue: currentVenue,
-        matchedAt: new Date().toISOString(), unreadCount: 0
+        matchedAt: new Date().toISOString(), unreadCount: 0,
+        chatApproved: false, movedToTitChat: false
       }, ...prev])
     }
   }
@@ -124,7 +274,8 @@ export default function HerePage() {
     setShowMatch(true)
     setMatches(prev => [{
       id: `m-${Date.now()}`, user, venue: currentVenue,
-      matchedAt: new Date().toISOString(), unreadCount: 0
+      matchedAt: new Date().toISOString(), unreadCount: 0,
+      chatApproved: false, movedToTitChat: false
     }, ...prev])
   }
 
@@ -133,17 +284,32 @@ export default function HerePage() {
     const msg: Message = { id: `msg-${Date.now()}`, senderId: 'me', text: newMessage, timestamp: new Date().toISOString() }
     setMessages(prev => [...prev, msg])
     setNewMessage('')
-    setTimeout(() => {
-      const replies = ['Harika! 😊', 'Hangi köşedesin?', 'Gel buluşalım! 🍹', 'Çok tatlısın 💕']
-      const reply: Message = { id: `msg-${Date.now()}`, senderId: selectedMatch.user.id, text: replies[Math.floor(Math.random() * replies.length)], timestamp: new Date().toISOString() }
-      setMessages(prev => [...prev, reply])
-    }, 2000)
+    
+    // After 3 messages, show TiT Chat modal
+    if (messages.length >= 2) {
+      setTimeout(() => setShowTitChatModal(true), 1000)
+    } else {
+      setTimeout(() => {
+        const replies = ['Merhaba! 😊', 'Hangi köşedesin?', 'Tanıştığıma memnun oldum!', 'Çok tatlısın 💕']
+        const reply: Message = { id: `msg-${Date.now()}`, senderId: selectedMatch.user.id, text: replies[Math.floor(Math.random() * replies.length)], timestamp: new Date().toISOString() }
+        setMessages(prev => [...prev, reply])
+      }, 2000)
+    }
   }
 
   const openChat = (match: Match) => {
     setSelectedMatch(match)
     setMessages([{ id: 'msg-1', senderId: match.user.id, text: match.lastMessage || 'Merhaba! 👋', timestamp: match.matchedAt }])
     setActiveTab('chat')
+  }
+
+  const moveToTitChat = () => {
+    // TiT Chat'e yönlendir
+    alert('TiT Chat açılıyor... (Demo)')
+    setShowTitChatModal(false)
+    if (selectedMatch) {
+      setMatches(prev => prev.map(m => m.id === selectedMatch.id ? { ...m, movedToTitChat: true } : m))
+    }
   }
 
   const formatTime = (dateStr: string) => {
@@ -153,15 +319,13 @@ export default function HerePage() {
     return new Date(dateStr).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })
   }
 
-  const getLastSeenText = (minutes: number) => {
-    if (minutes === 0) return 'Şu an burada'
-    if (minutes < 5) return `${minutes} dk önce`
-    return `${minutes} dk önce`
-  }
+  const getLastSeenText = (minutes: number) => minutes === 0 ? 'Şu an burada' : `${minutes} dk önce`
+  const formatDistance = (meters: number) => meters < 1000 ? `${meters}m` : `${(meters / 1000).toFixed(1)}km`
+  const formatTimer = (seconds: number) => `${Math.floor(seconds / 60)}:${(seconds % 60).toString().padStart(2, '0')}`
 
-  const formatDistance = (meters: number) => {
-    if (meters < 1000) return `${meters}m`
-    return `${(meters / 1000).toFixed(1)}km`
+  const calculateAge = (birthYear: string) => {
+    if (!birthYear) return null
+    return new Date().getFullYear() - parseInt(birthYear)
   }
 
   if (!mounted) {
@@ -172,7 +336,204 @@ export default function HerePage() {
     )
   }
 
-  // Chat View
+  // PROFILE SETUP SCREEN
+  if (!hasProfile || activeTab === 'setup') {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] text-white">
+        <div className="p-4 border-b border-white/10 flex items-center gap-4">
+          <button onClick={() => hasProfile ? setActiveTab('venue') : router.back()}>
+            <ArrowLeft className="w-6 h-6" />
+          </button>
+          <h1 className="font-bold text-lg">HERE Profili {hasProfile ? 'Düzenle' : 'Oluştur'}</h1>
+        </div>
+
+        {/* Progress */}
+        <div className="px-4 py-3 flex gap-2">
+          {[1, 2, 3].map(step => (
+            <div key={step} className={`flex-1 h-1 rounded-full ${setupStep >= step ? 'bg-pink-500' : 'bg-white/20'}`} />
+          ))}
+        </div>
+
+        <div className="p-4">
+          {/* Step 1: Basic Info */}
+          {setupStep === 1 && (
+            <div className="space-y-6">
+              <div className="text-center mb-8">
+                <h2 className="text-2xl font-bold mb-2">Temel Bilgiler</h2>
+                <p className="text-gray-400">Nickname ve profilin</p>
+              </div>
+
+              {/* Avatar Selection */}
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-2">Avatar Seç</label>
+                <div className="flex flex-wrap gap-2 justify-center mb-4">
+                  {avatarEmojis.map(emoji => (
+                    <button key={emoji} onClick={() => setSelectedAvatar(emoji)}
+                      className={`w-14 h-14 rounded-full text-2xl flex items-center justify-center ${selectedAvatar === emoji ? 'bg-pink-500 ring-2 ring-pink-400' : 'bg-[#1a1a1a]'}`}>
+                      {emoji}
+                    </button>
+                  ))}
+                </div>
+                
+                {/* Avatar Blur Toggle */}
+                <button onClick={() => setAvatarBlur(!avatarBlur)}
+                  className={`w-full flex items-center justify-between p-4 rounded-xl ${avatarBlur ? 'bg-pink-500/20 border border-pink-500' : 'bg-[#1a1a1a]'}`}>
+                  <div className="flex items-center gap-3">
+                    {avatarBlur ? <EyeOff className="w-5 h-5 text-pink-500" /> : <Eye className="w-5 h-5" />}
+                    <div className="text-left">
+                      <p className="font-medium">Fotoğrafı Bulanıklaştır</p>
+                      <p className="text-xs text-gray-400">Eşleşene kadar avatarın bulanık görünür</p>
+                    </div>
+                  </div>
+                  {avatarBlur && <CheckCircle className="w-5 h-5 text-pink-500" />}
+                </button>
+              </div>
+
+              {/* Nickname */}
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-2">Nickname *</label>
+                <input type="text" value={nickname} onChange={(e) => setNickname(e.target.value)} maxLength={20}
+                  placeholder="Takma adın (gerçek ismin görünmez)"
+                  className="w-full px-4 py-3 bg-[#1a1a1a] rounded-xl outline-none focus:ring-2 focus:ring-pink-500" />
+                <p className="text-xs text-gray-500 mt-1">{nickname.length}/20 karakter</p>
+              </div>
+
+              {/* Bio */}
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-2">Hakkında</label>
+                <textarea value={bio} onChange={(e) => setBio(e.target.value)} maxLength={150}
+                  placeholder="Kendinden kısaca bahset..."
+                  className="w-full px-4 py-3 bg-[#1a1a1a] rounded-xl outline-none focus:ring-2 focus:ring-pink-500 h-24 resize-none" />
+                <p className="text-xs text-gray-500 mt-1">{bio.length}/150 karakter</p>
+              </div>
+
+              {/* Birth Year */}
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-2">Doğum Yılı *</label>
+                <select value={birthYear} onChange={(e) => setBirthYear(e.target.value)}
+                  className="w-full px-4 py-3 bg-[#1a1a1a] rounded-xl outline-none focus:ring-2 focus:ring-pink-500">
+                  <option value="">Seç</option>
+                  {Array.from({ length: 50 }, (_, i) => 2006 - i).map(year => (
+                    <option key={year} value={year}>{year} ({2024 - year} yaş)</option>
+                  ))}
+                </select>
+              </div>
+
+              <button onClick={() => setSetupStep(2)} disabled={!nickname || !birthYear || calculateAge(birthYear)! < 18}
+                className="w-full py-4 bg-gradient-to-r from-pink-500 to-orange-500 rounded-xl font-bold disabled:opacity-50">
+                Devam Et
+              </button>
+
+              {birthYear && calculateAge(birthYear)! < 18 && (
+                <p className="text-red-500 text-sm text-center flex items-center justify-center gap-2">
+                  <AlertTriangle className="w-4 h-4" />
+                  HERE 18 yaş üstü kullanıcılar içindir
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Step 2: Gender & Orientation */}
+          {setupStep === 2 && (
+            <div className="space-y-6">
+              <div className="text-center mb-8">
+                <h2 className="text-2xl font-bold mb-2">Kimliğin</h2>
+                <p className="text-gray-400">Bu bilgiler filtreleme için kullanılır</p>
+              </div>
+
+              {/* Gender */}
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-2">Cinsiyetin *</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {genderOptions.map(opt => (
+                    <button key={opt.id} onClick={() => setGender(opt.id)}
+                      className={`py-3 px-4 rounded-xl text-sm font-medium ${gender === opt.id ? 'bg-pink-500 text-white' : 'bg-[#1a1a1a] text-gray-300'}`}>
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Orientation */}
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-2">Cinsel Yönelimin</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {orientationOptions.map(opt => (
+                    <button key={opt.id} onClick={() => setOrientation(opt.id)}
+                      className={`py-3 px-4 rounded-xl text-sm font-medium ${orientation === opt.id ? 'bg-pink-500 text-white' : 'bg-[#1a1a1a] text-gray-300'}`}>
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                <button onClick={() => setSetupStep(1)} className="flex-1 py-4 border border-white/20 rounded-xl font-medium">Geri</button>
+                <button onClick={() => setSetupStep(3)} disabled={!gender}
+                  className="flex-1 py-4 bg-gradient-to-r from-pink-500 to-orange-500 rounded-xl font-bold disabled:opacity-50">Devam Et</button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Preferences */}
+          {setupStep === 3 && (
+            <div className="space-y-6">
+              <div className="text-center mb-8">
+                <h2 className="text-2xl font-bold mb-2">Tercihler</h2>
+                <p className="text-gray-400">Kimleri görmek istiyorsun?</p>
+              </div>
+
+              {/* Looking For */}
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-2">Görmek İstediğin</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {lookingForOptions.map(opt => (
+                    <button key={opt.id} onClick={() => setLookingFor(opt.id)}
+                      className={`py-3 px-4 rounded-xl text-sm font-medium ${lookingFor === opt.id ? 'bg-pink-500 text-white' : 'bg-[#1a1a1a] text-gray-300'}`}>
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Age Range */}
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-2">Yaş Aralığı</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {ageRanges.map(range => (
+                    <button key={range.label} onClick={() => { setAgeRangeMin(range.min); setAgeRangeMax(range.max); }}
+                      className={`py-3 px-4 rounded-xl text-sm font-medium ${ageRangeMin === range.min && ageRangeMax === range.max ? 'bg-pink-500 text-white' : 'bg-[#1a1a1a] text-gray-300'}`}>
+                      {range.label}
+                    </button>
+                  ))}
+                </div>
+                <button onClick={() => { setAgeRangeMin(18); setAgeRangeMax(99); }}
+                  className={`w-full mt-2 py-3 rounded-xl text-sm font-medium ${ageRangeMin === 18 && ageRangeMax === 99 ? 'bg-pink-500 text-white' : 'bg-[#1a1a1a] text-gray-300'}`}>
+                  Tüm Yaşlar
+                </button>
+              </div>
+
+              <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-xl p-4">
+                <p className="text-sm text-yellow-400 flex items-center gap-2">
+                  <Shield className="w-4 h-4" />
+                  Bilgilerin güvende. Gerçek ismin hiçbir zaman gösterilmez.
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <button onClick={() => setSetupStep(2)} className="flex-1 py-4 border border-white/20 rounded-xl font-medium">Geri</button>
+                <button onClick={saveProfile} className="flex-1 py-4 bg-gradient-to-r from-pink-500 to-orange-500 rounded-xl font-bold">
+                  {hasProfile ? 'Kaydet' : 'Profili Oluştur'}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  // CHAT VIEW
   if (activeTab === 'chat' && selectedMatch) {
     return (
       <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col">
@@ -180,29 +541,25 @@ export default function HerePage() {
           <button onClick={() => { setActiveTab('messages'); setSelectedMatch(null); }}>
             <ChevronLeft className="w-6 h-6" />
           </button>
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center text-xl">
+          <div className={`w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center text-xl ${selectedMatch.user.avatar_blur ? 'blur-sm' : ''}`}>
             {selectedMatch.user.avatar}
           </div>
           <div className="flex-1">
-            <h2 className="font-semibold">{selectedMatch.user.name}</h2>
-            <p className="text-xs text-green-500 flex items-center gap-1">
-              <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-              {selectedMatch.user.isHere ? 'Şu an burada' : 'Çevrimdışı'}
-            </p>
+            <h2 className="font-semibold">{selectedMatch.user.nickname}</h2>
+            <p className="text-xs text-gray-400">Nickname ile sohbet</p>
           </div>
-          {selectedMatch.user.instagram && (
-            <a href={`https://instagram.com/${selectedMatch.user.instagram}`} target="_blank" className="p-2 bg-white/10 rounded-full">
-              <Instagram className="w-5 h-5 text-pink-500" />
-            </a>
-          )}
+          <button onClick={() => setShowTitChatModal(true)} className="p-2 bg-green-500/20 rounded-full">
+            <ExternalLink className="w-5 h-5 text-green-500" />
+          </button>
         </div>
+
         <div className="px-4 py-2 bg-pink-500/10 border-b border-pink-500/20">
-          <p className="text-xs text-pink-400 text-center flex items-center justify-center gap-2">
-            <MapPin className="w-3 h-3" />
-            {selectedMatch.venue.name}'da eşleştiniz
+          <p className="text-xs text-pink-400 text-center">
+            🔒 Gerçek isimler gizli • Nickname ile görüşüyorsunuz
           </p>
         </div>
-        <div className="flex-1 p-4 space-y-3 overflow-y-auto">
+
+        <div className="flex-1 p-4 space-y-3 overflow-y-auto pb-24">
           {messages.map(msg => (
             <div key={msg.id} className={`flex ${msg.senderId === 'me' ? 'justify-end' : 'justify-start'}`}>
               <div className={`max-w-[75%] px-4 py-2 rounded-2xl ${msg.senderId === 'me' ? 'bg-gradient-to-r from-pink-500 to-orange-500 rounded-br-md' : 'bg-[#2a2a2a] rounded-bl-md'}`}>
@@ -212,13 +569,115 @@ export default function HerePage() {
             </div>
           ))}
         </div>
-        <div className="p-4 border-t border-white/10 bg-[#1a1a1a]">
+
+        <div className="fixed bottom-0 left-0 right-0 p-4 border-t border-white/10 bg-[#1a1a1a]">
           <div className="flex gap-2">
-            <input type="text" value={newMessage} onChange={(e) => setNewMessage(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()} placeholder="Mesaj yaz..." className="flex-1 px-4 py-3 bg-[#2a2a2a] rounded-full focus:outline-none focus:ring-2 focus:ring-pink-500" />
+            <input type="text" value={newMessage} onChange={(e) => setNewMessage(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+              placeholder="Mesaj yaz..." className="flex-1 px-4 py-3 bg-[#2a2a2a] rounded-full focus:outline-none focus:ring-2 focus:ring-pink-500" />
             <button onClick={handleSendMessage} disabled={!newMessage.trim()} className="p-3 bg-gradient-to-r from-pink-500 to-orange-500 rounded-full disabled:opacity-50">
               <Send className="w-5 h-5" />
             </button>
           </div>
+        </div>
+
+        {/* TiT Chat Modal */}
+        {showTitChatModal && (
+          <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
+            <div className="bg-[#1a1a1a] rounded-2xl p-6 max-w-sm w-full">
+              <div className="text-center mb-6">
+                <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <MessageCircle className="w-8 h-8" />
+                </div>
+                <h2 className="text-xl font-bold mb-2">TiT Chat'e Geç</h2>
+                <p className="text-gray-400 text-sm">
+                  Sohbeti TiT Chat'e taşıyarak gerçek isimlerinizle görüşebilir ve tüm chat özelliklerini kullanabilirsiniz.
+                </p>
+              </div>
+
+              <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-xl p-3 mb-6">
+                <p className="text-xs text-yellow-400 text-center">
+                  ⚠️ Her iki tarafın da onaylaması gerekir
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <button onClick={() => setShowTitChatModal(false)} className="flex-1 py-3 border border-white/20 rounded-xl font-medium">
+                  Burada Kal
+                </button>
+                <button onClick={moveToTitChat} className="flex-1 py-3 bg-green-500 rounded-xl font-medium">
+                  Onayla
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // PROFILE VIEW
+  if (activeTab === 'profile') {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] text-white pb-24">
+        <div className="p-4 border-b border-white/10 flex items-center gap-4">
+          <button onClick={() => setActiveTab('venue')}><ArrowLeft className="w-6 h-6" /></button>
+          <h1 className="font-bold text-lg">Profil Ayarları</h1>
+        </div>
+
+        <div className="p-4 space-y-4">
+          {/* Profile Card */}
+          <div className="bg-[#1a1a1a] rounded-2xl p-6 text-center">
+            <div className={`w-24 h-24 rounded-full bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center text-5xl mx-auto mb-4 ${profile?.avatar_blur ? 'blur-sm' : ''}`}>
+              {profile?.avatar_url || '👤'}
+            </div>
+            <h2 className="text-xl font-bold">{profile?.nickname}</h2>
+            <p className="text-gray-400 text-sm mt-1">{profile?.bio}</p>
+            <div className="flex items-center justify-center gap-2 mt-3">
+              <span className="px-3 py-1 bg-pink-500/20 text-pink-400 rounded-full text-xs">
+                {genderOptions.find(g => g.id === profile?.gender)?.label}
+              </span>
+              <span className="px-3 py-1 bg-purple-500/20 text-purple-400 rounded-full text-xs">
+                {orientationOptions.find(o => o.id === profile?.orientation)?.label}
+              </span>
+            </div>
+          </div>
+
+          {/* Settings */}
+          <button onClick={() => { setSetupStep(1); setActiveTab('setup'); }}
+            className="w-full bg-[#1a1a1a] rounded-xl p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <User className="w-5 h-5 text-gray-400" />
+              <span>Profili Düzenle</span>
+            </div>
+            <ChevronRight className="w-5 h-5 text-gray-400" />
+          </button>
+
+          <button className="w-full bg-[#1a1a1a] rounded-xl p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <EyeOff className="w-5 h-5 text-gray-400" />
+              <div className="text-left">
+                <p>Görünmez Mod</p>
+                <p className="text-xs text-gray-500">Check-in yap ama HERE'da görünme</p>
+              </div>
+            </div>
+            <div className={`w-12 h-6 rounded-full ${profile?.invisible_mode ? 'bg-pink-500' : 'bg-gray-600'} relative`}>
+              <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-all ${profile?.invisible_mode ? 'right-0.5' : 'left-0.5'}`} />
+            </div>
+          </button>
+
+          <button className="w-full bg-[#1a1a1a] rounded-xl p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Ban className="w-5 h-5 text-gray-400" />
+              <span>Engellenen Kullanıcılar</span>
+            </div>
+            <ChevronRight className="w-5 h-5 text-gray-400" />
+          </button>
+
+          <button onClick={() => { localStorage.removeItem('here_profile'); setHasProfile(false); setProfile(null); }}
+            className="w-full bg-red-500/20 text-red-400 rounded-xl p-4 flex items-center justify-center gap-2">
+            <LogOut className="w-5 h-5" />
+            Profili Sil
+          </button>
         </div>
       </div>
     )
@@ -229,27 +688,29 @@ export default function HerePage() {
     <div className="relative">
       <div className="bg-[#1a1a1a] rounded-3xl overflow-hidden">
         <div className="h-80 bg-gradient-to-br from-pink-500 via-purple-500 to-orange-500 flex items-center justify-center relative">
-          <span className="text-9xl">{user.avatar}</span>
+          <span className={`text-9xl ${user.avatar_blur ? 'blur-md' : ''}`}>{user.avatar}</span>
+          {user.avatar_blur && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <p className="bg-black/50 px-4 py-2 rounded-full text-sm">Eşleşince görünür</p>
+            </div>
+          )}
           <div className="absolute top-4 left-4 right-4 flex justify-between items-start">
             {showVenueBadge && (
               <div className="px-3 py-2 bg-green-500 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg">
-                <CheckCircle className="w-4 h-4" />
-                Aynı Mekanda
+                <CheckCircle className="w-4 h-4" />Aynı Mekanda
               </div>
             )}
             {showDistance && user.distance && (
               <div className="px-3 py-2 bg-blue-500 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg">
-                <Navigation className="w-4 h-4" />
-                {formatDistance(user.distance)}
+                <Navigation className="w-4 h-4" />{formatDistance(user.distance)}
               </div>
             )}
             <div className="px-3 py-1.5 bg-black/50 backdrop-blur-sm rounded-full text-xs flex items-center gap-1 ml-auto">
-              <Clock className="w-3 h-3" />
-              {getLastSeenText(user.lastSeenMinutes)}
+              <Clock className="w-3 h-3" />{getLastSeenText(user.lastSeenMinutes)}
             </div>
           </div>
           <div className="absolute bottom-4 left-4 right-4">
-            <h2 className="text-2xl font-bold">{user.name}, {user.age}</h2>
+            <h2 className="text-2xl font-bold">{user.nickname}, {user.age}</h2>
             <p className="text-sm text-white/80 flex items-center gap-1">
               {showDistance && user.venue ? (
                 <><Building2 className="w-3 h-3" />{user.venue}</>
@@ -259,23 +720,28 @@ export default function HerePage() {
             </p>
           </div>
         </div>
-        <div className="p-4 space-y-4">
+        <div className="p-4 space-y-3">
           <p className="text-gray-300">{user.bio}</p>
           <div className="flex flex-wrap gap-2">
             {user.interests.map((interest, i) => (
               <span key={i} className="px-3 py-1 bg-[#2a2a2a] rounded-full text-sm">{interest}</span>
             ))}
           </div>
+          <div className="flex gap-2">
+            <span className="px-2 py-1 bg-pink-500/20 text-pink-400 rounded-full text-xs">
+              {genderOptions.find(g => g.id === user.gender)?.label}
+            </span>
+          </div>
         </div>
       </div>
       <div className="flex justify-center gap-6 mt-6">
-        <button onClick={() => handlePass(user.id)} className="w-16 h-16 bg-[#1a1a1a] border-2 border-red-500 rounded-full flex items-center justify-center hover:bg-red-500/20 transition-colors">
+        <button onClick={() => handlePass(user.id)} className="w-16 h-16 bg-[#1a1a1a] border-2 border-red-500 rounded-full flex items-center justify-center hover:bg-red-500/20">
           <X className="w-8 h-8 text-red-500" />
         </button>
-        <button onClick={() => handleLike(user)} className="w-20 h-20 bg-gradient-to-r from-pink-500 to-orange-500 rounded-full flex items-center justify-center shadow-lg shadow-pink-500/30 hover:scale-105 transition-transform">
+        <button onClick={() => handleLike(user)} className="w-20 h-20 bg-gradient-to-r from-pink-500 to-orange-500 rounded-full flex items-center justify-center shadow-lg shadow-pink-500/30 hover:scale-105">
           <Heart className="w-10 h-10" />
         </button>
-        <button onClick={() => handleSuperLike(user)} className="w-16 h-16 bg-[#1a1a1a] border-2 border-blue-500 rounded-full flex items-center justify-center hover:bg-blue-500/20 transition-colors">
+        <button onClick={() => handleSuperLike(user)} className="w-16 h-16 bg-[#1a1a1a] border-2 border-blue-500 rounded-full flex items-center justify-center hover:bg-blue-500/20">
           <Zap className="w-8 h-8 text-blue-500" />
         </button>
       </div>
@@ -283,7 +749,7 @@ export default function HerePage() {
     </div>
   )
 
-  // Empty State Component
+  // Empty State
   const EmptyState = ({ icon: Icon, title, subtitle }: { icon: any, title: string, subtitle: string }) => (
     <div className="flex flex-col items-center justify-center py-16">
       <div className="w-24 h-24 bg-[#1a1a1a] rounded-full flex items-center justify-center mb-4">
@@ -294,6 +760,7 @@ export default function HerePage() {
     </div>
   )
 
+  // MAIN VIEW
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white pb-24">
       {/* Header */}
@@ -305,49 +772,59 @@ export default function HerePage() {
               <Sparkles className="w-5 h-5 text-pink-500" />HERE
             </h1>
           </div>
-          {matches.filter(m => m.unreadCount > 0).length > 0 && (
-            <div className="w-6 h-6 bg-pink-500 rounded-full flex items-center justify-center text-xs font-bold">
-              {matches.filter(m => m.unreadCount > 0).length}
-            </div>
-          )}
+          <button onClick={() => setShowFilters(true)} className="p-2 hover:bg-white/10 rounded-full">
+            <Filter className="w-5 h-5 text-gray-400" />
+          </button>
+          <button onClick={() => setActiveTab('profile')} className="p-2 hover:bg-white/10 rounded-full">
+            <Settings className="w-5 h-5 text-gray-400" />
+          </button>
         </div>
 
-        {/* 3 Tabs */}
+        {/* Tabs */}
         <div className="flex px-4 pb-4 gap-2">
           <button onClick={() => setActiveTab('venue')}
-            className={`flex-1 py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors ${
-              activeTab === 'venue' ? 'bg-gradient-to-r from-pink-500 to-orange-500 text-white' : 'bg-[#1a1a1a] text-gray-400'
-            }`}>
+            className={`flex-1 py-3 rounded-xl font-medium flex items-center justify-center gap-2 ${activeTab === 'venue' ? 'bg-gradient-to-r from-pink-500 to-orange-500' : 'bg-[#1a1a1a] text-gray-400'}`}>
             <Building2 className="w-4 h-4" />Mekanda
           </button>
           <button onClick={() => setActiveTab('nearby')}
-            className={`flex-1 py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors ${
-              activeTab === 'nearby' ? 'bg-gradient-to-r from-pink-500 to-orange-500 text-white' : 'bg-[#1a1a1a] text-gray-400'
-            }`}>
+            className={`flex-1 py-3 rounded-xl font-medium flex items-center justify-center gap-2 ${activeTab === 'nearby' ? 'bg-gradient-to-r from-pink-500 to-orange-500' : 'bg-[#1a1a1a] text-gray-400'}`}>
             <Navigation className="w-4 h-4" />Yakında
           </button>
           <button onClick={() => setActiveTab('messages')}
-            className={`flex-1 py-3 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors relative ${
-              activeTab === 'messages' ? 'bg-gradient-to-r from-pink-500 to-orange-500 text-white' : 'bg-[#1a1a1a] text-gray-400'
-            }`}>
+            className={`flex-1 py-3 rounded-xl font-medium flex items-center justify-center gap-2 relative ${activeTab === 'messages' ? 'bg-gradient-to-r from-pink-500 to-orange-500' : 'bg-[#1a1a1a] text-gray-400'}`}>
             <MessageCircle className="w-4 h-4" />Mesajlar
+            {matches.filter(m => m.unreadCount > 0).length > 0 && (
+              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-xs flex items-center justify-center">
+                {matches.filter(m => m.unreadCount > 0).length}
+              </span>
+            )}
           </button>
         </div>
       </div>
+
+      {/* Checkout Timer */}
+      {checkoutTimer && (
+        <div className="mx-4 mt-2 p-3 bg-yellow-500/20 border border-yellow-500/30 rounded-xl flex items-center justify-between">
+          <p className="text-sm text-yellow-400 flex items-center gap-2">
+            <Clock className="w-4 h-4" />
+            Otomatik checkout: {formatTimer(checkoutTimer)}
+          </p>
+          <button onClick={handleCheckOut} className="text-xs bg-yellow-500 text-black px-3 py-1 rounded-full font-medium">
+            Şimdi Çık
+          </button>
+        </div>
+      )}
 
       {/* MEKANDA Tab */}
       {activeTab === 'venue' && (
         <>
           {!isCheckedIn ? (
-            // Check-in Screen
             <div className="flex-1 flex flex-col items-center justify-center p-6 text-center mt-8">
               <div className="w-24 h-24 bg-gradient-to-br from-pink-500 to-orange-500 rounded-full flex items-center justify-center mb-6">
                 <Building2 className="w-12 h-12" />
               </div>
               <h2 className="text-2xl font-bold mb-2">Mekana Check-in Yap</h2>
-              <p className="text-gray-400 mb-8 max-w-xs">
-                Aynı mekandaki insanları görmek için check-in yap
-              </p>
+              <p className="text-gray-400 mb-8 max-w-xs">Aynı mekandaki insanları görmek için check-in yap</p>
               <div className="w-full max-w-sm bg-[#1a1a1a] rounded-2xl p-4 mb-6">
                 <div className="flex items-center gap-4">
                   <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center text-2xl">☕</div>
@@ -362,14 +839,14 @@ export default function HerePage() {
                 </div>
               </div>
               <button onClick={handleCheckIn} className="w-full max-w-sm py-4 bg-gradient-to-r from-pink-500 to-orange-500 rounded-2xl font-bold text-lg flex items-center justify-center gap-2">
-                <CheckCircle className="w-5 h-5" />
-                Check-in Yap
+                <CheckCircle className="w-5 h-5" />Check-in Yap
               </button>
+              <p className="text-xs text-gray-500 mt-4 max-w-xs">
+                ⏱️ Hesabı ödedikten 15 dakika sonra otomatik check-out yapılır
+              </p>
             </div>
           ) : (
-            // Venue Users
             <div className="p-4">
-              {/* Venue Info */}
               <div className="bg-gradient-to-r from-pink-500/20 to-orange-500/20 border border-pink-500/30 rounded-2xl p-3 mb-4">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-orange-500 rounded-xl flex items-center justify-center">
@@ -379,17 +856,16 @@ export default function HerePage() {
                     <p className="text-xs text-pink-400">Check-in yapıldı</p>
                     <h3 className="font-bold">{currentVenue.name}</h3>
                   </div>
-                  <div className="text-center">
-                    <p className="text-xl font-bold text-pink-500">{availableVenueUsers.length}</p>
-                    <p className="text-xs text-gray-400">kişi</p>
-                  </div>
+                  <button onClick={handleCheckOut} className="p-2 hover:bg-white/10 rounded-full">
+                    <LogOut className="w-5 h-5 text-gray-400" />
+                  </button>
                 </div>
               </div>
 
               {currentVenueUser ? (
                 <UserCard user={currentVenueUser} showVenueBadge={true} />
               ) : (
-                <EmptyState icon={Users} title="Herkesi gördün!" subtitle={`${currentVenue.name}'daki herkesi gördün. Biraz bekle, yeni insanlar gelecek.`} />
+                <EmptyState icon={Users} title="Herkesi gördün!" subtitle="Biraz bekle, yeni insanlar gelecek." />
               )}
             </div>
           )}
@@ -418,7 +894,7 @@ export default function HerePage() {
           {currentNearbyUser ? (
             <UserCard user={currentNearbyUser} showDistance={true} />
           ) : (
-            <EmptyState icon={Navigation} title="Yakında kimse yok" subtitle="Çevrende şu an aktif HERE kullanıcısı yok. Daha sonra tekrar dene." />
+            <EmptyState icon={Navigation} title="Yakında kimse yok" subtitle="Çevrende şu an aktif HERE kullanıcısı yok." />
           )}
         </div>
       )}
@@ -433,9 +909,9 @@ export default function HerePage() {
               <h3 className="text-sm font-medium text-gray-400">Eşleşmeler ({matches.length})</h3>
               {matches.map(match => (
                 <button key={match.id} onClick={() => openChat(match)}
-                  className="w-full bg-[#1a1a1a] rounded-2xl p-4 flex items-center gap-4 text-left hover:bg-[#222] transition-colors">
+                  className="w-full bg-[#1a1a1a] rounded-2xl p-4 flex items-center gap-4 text-left hover:bg-[#222]">
                   <div className="relative">
-                    <div className="w-14 h-14 rounded-full bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center text-2xl">
+                    <div className={`w-14 h-14 rounded-full bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center text-2xl ${match.user.avatar_blur ? 'blur-sm' : ''}`}>
                       {match.user.avatar}
                     </div>
                     {match.user.isHere && (
@@ -444,12 +920,17 @@ export default function HerePage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <h3 className="font-semibold">{match.user.name}</h3>
+                      <h3 className="font-semibold">{match.user.nickname}</h3>
                       <span className="text-xs text-gray-500">{formatTime(match.matchedAt)}</span>
                     </div>
-                    <p className="text-xs text-pink-400 mb-1">{match.venue.name}</p>
+                    <p className="text-xs text-pink-400 mb-1 flex items-center gap-1">
+                      <MapPin className="w-3 h-3" />{match.venue.name}
+                    </p>
                     <p className="text-sm text-gray-400 truncate">{match.lastMessage || 'Yeni eşleşme! 👋'}</p>
                   </div>
+                  {match.movedToTitChat && (
+                    <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded-full text-xs">TiT Chat</span>
+                  )}
                   {match.unreadCount > 0 && (
                     <div className="w-6 h-6 bg-pink-500 rounded-full flex items-center justify-center text-xs font-bold">{match.unreadCount}</div>
                   )}
@@ -460,22 +941,69 @@ export default function HerePage() {
         </div>
       )}
 
+      {/* Filter Modal */}
+      {showFilters && (
+        <div className="fixed inset-0 bg-black/80 z-50">
+          <div className="absolute inset-x-0 bottom-0 bg-[#1a1a1a] rounded-t-3xl p-4" style={{ maxHeight: '60vh' }}>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold">Filtreler</h2>
+              <button onClick={() => setShowFilters(false)}><X className="w-6 h-6" /></button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-2">Cinsiyet</label>
+                <div className="flex flex-wrap gap-2">
+                  {genderOptions.map(opt => (
+                    <button key={opt.id} onClick={() => setFilterGender(prev => prev.includes(opt.id) ? prev.filter(g => g !== opt.id) : [...prev, opt.id])}
+                      className={`px-4 py-2 rounded-xl text-sm ${filterGender.includes(opt.id) ? 'bg-pink-500' : 'bg-[#242424]'}`}>
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-2">Yaş Aralığı</label>
+                <div className="flex flex-wrap gap-2">
+                  {ageRanges.map(range => (
+                    <button key={range.label} onClick={() => setFilterAgeRange(filterAgeRange?.min === range.min ? null : range)}
+                      className={`px-4 py-2 rounded-xl text-sm ${filterAgeRange?.min === range.min ? 'bg-pink-500' : 'bg-[#242424]'}`}>
+                      {range.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <button onClick={() => { setFilterGender([]); setFilterAgeRange(null); setShowFilters(false); }}
+                className="w-full py-3 bg-gradient-to-r from-pink-500 to-orange-500 rounded-xl font-medium">
+                Uygula
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Match Modal */}
       {showMatch && newMatchUser && (
         <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
           <div className="text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-pink-500/20 border border-pink-500/30 rounded-full mb-6">
               <MapPin className="w-4 h-4 text-pink-400" />
-              <span className="text-sm text-pink-400">{newMatchUser.venue || currentVenue.name}</span>
+              <span className="text-sm text-pink-400">{currentVenue.name}</span>
             </div>
             <div className="flex justify-center items-center gap-4 mb-6">
-              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center text-5xl">👤</div>
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center text-5xl">
+                {profile?.avatar_url || '👤'}
+              </div>
               <Heart className="w-12 h-12 text-pink-500 fill-pink-500 animate-pulse" />
-              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center text-5xl">{newMatchUser.avatar}</div>
+              <div className={`w-24 h-24 rounded-full bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center text-5xl ${newMatchUser.avatar_blur ? '' : ''}`}>
+                {newMatchUser.avatar}
+              </div>
             </div>
             <h2 className="text-3xl font-bold bg-gradient-to-r from-pink-500 to-orange-500 bg-clip-text text-transparent mb-2">Eşleşme!</h2>
-            <p className="text-gray-400 mb-2">Sen ve {newMatchUser.name} birbirinizi beğendiniz!</p>
-            <p className="text-sm text-pink-400 mb-8">🎉 Hemen tanışmaya başla!</p>
+            <p className="text-gray-400 mb-2">Sen ve {newMatchUser.nickname} birbirinizi beğendiniz!</p>
+            <p className="text-sm text-gray-500 mb-8">🔒 Gerçek isimler hâlâ gizli</p>
             <div className="flex gap-4">
               <button onClick={() => { setShowMatch(false); setNewMatchUser(null); }} className="flex-1 py-3 border border-white/20 rounded-xl font-medium">Devam Et</button>
               <button onClick={() => {
