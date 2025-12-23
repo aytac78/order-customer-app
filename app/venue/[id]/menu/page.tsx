@@ -398,16 +398,18 @@ export default function VenueMenuPage() {
 
       {/* Cart Modal */}
       {showCart && (
-        <div className="fixed inset-0 bg-black/80 z-50 flex items-end">
-          <div className="bg-[#1a1a1a] rounded-t-3xl w-full max-h-[80vh] overflow-y-auto">
-            <div className="sticky top-0 bg-[#1a1a1a] p-4 border-b border-white/10 flex items-center justify-between">
+        <div className="fixed inset-0 bg-black/80 z-50 flex flex-col justify-end">
+          <div className="bg-[#1a1a1a] rounded-t-3xl w-full max-h-[70vh] flex flex-col">
+            {/* Header */}
+            <div className="p-4 border-b border-white/10 flex items-center justify-between flex-shrink-0">
               <h2 className="text-lg font-bold">Sepetim ({cartItemCount})</h2>
               <button onClick={() => setShowCart(false)}>
                 <X className="w-6 h-6" />
               </button>
             </div>
 
-            <div className="p-4 space-y-4">
+            {/* Cart Items - Scrollable */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
               {cart.map(item => (
                 <div key={item.product.id} className="flex items-center gap-4">
                   <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-orange-500/20 to-red-500/20 flex items-center justify-center flex-shrink-0">
@@ -432,15 +434,19 @@ export default function VenueMenuPage() {
               ))}
             </div>
 
-            <div className="sticky bottom-0 bg-[#1a1a1a] p-4 border-t border-white/10">
+            {/* Footer - Always visible */}
+            <div className="p-4 border-t border-white/10 flex-shrink-0 bg-[#1a1a1a]">
               <div className="flex justify-between mb-4">
                 <span className="text-gray-400">Toplam</span>
                 <span className="text-xl font-bold">₺{cartTotal.toLocaleString()}</span>
               </div>
               {usingDemoData ? (
-                <div className="text-center py-3 bg-gray-800 rounded-2xl">
-                  <p className="text-gray-400 text-sm">Demo menü - Sipariş verilemez</p>
-                </div>
+                <button
+                  onClick={() => setShowCart(false)}
+                  className="w-full py-4 bg-gray-700 rounded-2xl font-bold text-gray-300"
+                >
+                  Demo Menü - Kapat
+                </button>
               ) : (
                 <button
                   onClick={() => {
