@@ -110,7 +110,7 @@ export const tr = {
     venuesFound: 'mekan bulundu',
     minRating: 'Minimum Puan',
     district: 'Bölge',
-    clearFilters: 'Filtreleri Temizle',
+    clearFilters: 'Filtreleri Temizle', popular: 'Bugün Popüler', updatedDaily: 'Her gün 15:00\'de güncellenir', topOrdered: 'En Çok Sipariş Edilen', orders: 'sipariş', featured: 'ÖNE ÇIKAN',
   },
 
   // Venue Categories
