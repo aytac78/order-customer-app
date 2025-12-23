@@ -111,35 +111,45 @@ export default function HomePage() {
 
       {/* Quick Actions */}
       <div className="px-4 mt-4">
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-4 gap-3">
           <button 
             onClick={() => router.push('/scan')}
-            className="flex flex-col items-center gap-2 p-4 bg-gradient-to-br from-orange-500/20 to-red-500/20 border border-orange-500/30 rounded-2xl"
+            className="flex flex-col items-center gap-2 p-3 bg-gradient-to-br from-orange-500/20 to-red-500/20 border border-orange-500/30 rounded-2xl"
           >
-            <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center">
-              <QrCode className="w-6 h-6" />
+            <div className="w-11 h-11 bg-orange-500 rounded-xl flex items-center justify-center">
+              <QrCode className="w-5 h-5" />
             </div>
-            <span className="text-sm font-medium">QR Okut</span>
+            <span className="text-xs font-medium">QR Okut</span>
+          </button>
+          
+          <button 
+            onClick={() => router.push('/discover')}
+            className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-2xl"
+          >
+            <div className="w-11 h-11 bg-green-500 rounded-xl flex items-center justify-center">
+              <Search className="w-5 h-5" />
+            </div>
+            <span className="text-xs font-medium">Keşfet</span>
           </button>
           
           <button 
             onClick={() => router.push('/discover?mode=takeaway')}
-            className="flex flex-col items-center gap-2 p-4 bg-[#1a1a1a] rounded-2xl"
+            className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-2xl"
           >
-            <div className="w-12 h-12 bg-purple-500 rounded-xl flex items-center justify-center">
-              <Package className="w-6 h-6" />
+            <div className="w-11 h-11 bg-purple-500 rounded-xl flex items-center justify-center">
+              <Package className="w-5 h-5" />
             </div>
-            <span className="text-sm font-medium">Paket</span>
+            <span className="text-xs font-medium">Paket</span>
           </button>
           
           <button 
             onClick={() => router.push('/here')}
-            className="flex flex-col items-center gap-2 p-4 bg-[#1a1a1a] rounded-2xl"
+            className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-2xl"
           >
-            <div className="w-12 h-12 bg-gradient-to-br from-pink-500 to-orange-500 rounded-xl flex items-center justify-center">
-              <Users className="w-6 h-6" />
+            <div className="w-11 h-11 bg-gradient-to-br from-pink-500 to-orange-500 rounded-xl flex items-center justify-center">
+              <Users className="w-5 h-5" />
             </div>
-            <span className="text-sm font-medium">HERE</span>
+            <span className="text-xs font-medium">HERE</span>
           </button>
         </div>
       </div>
@@ -258,19 +268,8 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Keşfet CTA */}
-      <div className="px-4">
-        <button
-          onClick={() => router.push('/discover')}
-          className="w-full p-4 bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl flex items-center justify-between"
-        >
-          <div>
-            <h3 className="font-bold text-lg">Tüm Mekanları Keşfet</h3>
-            <p className="text-sm text-white/80">Yakınındaki restoranlar, kafeler ve daha fazlası</p>
-          </div>
-          <ChevronRight className="w-6 h-6" />
-        </button>
-      </div>
+      {/* Bottom spacing */}
+      <div className="h-4" />
     </div>
   )
 }
