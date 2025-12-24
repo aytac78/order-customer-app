@@ -43,7 +43,7 @@ interface Event {
 export default function HomePage() {
   const router = useRouter()
   const { user } = useAuth()
-  const { t, locale } = useI18n()
+  const { translations: t, locale } = useI18n()
   const [mounted, setMounted] = useState(false)
   const [loading, setLoading] = useState(true)
   const [popularVenues, setPopularVenues] = useState<PopularVenue[]>([])
