@@ -42,14 +42,14 @@ export default function SettingsPage() {
           >
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h1 className="text-xl font-bold">{t.profile.settings}</h1>
+          <h1 className="text-xl font-bold">{t('profile.settings')}</h1>
         </div>
       </div>
 
       <div className="p-4 space-y-6">
         {/* Dil Ayarları */}
         <section>
-          <h2 className="text-sm font-medium text-gray-400 mb-3 px-1">{t.profile.language}</h2>
+          <h2 className="text-sm font-medium text-gray-400 mb-3 px-1">{t('profile.language')}</h2>
           <div className="bg-[#1a1a1a] rounded-2xl overflow-hidden">
             <button
               onClick={() => setShowLanguages(!showLanguages)}
@@ -59,7 +59,7 @@ export default function SettingsPage() {
                 <Globe className="w-5 h-5 text-blue-400" />
               </div>
               <div className="flex-1 text-left">
-                <p className="font-medium">{t.profile.language}</p>
+                <p className="font-medium">{t('profile.language')}</p>
                 <p className="text-sm text-gray-400">{localeFlags[locale]} {localeNames[locale]}</p>
               </div>
               <ChevronRight className={`w-5 h-5 text-gray-400 transition-transform ${showLanguages ? 'rotate-90' : ''}`} />
@@ -182,7 +182,7 @@ export default function SettingsPage() {
               <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center">
                 <LogOut className="w-5 h-5 text-red-400" />
               </div>
-              <p className="font-medium text-red-400">{t.profile.logout}</p>
+              <p className="font-medium text-red-400">{t('profile.logout')}</p>
             </button>
           </section>
         )}
