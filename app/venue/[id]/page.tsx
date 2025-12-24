@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useParams, useRouter } from 'next/navigation'
+import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/lib/AuthContext'
 import { 
@@ -12,6 +12,7 @@ import {
   Martini, Utensils, Leaf, Baby, Accessibility,
   Zap, Snowflake, CreditCard as CardIcon, Globe
 } from 'lucide-react'
+import WaiterCall from '@/components/WaiterCall'
 
 interface Venue {
   id: string
@@ -71,8 +72,10 @@ const getDemoFeatures = (category?: string): string[] => {
 export default function VenuePage() {
   const params = useParams()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { user } = useAuth()
   const venueId = params.id as string
+  const tableNumber = searchParams.get('table')
 
   const [venue, setVenue] = useState<Venue | null>(null)
   const [loading, setLoading] = useState(true)
@@ -207,10 +210,15 @@ export default function VenuePage() {
           </button>
         </div>
 
-        <div className="absolute bottom-4 left-4">
+        <div className="absolute bottom-4 left-4 flex items-center gap-2">
           <span className="px-3 py-1.5 bg-black/50 backdrop-blur-sm rounded-full text-sm">
             {getCategoryEmoji(venue.category)} {getCategoryLabel(venue.category)}
           </span>
+          {tableNumber && (
+            <span className="px-3 py-1.5 bg-orange-500 rounded-full text-sm font-medium">
+              Masa {tableNumber}
+            </span>
+          )}
         </div>
       </div>
 
@@ -266,11 +274,12 @@ export default function VenuePage() {
         </button>
         <button onClick={() => {
           // URL'den mode parametresini kontrol et
-          const urlParams = new URLSearchParams(window.location.search)
-          const mode = urlParams.get('mode')
+          const mode = searchParams.get('mode')
           const menuUrl = mode === 'takeaway' 
             ? `/venue/${venueId}/menu?order=true`
-            : `/venue/${venueId}/menu`
+            : tableNumber
+              ? `/venue/${venueId}/menu?table=${tableNumber}`
+              : `/venue/${venueId}/menu`
           router.push(menuUrl)
         }} className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-xl active:scale-95 transition-transform">
           <UtensilsCrossed className="w-5 h-5 text-green-500" />
@@ -370,6 +379,15 @@ export default function VenuePage() {
             <img src={photos[galleryIndex]} alt="" className="max-w-full max-h-full object-contain rounded-xl" />
           </div>
         </div>
+      )}
+
+      {/* Waiter Call Button - Only show when at table */}
+      {tableNumber && venue && (
+        <WaiterCall
+          venueId={venueId}
+          venueName={venue.name}
+          tableNumber={tableNumber}
+        />
       )}
     </div>
   )
