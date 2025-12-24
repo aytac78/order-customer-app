@@ -1,48 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Heart, MapPin, Star, Loader2 } from 'lucide-react'
-
-interface FavoriteVenue {
-  id: string
-  name: string
-  category?: string
-  rating?: number
-  address?: string
-  image_url?: string
-}
+import { Heart, MapPin, Star, Loader2, LogIn, RefreshCw } from 'lucide-react'
+import { useFavorites } from '@/hooks/useFavorites'
 
 export default function FavoritesPage() {
   const router = useRouter()
-  const [favorites, setFavorites] = useState<FavoriteVenue[]>([])
-  const [loading, setLoading] = useState(true)
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-    loadFavorites()
-  }, [])
-
-  const loadFavorites = () => {
-    if (typeof window === 'undefined') return
-    
-    try {
-      const stored = localStorage.getItem('favorite_venues')
-      if (stored) {
-        setFavorites(JSON.parse(stored))
-      }
-    } catch (e) {
-      console.error('Favorites load error:', e)
-    }
-    setLoading(false)
-  }
-
-  const removeFavorite = (venueId: string) => {
-    const updated = favorites.filter(f => f.id !== venueId)
-    setFavorites(updated)
-    localStorage.setItem('favorite_venues', JSON.stringify(updated))
-  }
+  const { favorites, loading, isLoggedIn, removeFavorite, refresh } = useFavorites()
 
   const getCategoryLabel = (category?: string) => {
     const labels: Record<string, string> = {
@@ -53,7 +17,11 @@ export default function FavoritesPage() {
     return labels[category || ''] || 'Mekan'
   }
 
-  if (!mounted || loading) {
+  const handleRemove = async (venueId: string) => {
+    await removeFavorite(venueId)
+  }
+
+  if (loading) {
     return (
       <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center">
         <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
@@ -65,8 +33,31 @@ export default function FavoritesPage() {
     <div className="min-h-screen bg-[#0a0a0a] text-white pb-24">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-[#0a0a0a] border-b border-white/10 p-4">
-        <h1 className="text-xl font-bold">Favorilerim</h1>
-        <p className="text-sm text-gray-400">{favorites.length} mekan</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold">Favorilerim</h1>
+            <p className="text-sm text-gray-400">{favorites.length} mekan</p>
+          </div>
+          <button onClick={refresh} className="p-2 hover:bg-white/10 rounded-full">
+            <RefreshCw className="w-5 h-5 text-gray-400" />
+          </button>
+        </div>
+        
+        {/* Login Notice */}
+        {!isLoggedIn && favorites.length > 0 && (
+          <div className="mt-3 p-3 bg-orange-500/20 border border-orange-500/30 rounded-xl flex items-center gap-3">
+            <LogIn className="w-5 h-5 text-orange-400" />
+            <div className="flex-1">
+              <p className="text-sm text-orange-200">Giriş yaparak favorilerinizi kaydedin</p>
+            </div>
+            <button 
+              onClick={() => router.push('/login')}
+              className="px-3 py-1 bg-orange-500 rounded-lg text-sm font-medium"
+            >
+              Giriş
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Favorites List */}
@@ -86,45 +77,45 @@ export default function FavoritesPage() {
             </button>
           </div>
         ) : (
-          favorites.map(venue => (
+          favorites.map(fav => (
             <div
-              key={venue.id}
+              key={fav.id}
               className="bg-[#1a1a1a] rounded-2xl overflow-hidden"
             >
               <div className="flex">
                 {/* Image */}
                 <div 
-                  onClick={() => router.push(`/venue/${venue.id}`)}
+                  onClick={() => router.push(`/venue/${fav.venue_id}`)}
                   className="w-28 h-28 bg-gradient-to-br from-orange-500 to-red-500 flex-shrink-0 cursor-pointer"
                 >
-                  {venue.image_url ? (
-                    <img src={venue.image_url} alt={venue.name} className="w-full h-full object-cover" />
+                  {fav.venue_image ? (
+                    <img src={fav.venue_image} alt={fav.venue_name} className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-3xl font-bold">
-                      {venue.name.charAt(0)}
+                      {fav.venue_name.charAt(0)}
                     </div>
                   )}
                 </div>
 
                 {/* Info */}
                 <div 
-                  onClick={() => router.push(`/venue/${venue.id}`)}
+                  onClick={() => router.push(`/venue/${fav.venue_id}`)}
                   className="flex-1 p-3 cursor-pointer"
                 >
-                  <h3 className="font-semibold">{venue.name}</h3>
-                  <p className="text-sm text-gray-400">{getCategoryLabel(venue.category)}</p>
+                  <h3 className="font-semibold">{fav.venue_name}</h3>
+                  <p className="text-sm text-gray-400">{getCategoryLabel(fav.venue_type)}</p>
                   
                   <div className="flex items-center gap-3 mt-2">
-                    {venue.rating && (
+                    {fav.venue_rating && (
                       <span className="flex items-center gap-1 text-sm">
                         <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                        {venue.rating.toFixed(1)}
+                        {fav.venue_rating.toFixed(1)}
                       </span>
                     )}
-                    {venue.address && (
+                    {fav.venue_address && (
                       <span className="flex items-center gap-1 text-xs text-gray-500">
                         <MapPin className="w-3 h-3" />
-                        <span className="truncate max-w-[120px]">{venue.address.split(',')[0]}</span>
+                        <span className="truncate max-w-[120px]">{fav.venue_address.split(',')[0]}</span>
                       </span>
                     )}
                   </div>
@@ -132,7 +123,7 @@ export default function FavoritesPage() {
 
                 {/* Remove Button */}
                 <button
-                  onClick={() => removeFavorite(venue.id)}
+                  onClick={() => handleRemove(fav.venue_id)}
                   className="p-4 self-center"
                 >
                   <Heart className="w-6 h-6 text-red-500 fill-red-500" />
