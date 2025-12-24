@@ -8,29 +8,11 @@ import {
   Zap, CheckCircle, Building2, Settings,
   Eye, EyeOff, LogOut, Shield, Ban, ExternalLink,
   ChevronRight, User, Calendar, Filter, AlertTriangle,
-  Camera, Upload, Loader2, Trash2
+  Camera, Loader2, Trash2
 } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
-import Image from 'next/image'
+import { useHereProfile, useHereUsers } from '@/hooks/useHereProfile'
 
 // Types
-interface HereProfile {
-  id: string
-  user_id: string
-  nickname: string
-  bio: string
-  avatar_url?: string
-  avatar_blur: boolean
-  orientation: string
-  looking_for: string
-  age_range_min: number
-  age_range_max: number
-  gender: string
-  birth_date?: string
-  is_visible: boolean
-  invisible_mode: boolean
-}
-
 interface HereUser {
   id: string
   nickname: string
@@ -110,7 +92,7 @@ const currentVenue: Venue = {
   activeUsers: 5
 }
 
-const usersAtVenue: HereUser[] = [
+const demoUsersAtVenue: HereUser[] = [
   { id: 'u1', nickname: 'KahveSever', age: 26, avatar_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400', bio: 'Kahve tutkunu ☕ Kitap kurdu 📚', interests: ['Kahve', 'Kitap', 'Seyahat'], gender: 'female', orientation: 'hetero', isHere: true, lastSeenMinutes: 2, venue: "Nihal's Break Point", avatar_blur: false },
   { id: 'u2', nickname: 'TechGuy', age: 28, avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400', bio: 'Yazılımcı 💻 Müzik sever 🎵', interests: ['Teknoloji', 'Müzik', 'Film'], gender: 'male', orientation: 'hetero', isHere: true, lastSeenMinutes: 5, venue: "Nihal's Break Point", avatar_blur: true },
   { id: 'u3', nickname: 'ArtLover', age: 24, avatar_url: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400', bio: 'Tasarımcı 🎨 Yoga lover 🧘‍♀️', interests: ['Tasarım', 'Yoga', 'Doğa'], gender: 'female', orientation: 'bisexual', isHere: true, lastSeenMinutes: 0, venue: "Nihal's Break Point", avatar_blur: false },
@@ -128,11 +110,26 @@ export default function HerePage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [mounted, setMounted] = useState(false)
   const [activeTab, setActiveTab] = useState<TabType>('venue')
-  const [hasProfile, setHasProfile] = useState(false)
-  const [profile, setProfile] = useState<HereProfile | null>(null)
-  const [isCheckedIn, setIsCheckedIn] = useState(false)
-  const [checkoutTimer, setCheckoutTimer] = useState<number | null>(null)
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  
+  // Use Supabase hook
+  const { 
+    profile, 
+    checkin,
+    loading, 
+    isLoggedIn,
+    hasProfile, 
+    isCheckedIn,
+    createProfile, 
+    updateProfile,
+    deleteProfile,
+    checkIn, 
+    checkOut,
+    setInvisibleMode,
+    uploadAvatar 
+  } = useHereProfile()
+
+  // Get users at current venue (real-time)
+  const { users: venueUsers } = useHereUsers(isCheckedIn ? currentVenue.id : null)
   
   // Profile Setup State
   const [setupStep, setSetupStep] = useState(1)
@@ -168,41 +165,45 @@ export default function HerePage() {
 
   useEffect(() => {
     setMounted(true)
-    checkAuth()
-    checkProfile()
   }, [])
 
-  const checkAuth = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (user) {
-      setCurrentUserId(user.id)
+  // Populate form when profile loads
+  useEffect(() => {
+    if (profile) {
+      setNickname(profile.nickname || '')
+      setBio(profile.bio || '')
+      setAvatarUrl(profile.avatar_url || null)
+      setAvatarBlur(profile.avatar_blur ?? true)
+      setGender(profile.gender || '')
+      setOrientation(profile.orientation || 'prefer_not_say')
+      setLookingFor(profile.looking_for || 'everyone')
+      setAgeRangeMin(profile.age_range_min || 18)
+      setAgeRangeMax(profile.age_range_max || 99)
     }
-  }
+  }, [profile])
 
-  const checkProfile = async () => {
-    const savedProfile = localStorage.getItem('here_profile')
-    if (savedProfile) {
-      const parsed = JSON.parse(savedProfile)
-      setProfile(parsed)
-      setHasProfile(true)
-      // Populate form fields
-      setNickname(parsed.nickname || '')
-      setBio(parsed.bio || '')
-      setAvatarUrl(parsed.avatar_url || null)
-      setAvatarBlur(parsed.avatar_blur ?? true)
-      setGender(parsed.gender || '')
-      setOrientation(parsed.orientation || 'prefer_not_say')
-      setLookingFor(parsed.looking_for || 'everyone')
-      setAgeRangeMin(parsed.age_range_min || 18)
-      setAgeRangeMax(parsed.age_range_max || 99)
-    }
-  }
+  // Merge real users with demo users
+  const usersAtVenue: HereUser[] = venueUsers.length > 0 
+    ? venueUsers.map((u: any) => ({
+        id: u.id,
+        nickname: u.nickname,
+        age: u.birth_date ? new Date().getFullYear() - new Date(u.birth_date).getFullYear() : 25,
+        avatar_url: u.avatar_url,
+        bio: u.bio || '',
+        interests: [],
+        gender: u.gender,
+        orientation: u.orientation,
+        isHere: true,
+        lastSeenMinutes: Math.floor((Date.now() - new Date(u.last_active_at || u.checked_in_at).getTime()) / 60000),
+        venue: currentVenue.name,
+        avatar_blur: u.avatar_blur
+      }))
+    : demoUsersAtVenue
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
-    // Validate file
     if (!file.type.startsWith('image/')) {
       alert('Lütfen bir resim dosyası seçin')
       return
@@ -216,35 +217,19 @@ export default function HerePage() {
     setUploading(true)
 
     try {
-      // Create unique filename
-      const fileExt = file.name.split('.').pop()
-      const fileName = `${currentUserId || 'demo'}-${Date.now()}.${fileExt}`
-      const filePath = `${currentUserId || 'demo'}/${fileName}`
-
-      // Upload to Supabase Storage
-      const { error: uploadError } = await supabase.storage
-        .from('here-avatars')
-        .upload(filePath, file, { upsert: true })
-
-      if (uploadError) {
-        console.error('Upload error:', uploadError)
+      const url = await uploadAvatar(file)
+      if (url) {
+        setAvatarUrl(url)
+      } else {
         // Fallback: Use local preview
         const reader = new FileReader()
         reader.onloadend = () => {
           setAvatarUrl(reader.result as string)
         }
         reader.readAsDataURL(file)
-      } else {
-        // Get public URL
-        const { data: { publicUrl } } = supabase.storage
-          .from('here-avatars')
-          .getPublicUrl(filePath)
-        
-        setAvatarUrl(publicUrl)
       }
     } catch (error) {
       console.error('Upload error:', error)
-      // Fallback: Use local preview
       const reader = new FileReader()
       reader.onloadend = () => {
         setAvatarUrl(reader.result as string)
@@ -262,10 +247,8 @@ export default function HerePage() {
     }
   }
 
-  const saveProfile = () => {
-    const newProfile: HereProfile = {
-      id: `profile-${Date.now()}`,
-      user_id: currentUserId || 'demo-user',
+  const saveProfile = async () => {
+    const profileData = {
       nickname,
       bio,
       avatar_url: avatarUrl || undefined,
@@ -276,22 +259,41 @@ export default function HerePage() {
       age_range_max: ageRangeMax,
       gender,
       birth_date: birthYear ? `${birthYear}-01-01` : undefined,
-      is_visible: true,
-      invisible_mode: false,
     }
-    localStorage.setItem('here_profile', JSON.stringify(newProfile))
-    setProfile(newProfile)
-    setHasProfile(true)
-    setActiveTab('venue')
+
+    let success: boolean
+    if (hasProfile) {
+      success = await updateProfile(profileData)
+    } else {
+      success = await createProfile(profileData)
+    }
+
+    if (success) {
+      setActiveTab('venue')
+    }
   }
 
-  const handleCheckIn = () => {
-    setIsCheckedIn(true)
+  const handleCheckIn = async () => {
+    await checkIn(currentVenue.id, currentVenue.name)
   }
 
-  const handleCheckOut = () => {
-    setIsCheckedIn(false)
-    setCheckoutTimer(null)
+  const handleCheckOut = async () => {
+    await checkOut()
+  }
+
+  const handleDeleteProfile = async () => {
+    if (confirm('Profilinizi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.')) {
+      const success = await deleteProfile()
+      if (success) {
+        setActiveTab('venue')
+      }
+    }
+  }
+
+  const handleToggleInvisible = async () => {
+    if (profile) {
+      await setInvisibleMode(!profile.invisible_mode)
+    }
   }
 
   // Filter users based on preferences
@@ -381,7 +383,6 @@ export default function HerePage() {
 
   const getLastSeenText = (minutes: number) => minutes === 0 ? 'Şu an burada' : `${minutes} dk önce`
   const formatDistance = (meters: number) => meters < 1000 ? `${meters}m` : `${(meters / 1000).toFixed(1)}km`
-  const formatTimer = (seconds: number) => `${Math.floor(seconds / 60)}:${(seconds % 60).toString().padStart(2, '0')}`
 
   const calculateAge = (birthYear: string) => {
     if (!birthYear) return null
@@ -390,21 +391,12 @@ export default function HerePage() {
 
   // Avatar Component
   const AvatarImage = ({ src, blur, size = 'md', className = '' }: { src?: string, blur?: boolean, size?: 'sm' | 'md' | 'lg' | 'xl', className?: string }) => {
-    const sizeClasses = {
-      sm: 'w-10 h-10',
-      md: 'w-14 h-14',
-      lg: 'w-24 h-24',
-      xl: 'w-32 h-32'
-    }
+    const sizeClasses = { sm: 'w-10 h-10', md: 'w-14 h-14', lg: 'w-24 h-24', xl: 'w-32 h-32' }
     
     return (
       <div className={`${sizeClasses[size]} rounded-full overflow-hidden bg-gradient-to-br from-pink-500 to-orange-500 flex items-center justify-center ${className}`}>
         {src ? (
-          <img 
-            src={src} 
-            alt="Avatar" 
-            className={`w-full h-full object-cover ${blur ? 'blur-lg scale-110' : ''}`}
-          />
+          <img src={src} alt="Avatar" className={`w-full h-full object-cover ${blur ? 'blur-lg scale-110' : ''}`} />
         ) : (
           <User className={`${size === 'xl' ? 'w-16 h-16' : size === 'lg' ? 'w-12 h-12' : 'w-6 h-6'} text-white/70`} />
         )}
@@ -412,10 +404,29 @@ export default function HerePage() {
     )
   }
 
-  if (!mounted) {
+  if (!mounted || loading) {
     return (
       <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-pink-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  // Not logged in
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col items-center justify-center p-6">
+        <div className="w-24 h-24 bg-gradient-to-br from-pink-500 to-orange-500 rounded-full flex items-center justify-center mb-6">
+          <Sparkles className="w-12 h-12" />
+        </div>
+        <h1 className="text-2xl font-bold mb-2">HERE</h1>
+        <p className="text-gray-400 text-center mb-8">Aynı mekandaki insanlarla tanış</p>
+        <button 
+          onClick={() => router.push('/auth')}
+          className="w-full max-w-sm py-4 bg-gradient-to-r from-pink-500 to-orange-500 rounded-2xl font-bold"
+        >
+          Giriş Yap
+        </button>
       </div>
     )
   }
@@ -451,42 +462,27 @@ export default function HerePage() {
               <div className="flex flex-col items-center">
                 <div className="relative mb-4">
                   <AvatarImage src={avatarUrl || undefined} blur={false} size="xl" />
-                  
                   {uploading && (
                     <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
                       <Loader2 className="w-8 h-8 animate-spin text-white" />
                     </div>
                   )}
-                  
                   {avatarUrl && !uploading && (
-                    <button 
-                      onClick={removePhoto}
-                      className="absolute -top-2 -right-2 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center"
-                    >
+                    <button onClick={removePhoto} className="absolute -top-2 -right-2 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   )}
                 </div>
 
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handlePhotoUpload}
-                  className="hidden"
-                />
+                <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
 
                 <div className="flex gap-2">
-                  <button
-                    onClick={() => fileInputRef.current?.click()}
-                    disabled={uploading}
-                    className="flex items-center gap-2 px-4 py-2 bg-pink-500 rounded-xl font-medium disabled:opacity-50"
-                  >
+                  <button onClick={() => fileInputRef.current?.click()} disabled={uploading}
+                    className="flex items-center gap-2 px-4 py-2 bg-pink-500 rounded-xl font-medium disabled:opacity-50">
                     <Camera className="w-4 h-4" />
                     {avatarUrl ? 'Değiştir' : 'Fotoğraf Ekle'}
                   </button>
                 </div>
-
                 <p className="text-xs text-gray-500 mt-2">Max 5MB • JPG, PNG</p>
               </div>
 
@@ -503,7 +499,6 @@ export default function HerePage() {
                 {avatarBlur && <CheckCircle className="w-5 h-5 text-pink-500" />}
               </button>
 
-              {/* Preview */}
               {avatarUrl && avatarBlur && (
                 <div className="bg-[#1a1a1a] rounded-xl p-4">
                   <p className="text-sm text-gray-400 mb-3 text-center">Diğerleri şöyle görecek:</p>
@@ -513,7 +508,6 @@ export default function HerePage() {
                 </div>
               )}
 
-              {/* Nickname */}
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-2">Nickname *</label>
                 <input type="text" value={nickname} onChange={(e) => setNickname(e.target.value)} maxLength={20}
@@ -522,7 +516,6 @@ export default function HerePage() {
                 <p className="text-xs text-gray-500 mt-1">{nickname.length}/20 karakter</p>
               </div>
 
-              {/* Bio */}
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-2">Hakkında</label>
                 <textarea value={bio} onChange={(e) => setBio(e.target.value)} maxLength={150}
@@ -531,7 +524,6 @@ export default function HerePage() {
                 <p className="text-xs text-gray-500 mt-1">{bio.length}/150 karakter</p>
               </div>
 
-              {/* Birth Year */}
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-2">Doğum Yılı *</label>
                 <select value={birthYear} onChange={(e) => setBirthYear(e.target.value)}
@@ -565,7 +557,6 @@ export default function HerePage() {
                 <p className="text-gray-400">Bu bilgiler filtreleme için kullanılır</p>
               </div>
 
-              {/* Gender */}
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-2">Cinsiyetin *</label>
                 <div className="grid grid-cols-2 gap-2">
@@ -578,7 +569,6 @@ export default function HerePage() {
                 </div>
               </div>
 
-              {/* Orientation */}
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-2">Cinsel Yönelimin</label>
                 <div className="grid grid-cols-2 gap-2">
@@ -607,7 +597,6 @@ export default function HerePage() {
                 <p className="text-gray-400">Kimleri görmek istiyorsun?</p>
               </div>
 
-              {/* Looking For */}
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-2">Görmek İstediğin</label>
                 <div className="grid grid-cols-3 gap-2">
@@ -620,7 +609,6 @@ export default function HerePage() {
                 </div>
               </div>
 
-              {/* Age Range */}
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-2">Yaş Aralığı</label>
                 <div className="grid grid-cols-2 gap-2">
@@ -676,9 +664,7 @@ export default function HerePage() {
         </div>
 
         <div className="px-4 py-2 bg-pink-500/10 border-b border-pink-500/20">
-          <p className="text-xs text-pink-400 text-center">
-            🔒 Gerçek isimler gizli • Nickname ile görüşüyorsunuz
-          </p>
+          <p className="text-xs text-pink-400 text-center">🔒 Gerçek isimler gizli • Nickname ile görüşüyorsunuz</p>
         </div>
 
         <div className="flex-1 p-4 space-y-3 overflow-y-auto pb-24">
@@ -702,7 +688,6 @@ export default function HerePage() {
           </div>
         </div>
 
-        {/* TiT Chat Modal */}
         {showTitChatModal && (
           <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
             <div className="bg-[#1a1a1a] rounded-2xl p-6 max-w-sm w-full">
@@ -711,24 +696,14 @@ export default function HerePage() {
                   <MessageCircle className="w-8 h-8" />
                 </div>
                 <h2 className="text-xl font-bold mb-2">TiT Chat'e Geç</h2>
-                <p className="text-gray-400 text-sm">
-                  Sohbeti TiT Chat'e taşıyarak gerçek isimlerinizle görüşebilir ve tüm chat özelliklerini kullanabilirsiniz.
-                </p>
+                <p className="text-gray-400 text-sm">Sohbeti TiT Chat'e taşıyarak gerçek isimlerinizle görüşebilirsiniz.</p>
               </div>
-
               <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-xl p-3 mb-6">
-                <p className="text-xs text-yellow-400 text-center">
-                  ⚠️ Her iki tarafın da onaylaması gerekir
-                </p>
+                <p className="text-xs text-yellow-400 text-center">⚠️ Her iki tarafın da onaylaması gerekir</p>
               </div>
-
               <div className="flex gap-3">
-                <button onClick={() => setShowTitChatModal(false)} className="flex-1 py-3 border border-white/20 rounded-xl font-medium">
-                  Burada Kal
-                </button>
-                <button onClick={moveToTitChat} className="flex-1 py-3 bg-green-500 rounded-xl font-medium">
-                  Onayla
-                </button>
+                <button onClick={() => setShowTitChatModal(false)} className="flex-1 py-3 border border-white/20 rounded-xl font-medium">Burada Kal</button>
+                <button onClick={moveToTitChat} className="flex-1 py-3 bg-green-500 rounded-xl font-medium">Onayla</button>
               </div>
             </div>
           </div>
@@ -747,7 +722,6 @@ export default function HerePage() {
         </div>
 
         <div className="p-4 space-y-4">
-          {/* Profile Card */}
           <div className="bg-[#1a1a1a] rounded-2xl p-6 text-center">
             <div className="flex justify-center mb-4">
               <AvatarImage src={profile?.avatar_url} blur={profile?.avatar_blur} size="lg" />
@@ -764,7 +738,6 @@ export default function HerePage() {
             </div>
           </div>
 
-          {/* Settings */}
           <button onClick={() => { setSetupStep(1); setActiveTab('setup'); }}
             className="w-full bg-[#1a1a1a] rounded-xl p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -774,7 +747,7 @@ export default function HerePage() {
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </button>
 
-          <button className="w-full bg-[#1a1a1a] rounded-xl p-4 flex items-center justify-between">
+          <button onClick={handleToggleInvisible} className="w-full bg-[#1a1a1a] rounded-xl p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <EyeOff className="w-5 h-5 text-gray-400" />
               <div className="text-left">
@@ -795,7 +768,7 @@ export default function HerePage() {
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </button>
 
-          <button onClick={() => { localStorage.removeItem('here_profile'); setHasProfile(false); setProfile(null); }}
+          <button onClick={handleDeleteProfile}
             className="w-full bg-red-500/20 text-red-400 rounded-xl p-4 flex items-center justify-center gap-2">
             <LogOut className="w-5 h-5" />
             Profili Sil
@@ -811,11 +784,7 @@ export default function HerePage() {
       <div className="bg-[#1a1a1a] rounded-3xl overflow-hidden">
         <div className="h-96 relative">
           {user.avatar_url ? (
-            <img 
-              src={user.avatar_url} 
-              alt={user.nickname}
-              className={`w-full h-full object-cover ${user.avatar_blur ? 'blur-xl scale-110' : ''}`}
-            />
+            <img src={user.avatar_url} alt={user.nickname} className={`w-full h-full object-cover ${user.avatar_blur ? 'blur-xl scale-110' : ''}`} />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-pink-500 via-purple-500 to-orange-500 flex items-center justify-center">
               <User className="w-24 h-24 text-white/50" />
@@ -888,7 +857,6 @@ export default function HerePage() {
     </div>
   )
 
-  // Empty State
   const EmptyState = ({ icon: Icon, title, subtitle }: { icon: any, title: string, subtitle: string }) => (
     <div className="flex flex-col items-center justify-center py-16">
       <div className="w-24 h-24 bg-[#1a1a1a] rounded-full flex items-center justify-center mb-4">
@@ -902,7 +870,6 @@ export default function HerePage() {
   // MAIN VIEW
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white pb-24">
-      {/* Header */}
       <div className="sticky top-0 z-10 bg-[#0a0a0a] border-b border-white/10">
         <div className="flex items-center gap-4 p-4">
           <button onClick={() => router.back()}><ArrowLeft className="w-6 h-6" /></button>
@@ -919,7 +886,6 @@ export default function HerePage() {
           </button>
         </div>
 
-        {/* Tabs */}
         <div className="flex px-4 pb-4 gap-2">
           <button onClick={() => setActiveTab('venue')}
             className={`flex-1 py-3 rounded-xl font-medium flex items-center justify-center gap-2 ${activeTab === 'venue' ? 'bg-gradient-to-r from-pink-500 to-orange-500' : 'bg-[#1a1a1a] text-gray-400'}`}>
@@ -940,19 +906,6 @@ export default function HerePage() {
           </button>
         </div>
       </div>
-
-      {/* Checkout Timer */}
-      {checkoutTimer && (
-        <div className="mx-4 mt-2 p-3 bg-yellow-500/20 border border-yellow-500/30 rounded-xl flex items-center justify-between">
-          <p className="text-sm text-yellow-400 flex items-center gap-2">
-            <Clock className="w-4 h-4" />
-            Otomatik checkout: {formatTimer(checkoutTimer)}
-          </p>
-          <button onClick={handleCheckOut} className="text-xs bg-yellow-500 text-black px-3 py-1 rounded-full font-medium">
-            Şimdi Çık
-          </button>
-        </div>
-      )}
 
       {/* MEKANDA Tab */}
       {activeTab === 'venue' && (
@@ -980,9 +933,7 @@ export default function HerePage() {
               <button onClick={handleCheckIn} className="w-full max-w-sm py-4 bg-gradient-to-r from-pink-500 to-orange-500 rounded-2xl font-bold text-lg flex items-center justify-center gap-2">
                 <CheckCircle className="w-5 h-5" />Check-in Yap
               </button>
-              <p className="text-xs text-gray-500 mt-4 max-w-xs">
-                ⏱️ Hesabı ödedikten 15 dakika sonra otomatik check-out yapılır
-              </p>
+              <p className="text-xs text-gray-500 mt-4 max-w-xs">⏱️ Hesabı ödedikten 15 dakika sonra otomatik check-out yapılır</p>
             </div>
           ) : (
             <div className="p-4">
@@ -993,7 +944,7 @@ export default function HerePage() {
                   </div>
                   <div className="flex-1">
                     <p className="text-xs text-pink-400">Check-in yapıldı</p>
-                    <h3 className="font-bold">{currentVenue.name}</h3>
+                    <h3 className="font-bold">{checkin?.venue_name || currentVenue.name}</h3>
                   </div>
                   <button onClick={handleCheckOut} className="p-2 hover:bg-white/10 rounded-full">
                     <LogOut className="w-5 h-5 text-gray-400" />
