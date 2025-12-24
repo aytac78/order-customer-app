@@ -1,5 +1,4 @@
 export const tr = {
-  // Common
   common: {
     loading: 'Yükleniyor...',
     error: 'Bir hata oluştu',
@@ -31,8 +30,6 @@ export const tr = {
     ok: 'Tamam',
     send: 'Gönder',
   },
-
-  // Navigation
   nav: {
     home: 'Ana Sayfa',
     discover: 'Keşfet',
@@ -47,8 +44,6 @@ export const tr = {
     events: 'Etkinlikler',
     here: 'HERE',
   },
-
-  // Home Page
   home: {
     greeting: "Merhaba",
     hello: "Merhaba",
@@ -89,12 +84,9 @@ export const tr = {
     favorites: "Favorilerim",
     favoriteVenues: "Favori mekanlar",
   },
-
-
-  // Discover
   discover: {
     title: 'Keşfet',
-    searchPlaceholder: 'Mekan ara...',
+    searchPlaceholder: 'Döner, pizza, cafe ara...',
     filters: 'Filtreler',
     sortBy: 'Sırala',
     distance: 'Mesafe',
@@ -110,10 +102,67 @@ export const tr = {
     venuesFound: 'mekan bulundu',
     minRating: 'Minimum Puan',
     district: 'Bölge',
-    clearFilters: 'Filtreleri Temizle', popular: 'Bugün Popüler', updatedDaily: 'Her gün 15:00\'de güncellenir', topOrdered: 'En Çok Sipariş Edilen', orders: 'sipariş', featured: 'ÖNE ÇIKAN',
+    clearFilters: 'Filtreleri Temizle',
+    popular: 'Bugün Popüler',
+    updatedDaily: "Her gün 15:00'de güncellenir",
+    topOrdered: 'En Çok Sipariş Edilen',
+    orders: 'sipariş',
+    featured: 'ÖNE ÇIKAN',
+    loading: 'Mekanlar yükleniyor...',
+    loadingMore: 'Daha fazla mekan yükleniyor...',
+    noResultsFilters: 'Bu filtrelere uygun mekan bulunamadı',
+    orderOnlyNote: 'Seçili filtreler sadece ORDER üyesi mekanlarda geçerlidir',
+    resultsCount: '{{count}} sonuç',
+    activeFilters: 'Filtreler:',
+    clear: 'Temizle',
+    showResults: '{{count}} Sonuç Göster',
+    takeaway: 'Paket',
+    orderVenues: 'ORDER',
+    nearbyVenues: 'çevredeki',
+    locationGetting: 'Konum alınıyor...',
+    locationDefault: 'Varsayılan konum',
+    locationFound: 'Konum alındı',
+    open: 'Açık',
+    closed: 'Kapalı',
+    perPerson: '/kişi',
+    todayAvailable: 'Bugün Müsait',
+    priceBudget: 'Ekonomik',
+    priceMid: 'Orta',
+    priceHigh: 'Pahalı',
+    priceLuxury: 'Lüks',
+    budgetTitle: 'Kişi Başı Bütçe',
+    budget0to300: '0 - 300₺',
+    budget300to600: '300 - 600₺',
+    budget600to1000: '600 - 1000₺',
+    budget1000plus: '1000₺+',
+    budgetEconomic: 'Ekonomik',
+    budgetMidSegment: 'Orta Segment',
+    budgetHighSegment: 'Üst Segment',
+    budgetPremium: 'Premium',
+    featuresTitle: 'Özellikler',
+    featurePool: 'Havuz',
+    featureBeach: 'Plaj',
+    featureParking: 'Otopark',
+    featureValet: 'Vale',
+    featureKidsArea: 'Çocuk Alanı',
+    featureReservation: 'Rezervasyon',
+    dietaryTitle: 'Diyet Seçenekleri',
+    dietaryGlutenFree: 'Glutensiz',
+    dietaryVegan: 'Vegan',
+    dietaryVegetarian: 'Vejetaryen',
+    entertainmentTitle: 'Eğlence',
+    entertainmentLiveMusic: 'Canlı Müzik',
+    entertainmentDJ: 'DJ',
+    reservationToday: 'Bugün Rezervasyon Müsait',
+    categoryAll: 'Tümü',
+    categoryRestaurant: 'Restoran',
+    categoryCafe: 'Kafe',
+    categoryBar: 'Bar',
+    categoryFastFood: 'Fast Food',
+    categoryBeachClub: 'Beach Club',
+    categoryNightClub: 'Gece Kulübü',
+    orderOnlyFiltersNote: '🏷️ Aşağıdaki filtreler sadece ORDER üyesi mekanlarda geçerlidir',
   },
-
-  // Venue Categories
   categories: {
     all: 'Tümü',
     restaurant: 'Restoran',
@@ -125,8 +174,6 @@ export const tr = {
     fine_dining: 'Fine Dining',
     casual: 'Günlük',
   },
-
-  // Venue Detail
   venue: {
     menu: 'Menü',
     info: 'Bilgi',
@@ -155,7 +202,6 @@ export const tr = {
     callWaiter: 'Garson Çağır',
     requestBill: 'Hesap İste',
     needHelp: 'Yardım',
-    // New keys
     notFound: 'Mekan bulunamadı',
     goBack: 'Geri Dön',
     about: 'Hakkında',
@@ -166,7 +212,6 @@ export const tr = {
     menuNotFound: 'Menü bulunamadı',
     reviewsCount: 'değerlendirme',
     items: 'ürün',
-    // Features
     wifi: 'Wi-Fi',
     cardPayment: 'Kredi Kartı',
     parking: 'Otopark',
@@ -176,8 +221,6 @@ export const tr = {
     outdoor: 'Açık Alan',
     reservation: 'Rezervasyon',
   },
-
-  // Menu
   menu: {
     title: 'Menü',
     search: 'Menüde ara...',
@@ -193,7 +236,6 @@ export const tr = {
     prepTime: 'Hazırlık Süresi',
     minutes: 'dk',
     items: 'ürün',
-    // Yeni eklenenler
     all: 'Tümü',
     hasOptions: 'Seçenekli',
     required: 'Zorunlu',
@@ -206,8 +248,6 @@ export const tr = {
     dietary: 'Diyet',
     filterBy: 'Filtrele',
   },
-
-  // Cart
   cart: {
     title: 'Sepet',
     empty: 'Sepetiniz boş',
@@ -229,22 +269,18 @@ export const tr = {
     continueShopping: 'Alışverişe Devam',
     clearCart: 'Sepeti Temizle',
     removeItem: 'Ürünü Kaldır',
-    // Sipariş Tipi
     orderType: 'Sipariş Tipi',
     dineIn: 'Masada',
     takeaway: 'Paket Al',
     delivery: 'Teslimat',
-    // Masa
     tableNumber: 'Masa Numarası',
     tableNumberPlaceholder: 'Örn: 5',
     enterTableNumber: 'Lütfen masa numaranızı girin',
-    // Paket
     contactInfo: 'İletişim Bilgileri',
     yourName: 'Adınız',
     yourPhone: 'Telefon Numaranız',
     enterContactInfo: 'Lütfen isim ve telefon numaranızı girin',
     pickupReady: 'Hazır olduğunda SMS ile bilgilendirileceksiniz',
-    // Teslimat
     deliveryAddress: 'Teslimat Adresi',
     selectAddress: 'Lütfen teslimat adresi seçin',
     addAddress: 'Adres Ekle',
@@ -252,7 +288,6 @@ export const tr = {
     deliveryFee: 'Teslimat Ücreti',
     minimumOrder: 'Minimum sipariş tutarı',
     estimatedDelivery: 'Tahmini teslimat süresi',
-    // Genel
     orderNote: 'Sipariş Notu',
     notePlaceholder: 'Özel isteklerinizi yazın...',
     yourOrder: 'Siparişiniz',
@@ -267,23 +302,18 @@ export const tr = {
     orderAs: 'Sipariş',
     orderAsDesc: 'adına verilecek',
     customTipAmount: 'Özel tutar (₺)',
-    // Tip
     tip: 'Bahşiş',
     noTip: 'Yok',
     tipAdded: 'bahşiş eklendi',
-    // Split Bill
     splitBill: 'Hesabı Böl',
     people: 'kişi',
     person: 'kişi',
     howManyPeople: 'Kaç kişi?',
     perPerson: 'Kişi Başı',
     dontSplit: 'Bölme',
-    // Estimated time
     estimatedTime: 'Tahmini hazırlık süresi',
     minutes: 'dk',
   },
-
-  // Addresses
   addresses: {
     title: 'Adreslerim',
     noAddresses: 'Kayıtlı Adres Yok',
@@ -296,7 +326,6 @@ export const tr = {
     setDefault: 'Varsayılan Yap',
     setAsDefault: 'Varsayılan adres olarak ayarla',
     loginToManage: 'Adreslerinizi yönetmek için giriş yapın',
-    // Form
     addressType: 'Adres Tipi',
     home: 'Ev',
     work: 'İş',
@@ -310,8 +339,6 @@ export const tr = {
     detectLocation: 'Konumumu Kullan',
     fillRequired: 'Lütfen tüm alanları doldurun',
   },
-
-  // Orders
   orders: {
     title: 'Siparişlerim',
     myOrders: 'Siparişlerim',
@@ -342,7 +369,6 @@ export const tr = {
     payWith: 'ile Öde',
     amountToPay: 'Ödenecek Tutar',
     callWaiterBill: 'Garson Çağır (Hesap İste)',
-    // Order statuses
     pending: 'Onay Bekliyor',
     confirmed: 'Onaylandı',
     preparing: 'Hazırlanıyor',
@@ -352,8 +378,8 @@ export const tr = {
     completed: 'Tamamlandı',
     cancelled: 'İptal Edildi',
     bill_requested: 'Hesap İstendi',
-    paid: 'Ödendi', orders: 'sipariş',
-    // Status with prefix (for compatibility)
+    paid: 'Ödendi',
+    orders: 'sipariş',
     statusConfirmed: 'Onaylandı',
     statusPending: 'Onay Bekliyor',
     statusCancelled: 'İptal Edildi',
@@ -369,8 +395,6 @@ export const tr = {
     paymentMethod: 'Ödeme Yöntemi',
     payWithCard: 'Kredi Kartı ile Öde',
   },
-
-  // Reservations
   reservations: {
     title: 'Rezervasyonlar',
     myReservations: 'Rezervasyonlarım',
@@ -395,21 +419,18 @@ export const tr = {
     modifyReservation: 'Rezervasyonu Değiştir',
     deposit: 'Depozito',
     depositRequired: 'Depozito gerekli',
-    // New keys
     name: 'İsim Soyisim',
     yourName: 'Adınız',
     received: 'Rezervasyon Alındı!',
     ok: 'Tamam',
     fillRequired: 'Lütfen tarih, saat ve isim alanlarını doldurun',
     createError: 'Rezervasyon oluşturulamadı',
-    // Reservation statuses
     pending: 'Onay Bekliyor',
     confirmed: 'Onaylandı',
     seated: 'Oturuldu',
     completed: 'Tamamlandı',
     cancelled: 'İptal Edildi',
     no_show: 'Gelmedi',
-    // Additional keys
     upcoming: 'Yaklaşan',
     past: 'Geçmiş',
     noUpcoming: 'Yaklaşan rezervasyon yok',
@@ -418,8 +439,6 @@ export const tr = {
     confirmCancel: 'Rezervasyonu iptal etmek istediğinize emin misiniz?',
     note: 'Not',
   },
-
-  // Favorites
   favorites: {
     title: 'Favoriler',
     noFavorites: 'Henüz favori yok',
@@ -429,8 +448,6 @@ export const tr = {
     removedFromFavorites: 'Favorilerden çıkarıldı',
     loginToSee: 'Favorilerinizi görmek için giriş yapın',
   },
-
-  // Messages
   messages: {
     title: 'Mesajlar',
     noMessages: 'Henüz mesaj yok',
@@ -447,8 +464,6 @@ export const tr = {
     offline: 'Çevrimdışı',
     typing: 'yazıyor...',
   },
-
-  // Notifications
   notifications: {
     title: 'Bildirimler',
     noNotifications: 'Bildirim yok',
@@ -468,8 +483,6 @@ export const tr = {
     justNow: 'Az önce',
     addToCalendar: 'Takvime Ekle',
   },
-
-  // Profile
   profile: {
     title: 'Profil',
     guest: 'Misafir',
@@ -498,8 +511,6 @@ export const tr = {
     totalSpent: 'Toplam Harcama',
     memberSince: 'Üyelik Tarihi',
   },
-
-  // Settings
   settings: {
     title: "Ayarlar",
     viewProfile: "Profili görüntüle",
@@ -532,8 +543,6 @@ export const tr = {
     account: "Hesap",
     deleteAccount: "Hesabı Sil",
   },
-
-  // Auth
   auth: {
     login: 'Giriş Yap',
     loginRequired: 'Giriş Yapın',
@@ -557,8 +566,6 @@ export const tr = {
     registerSuccess: 'Kayıt başarılı!',
     logoutSuccess: 'Çıkış yapıldı',
   },
-
-  // Wallet
   wallet: {
     title: 'Cüzdan',
     balance: 'Bakiye',
@@ -572,11 +579,9 @@ export const tr = {
     addCard: 'Kart Ekle',
     payWithTitPay: 'TiT Pay ile Öde',
   },
-
-  // HERE Feature
   here: {
     title: 'HERE',
-    subtitle: 'Çevrenizdeki insanları keşfedin',
+    subtitle: 'Aynı mekandaki insanlarla tanış',
     nearbyPeople: 'Yakındaki Kişiler',
     atThisVenue: 'Bu mekanda',
     peopleHere: 'kişi burada',
@@ -591,38 +596,122 @@ export const tr = {
     checkIn: 'Check-in Yap',
     checkOut: 'Check-out',
     lastSeen: 'Son görülme',
-    justNow: 'Az önce',
-    minutesAgo: 'dakika önce',
-    hoursAgo: 'saat önce',
+    justNow: 'Şu an burada',
+    minutesAgo: '{{count}} dk önce',
+    hoursAgo: '{{count}} saat önce',
     sendMessage: 'Mesaj Gönder',
     wave: 'El Salla',
     waved: 'El salladınız',
     noOneHere: 'Henüz kimse yok',
     noOneHereDesc: 'İlk check-in yapan siz olun!',
     privacyNote: 'Konumunuz sadece check-in yaptığınızda paylaşılır',
-    // New keys
     socialDiscovery: 'Sosyal Keşif',
     loginToDiscover: 'Giriş yaparak etrafındakileri keşfet',
     visible: 'Görünürsün',
-    invisibleMode: 'Görünmez mod',
+    invisibleMode: 'Görünmez Mod',
     beFirst: 'Henüz kimse yok, ilk sen ol!',
     nearby: 'Yakınındakiler',
     withinDistance: '{km} km içinde',
     people: 'kişi',
-    noOneNearby: 'Yakınında kimse yok',
+    noOneNearby: 'Yakında kimse yok',
     increaseDistance: 'Daha fazla kişi bulmak için mesafeyi artır',
     exploreAround: 'Etrafı Keşfet',
     anonymous: 'Anonim',
     away: 'uzakta',
+    login: 'Giriş Yap',
+    createProfile: 'HERE Profili Oluştur',
+    editProfile: 'HERE Profili Düzenle',
+    deleteProfile: 'Profili Sil',
+    deleteProfileConfirm: 'Profilinizi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.',
+    profileSettings: 'Profil Ayarları',
+    step1Title: 'Temel Bilgiler',
+    step1Subtitle: 'Fotoğraf ve nickname',
+    step2Title: 'Kimliğin',
+    step2Subtitle: 'Bu bilgiler filtreleme için kullanılır',
+    step3Title: 'Tercihler',
+    step3Subtitle: 'Kimleri görmek istiyorsun?',
+    addPhoto: 'Fotoğraf Ekle',
+    changePhoto: 'Değiştir',
+    photoLimit: 'Max 5MB • JPG, PNG',
+    blurPhoto: 'Fotoğrafı Bulanıklaştır',
+    blurPhotoDesc: 'Eşleşene kadar fotoğrafın bulanık görünür',
+    othersWillSee: 'Diğerleri şöyle görecek:',
+    visibleAfterMatch: '🔒 Eşleşince görünür',
+    nickname: 'Nickname',
+    nicknamePlaceholder: 'Takma adın (gerçek ismin görünmez)',
+    nicknameLimit: '{{count}}/20 karakter',
+    about: 'Hakkında',
+    aboutPlaceholder: 'Kendinden kısaca bahset...',
+    aboutLimit: '{{count}}/150 karakter',
+    birthYear: 'Doğum Yılı',
+    select: 'Seç',
+    yearsOld: 'yaş',
+    ageRestriction: 'HERE 18 yaş üstü kullanıcılar içindir',
+    genderTitle: 'Cinsiyetin',
+    genderMale: 'Erkek',
+    genderFemale: 'Kadın',
+    genderNonBinary: 'Non-binary',
+    genderOther: 'Diğer',
+    orientationTitle: 'Cinsel Yönelimin',
+    orientationHetero: 'Heteroseksüel',
+    orientationGay: 'Gay',
+    orientationLesbian: 'Lezbiyen',
+    orientationBisexual: 'Biseksüel',
+    orientationOther: 'Diğer',
+    orientationPreferNotSay: 'Belirtmek istemiyorum',
+    lookingForTitle: 'Görmek İstediğin',
+    lookingForMen: 'Erkekler',
+    lookingForWomen: 'Kadınlar',
+    lookingForEveryone: 'Herkes',
+    ageRangeTitle: 'Yaş Aralığı',
+    allAges: 'Tüm Yaşlar',
+    privacyInfo: 'Bilgilerin güvende. Gerçek ismin hiçbir zaman gösterilmez.',
+    continue: 'Devam Et',
+    back: 'Geri',
+    save: 'Kaydet',
+    apply: 'Uygula',
+    tabVenue: 'Mekanda',
+    tabNearby: 'Yakında',
+    tabMessages: 'Mesajlar',
+    checkInTitle: 'Mekana Check-in Yap',
+    checkInSubtitle: 'Aynı mekandaki insanları görmek için check-in yap',
+    autoCheckoutNote: '⏱️ Hesabı ödedikten 15 dakika sonra otomatik check-out yapılır',
+    person: 'kişi',
+    sameVenue: 'Aynı Mekanda',
+    superLikeNote: '⚡ Süper Beğeni = Garantili eşleşme',
+    seenEveryone: 'Herkesi gördün!',
+    waitForMore: 'Biraz bekle, yeni insanlar gelecek.',
+    noOneNearbyDesc: 'Çevrende şu an aktif HERE kullanıcısı yok.',
+    noMatches: 'Henüz eşleşme yok',
+    startLiking: 'Mekanda veya Yakında sekmesinden beğenmeye başla!',
+    nearbyTitle: 'Yakınındaki mekanlar',
+    nearbyRadius: '1km çevresinde',
+    matchesTitle: 'Eşleşmeler',
+    newMatch: 'Yeni eşleşme! 👋',
+    titChat: 'TiT Chat',
+    itsAMatch: 'Eşleşme!',
+    youBothLiked: 'Sen ve {{name}} birbirinizi beğendiniz!',
+    namesStillHidden: '🔒 Gerçek isimler hâlâ gizli',
+    keepSwiping: 'Devam Et',
+    chatWithNickname: 'Nickname ile sohbet',
+    namesHiddenNote: '🔒 Gerçek isimler gizli • Nickname ile görüşüyorsunuz',
+    typeMessage: 'Mesaj yaz...',
+    moveToTitChat: "TiT Chat'e Geç",
+    moveToTitChatDesc: "Sohbeti TiT Chat'e taşıyarak gerçek isimlerinizle görüşebilirsiniz.",
+    bothMustApprove: '⚠️ Her iki tarafın da onaylaması gerekir',
+    stayHere: 'Burada Kal',
+    approve: 'Onayla',
+    openingTitChat: 'TiT Chat açılıyor... (Demo)',
+    invisibleModeDesc: "Check-in yap ama HERE'da görünme",
+    blockedUsers: 'Engellenen Kullanıcılar',
+    filtersTitle: 'Filtreler',
   },
-
-  // Events
   events: {
     title: 'Etkinlikler',
     upcoming: 'Yaklaşan Etkinlikler',
     past: 'Geçmiş Etkinlikler',
-    noEvents: 'Etkinlik yok',
-    noEventsDesc: 'Yakında yeni etkinlikler eklenecek',
+    noEvents: 'Etkinlik bulunamadı',
+    noEventsDesc: 'Filtreleri değiştirmeyi deneyin',
     date: 'Tarih',
     time: 'Saat',
     venue: 'Mekan',
@@ -631,9 +720,50 @@ export const tr = {
     buyTicket: 'Bilet Al',
     interested: 'İlgileniyorum',
     going: 'Katılıyorum',
+    eventsFound: '{{count}} etkinlik bulundu',
+    searchPlaceholder: 'Etkinlik, mekan veya sanatçı ara...',
+    allFilters: 'Tüm Filtreler',
+    activeFilters: 'Aktif filtreler:',
+    clear: 'Temizle',
+    clearFilters: 'Filtreleri Temizle',
+    showResults: '{{count}} Sonuç Göster',
+    featured: 'Öne Çıkan',
+    spotsAvailable: '{{count}} kişilik yer mevcut',
+    typeTitle: 'Etkinlik Türü',
+    typeDJ: 'DJ',
+    typeEntertainment: 'Eğlence',
+    typeMusic: 'Canlı Müzik',
+    typeFood: 'Yemek',
+    typeParty: 'Parti',
+    typeBrunch: 'Brunch',
+    typeWine: 'Şarap Tadımı',
+    typeStandup: 'Stand-up',
+    typeOther: 'Etkinlik',
+    musicTitle: 'Müzik Türü',
+    musicLive: 'Canlı Müzik',
+    musicDJ: 'DJ',
+    musicFasil: 'Fasıl',
+    musicAcoustic: 'Akustik',
+    musicKaraoke: 'Karaoke',
+    musicConcert: 'Konser',
+    featureTitle: 'Özellikler',
+    featureFixMenu: 'Fix Menü',
+    featureOutdoor: 'Açık Hava',
+    featureSeaView: 'Deniz Manzarası',
+    featureReservationRequired: 'Rezervasyon Gerekli',
+    featureFreeEntry: 'Ücretsiz Giriş',
+    dateTitle: 'Tarih',
+    dateToday: 'Bugün',
+    dateTomorrow: 'Yarın',
+    dateThisWeekend: 'Bu Hafta Sonu',
+    dateThisWeek: 'Bu Hafta',
+    dateThisMonth: 'Bu Ay',
+    priceTitle: 'Fiyat Aralığı',
+    priceFree: 'Ücretsiz',
+    price0to500: '0 - 500 ₺',
+    price500to1000: '500 - 1000 ₺',
+    price1000plus: '1000 ₺+',
   },
-
-  // QR Scanner
   scanner: {
     title: 'QR Tara',
     scanQR: 'QR Kodu Tara',
@@ -645,8 +775,6 @@ export const tr = {
     invalidQR: 'Geçersiz QR kod',
     tryAgain: 'Tekrar deneyin',
   },
-
-  // Waiter Call
   waiterCall: {
     callWaiter: 'Garson Çağır',
     requestBill: 'Hesap İste',
@@ -657,8 +785,6 @@ export const tr = {
     billRequested: 'Hesap istendi',
     helpRequested: 'Yardım istendi',
   },
-
-  // Errors
   errors: {
     generic: 'Bir hata oluştu',
     network: 'Bağlantı hatası',
@@ -669,8 +795,6 @@ export const tr = {
     locationDenied: 'Konum izni reddedildi',
     cameraDenied: 'Kamera izni reddedildi',
   },
-
-  // Success Messages
   success: {
     orderPlaced: 'Sipariş verildi!',
     reservationMade: 'Rezervasyon yapıldı!',
@@ -679,8 +803,6 @@ export const tr = {
     profileUpdated: 'Profil güncellendi!',
     settingsSaved: 'Ayarlar kaydedildi!',
   },
-
-  // Time
   time: {
     today: 'Bugün',
     yesterday: 'Dün',
@@ -694,8 +816,6 @@ export const tr = {
     hours: 'saat',
     days: 'gün',
   },
-
-  // Days
   days: {
     monday: 'Pazartesi',
     tuesday: 'Salı',
@@ -712,8 +832,6 @@ export const tr = {
     sat: 'Cmt',
     sun: 'Paz',
   },
-
-  // Payment
   payment: {
     pay: 'Öde',
     payNow: 'Şimdi Öde',

@@ -11,6 +11,7 @@ import {
   Camera, Loader2, Trash2
 } from 'lucide-react'
 import { useHereProfile, useHereUsers } from '@/hooks/useHereProfile'
+import { useI18n } from '@/lib/i18n'
 
 // Types
 interface HereUser {
@@ -54,36 +55,6 @@ interface Venue {
   activeUsers: number
 }
 
-// Constants
-const orientationOptions = [
-  { id: 'hetero', label: 'Heteroseksüel' },
-  { id: 'gay', label: 'Gay' },
-  { id: 'lesbian', label: 'Lezbiyen' },
-  { id: 'bisexual', label: 'Biseksüel' },
-  { id: 'other', label: 'Diğer' },
-  { id: 'prefer_not_say', label: 'Belirtmek istemiyorum' },
-]
-
-const lookingForOptions = [
-  { id: 'men', label: 'Erkekler' },
-  { id: 'women', label: 'Kadınlar' },
-  { id: 'everyone', label: 'Herkes' },
-]
-
-const genderOptions = [
-  { id: 'male', label: 'Erkek' },
-  { id: 'female', label: 'Kadın' },
-  { id: 'non_binary', label: 'Non-binary' },
-  { id: 'other', label: 'Diğer' },
-]
-
-const ageRanges = [
-  { min: 18, max: 25, label: '18-25' },
-  { min: 25, max: 35, label: '25-35' },
-  { min: 35, max: 45, label: '35-45' },
-  { min: 45, max: 99, label: '45+' },
-]
-
 // Demo Data
 const currentVenue: Venue = {
   id: 'v1',
@@ -107,6 +78,7 @@ type TabType = 'venue' | 'nearby' | 'messages' | 'chat' | 'profile' | 'setup'
 
 export default function HerePage() {
   const router = useRouter()
+  const { t } = useI18n()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [mounted, setMounted] = useState(false)
   const [activeTab, setActiveTab] = useState<TabType>('venue')
@@ -163,6 +135,36 @@ export default function HerePage() {
   const [filterGender, setFilterGender] = useState<string[]>([])
   const [filterAgeRange, setFilterAgeRange] = useState<{min: number, max: number} | null>(null)
 
+  // Dynamic options with translations
+  const orientationOptions = [
+    { id: 'hetero', label: t('here.orientationHetero') },
+    { id: 'gay', label: t('here.orientationGay') },
+    { id: 'lesbian', label: t('here.orientationLesbian') },
+    { id: 'bisexual', label: t('here.orientationBisexual') },
+    { id: 'other', label: t('here.orientationOther') },
+    { id: 'prefer_not_say', label: t('here.orientationPreferNotSay') },
+  ]
+
+  const lookingForOptions = [
+    { id: 'men', label: t('here.lookingForMen') },
+    { id: 'women', label: t('here.lookingForWomen') },
+    { id: 'everyone', label: t('here.lookingForEveryone') },
+  ]
+
+  const genderOptions = [
+    { id: 'male', label: t('here.genderMale') },
+    { id: 'female', label: t('here.genderFemale') },
+    { id: 'non_binary', label: t('here.genderNonBinary') },
+    { id: 'other', label: t('here.genderOther') },
+  ]
+
+  const ageRanges = [
+    { min: 18, max: 25, label: '18-25' },
+    { min: 25, max: 35, label: '25-35' },
+    { min: 35, max: 45, label: '35-45' },
+    { min: 45, max: 99, label: '45+' },
+  ]
+
   useEffect(() => {
     setMounted(true)
   }, [])
@@ -205,12 +207,12 @@ export default function HerePage() {
     if (!file) return
 
     if (!file.type.startsWith('image/')) {
-      alert('Lütfen bir resim dosyası seçin')
+      alert(t('here.photoLimit'))
       return
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      alert('Dosya boyutu 5MB\'dan küçük olmalı')
+      alert(t('here.photoLimit'))
       return
     }
 
@@ -221,7 +223,6 @@ export default function HerePage() {
       if (url) {
         setAvatarUrl(url)
       } else {
-        // Fallback: Use local preview
         const reader = new FileReader()
         reader.onloadend = () => {
           setAvatarUrl(reader.result as string)
@@ -282,7 +283,7 @@ export default function HerePage() {
   }
 
   const handleDeleteProfile = async () => {
-    if (confirm('Profilinizi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.')) {
+    if (confirm(t('here.deleteProfileConfirm'))) {
       const success = await deleteProfile()
       if (success) {
         setActiveTab('venue')
@@ -367,7 +368,7 @@ export default function HerePage() {
   }
 
   const moveToTitChat = () => {
-    alert('TiT Chat açılıyor... (Demo)')
+    alert(t('here.openingTitChat'))
     setShowTitChatModal(false)
     if (selectedMatch) {
       setMatches(prev => prev.map(m => m.id === selectedMatch.id ? { ...m, movedToTitChat: true } : m))
@@ -381,7 +382,11 @@ export default function HerePage() {
     return new Date(dateStr).toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })
   }
 
-  const getLastSeenText = (minutes: number) => minutes === 0 ? 'Şu an burada' : `${minutes} dk önce`
+  const getLastSeenText = (minutes: number) => {
+    if (minutes === 0) return t('here.justNow')
+    return t('here.minutesAgo', { count: minutes })
+  }
+  
   const formatDistance = (meters: number) => meters < 1000 ? `${meters}m` : `${(meters / 1000).toFixed(1)}km`
 
   const calculateAge = (birthYear: string) => {
@@ -419,13 +424,13 @@ export default function HerePage() {
         <div className="w-24 h-24 bg-gradient-to-br from-pink-500 to-orange-500 rounded-full flex items-center justify-center mb-6">
           <Sparkles className="w-12 h-12" />
         </div>
-        <h1 className="text-2xl font-bold mb-2">HERE</h1>
-        <p className="text-gray-400 text-center mb-8">Aynı mekandaki insanlarla tanış</p>
+        <h1 className="text-2xl font-bold mb-2">{t('here.title')}</h1>
+        <p className="text-gray-400 text-center mb-8">{t('here.subtitle')}</p>
         <button 
           onClick={() => router.push('/auth')}
           className="w-full max-w-sm py-4 bg-gradient-to-r from-pink-500 to-orange-500 rounded-2xl font-bold"
         >
-          Giriş Yap
+          {t('here.login')}
         </button>
       </div>
     )
@@ -439,7 +444,7 @@ export default function HerePage() {
           <button onClick={() => hasProfile ? setActiveTab('venue') : router.back()}>
             <ArrowLeft className="w-6 h-6" />
           </button>
-          <h1 className="font-bold text-lg">HERE Profili {hasProfile ? 'Düzenle' : 'Oluştur'}</h1>
+          <h1 className="font-bold text-lg">{hasProfile ? t('here.editProfile') : t('here.createProfile')}</h1>
         </div>
 
         {/* Progress */}
@@ -454,8 +459,8 @@ export default function HerePage() {
           {setupStep === 1 && (
             <div className="space-y-6">
               <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold mb-2">Temel Bilgiler</h2>
-                <p className="text-gray-400">Fotoğraf ve nickname</p>
+                <h2 className="text-2xl font-bold mb-2">{t('here.step1Title')}</h2>
+                <p className="text-gray-400">{t('here.step1Subtitle')}</p>
               </div>
 
               {/* Photo Upload */}
@@ -480,10 +485,10 @@ export default function HerePage() {
                   <button onClick={() => fileInputRef.current?.click()} disabled={uploading}
                     className="flex items-center gap-2 px-4 py-2 bg-pink-500 rounded-xl font-medium disabled:opacity-50">
                     <Camera className="w-4 h-4" />
-                    {avatarUrl ? 'Değiştir' : 'Fotoğraf Ekle'}
+                    {avatarUrl ? t('here.changePhoto') : t('here.addPhoto')}
                   </button>
                 </div>
-                <p className="text-xs text-gray-500 mt-2">Max 5MB • JPG, PNG</p>
+                <p className="text-xs text-gray-500 mt-2">{t('here.photoLimit')}</p>
               </div>
 
               {/* Avatar Blur Toggle */}
@@ -492,8 +497,8 @@ export default function HerePage() {
                 <div className="flex items-center gap-3">
                   {avatarBlur ? <EyeOff className="w-5 h-5 text-pink-500" /> : <Eye className="w-5 h-5" />}
                   <div className="text-left">
-                    <p className="font-medium">Fotoğrafı Bulanıklaştır</p>
-                    <p className="text-xs text-gray-400">Eşleşene kadar fotoğrafın bulanık görünür</p>
+                    <p className="font-medium">{t('here.blurPhoto')}</p>
+                    <p className="text-xs text-gray-400">{t('here.blurPhotoDesc')}</p>
                   </div>
                 </div>
                 {avatarBlur && <CheckCircle className="w-5 h-5 text-pink-500" />}
@@ -501,7 +506,7 @@ export default function HerePage() {
 
               {avatarUrl && avatarBlur && (
                 <div className="bg-[#1a1a1a] rounded-xl p-4">
-                  <p className="text-sm text-gray-400 mb-3 text-center">Diğerleri şöyle görecek:</p>
+                  <p className="text-sm text-gray-400 mb-3 text-center">{t('here.othersWillSee')}</p>
                   <div className="flex justify-center">
                     <AvatarImage src={avatarUrl} blur={true} size="lg" />
                   </div>
@@ -509,41 +514,41 @@ export default function HerePage() {
               )}
 
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">Nickname *</label>
+                <label className="block text-sm font-medium text-gray-400 mb-2">{t('here.nickname')} *</label>
                 <input type="text" value={nickname} onChange={(e) => setNickname(e.target.value)} maxLength={20}
-                  placeholder="Takma adın (gerçek ismin görünmez)"
+                  placeholder={t('here.nicknamePlaceholder')}
                   className="w-full px-4 py-3 bg-[#1a1a1a] rounded-xl outline-none focus:ring-2 focus:ring-pink-500" />
-                <p className="text-xs text-gray-500 mt-1">{nickname.length}/20 karakter</p>
+                <p className="text-xs text-gray-500 mt-1">{t('here.nicknameLimit', { count: nickname.length })}</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">Hakkında</label>
+                <label className="block text-sm font-medium text-gray-400 mb-2">{t('here.about')}</label>
                 <textarea value={bio} onChange={(e) => setBio(e.target.value)} maxLength={150}
-                  placeholder="Kendinden kısaca bahset..."
+                  placeholder={t('here.aboutPlaceholder')}
                   className="w-full px-4 py-3 bg-[#1a1a1a] rounded-xl outline-none focus:ring-2 focus:ring-pink-500 h-24 resize-none" />
-                <p className="text-xs text-gray-500 mt-1">{bio.length}/150 karakter</p>
+                <p className="text-xs text-gray-500 mt-1">{t('here.aboutLimit', { count: bio.length })}</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">Doğum Yılı *</label>
+                <label className="block text-sm font-medium text-gray-400 mb-2">{t('here.birthYear')} *</label>
                 <select value={birthYear} onChange={(e) => setBirthYear(e.target.value)}
                   className="w-full px-4 py-3 bg-[#1a1a1a] rounded-xl outline-none focus:ring-2 focus:ring-pink-500">
-                  <option value="">Seç</option>
+                  <option value="">{t('here.select')}</option>
                   {Array.from({ length: 50 }, (_, i) => 2006 - i).map(year => (
-                    <option key={year} value={year}>{year} ({2024 - year} yaş)</option>
+                    <option key={year} value={year}>{year} ({2024 - year} {t('here.yearsOld')})</option>
                   ))}
                 </select>
               </div>
 
               <button onClick={() => setSetupStep(2)} disabled={!nickname || !birthYear || calculateAge(birthYear)! < 18}
                 className="w-full py-4 bg-gradient-to-r from-pink-500 to-orange-500 rounded-xl font-bold disabled:opacity-50">
-                Devam Et
+                {t('here.continue')}
               </button>
 
               {birthYear && calculateAge(birthYear)! < 18 && (
                 <p className="text-red-500 text-sm text-center flex items-center justify-center gap-2">
                   <AlertTriangle className="w-4 h-4" />
-                  HERE 18 yaş üstü kullanıcılar içindir
+                  {t('here.ageRestriction')}
                 </p>
               )}
             </div>
@@ -553,12 +558,12 @@ export default function HerePage() {
           {setupStep === 2 && (
             <div className="space-y-6">
               <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold mb-2">Kimliğin</h2>
-                <p className="text-gray-400">Bu bilgiler filtreleme için kullanılır</p>
+                <h2 className="text-2xl font-bold mb-2">{t('here.step2Title')}</h2>
+                <p className="text-gray-400">{t('here.step2Subtitle')}</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">Cinsiyetin *</label>
+                <label className="block text-sm font-medium text-gray-400 mb-2">{t('here.genderTitle')} *</label>
                 <div className="grid grid-cols-2 gap-2">
                   {genderOptions.map(opt => (
                     <button key={opt.id} onClick={() => setGender(opt.id)}
@@ -570,7 +575,7 @@ export default function HerePage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">Cinsel Yönelimin</label>
+                <label className="block text-sm font-medium text-gray-400 mb-2">{t('here.orientationTitle')}</label>
                 <div className="grid grid-cols-2 gap-2">
                   {orientationOptions.map(opt => (
                     <button key={opt.id} onClick={() => setOrientation(opt.id)}
@@ -582,9 +587,9 @@ export default function HerePage() {
               </div>
 
               <div className="flex gap-3">
-                <button onClick={() => setSetupStep(1)} className="flex-1 py-4 border border-white/20 rounded-xl font-medium">Geri</button>
+                <button onClick={() => setSetupStep(1)} className="flex-1 py-4 border border-white/20 rounded-xl font-medium">{t('here.back')}</button>
                 <button onClick={() => setSetupStep(3)} disabled={!gender}
-                  className="flex-1 py-4 bg-gradient-to-r from-pink-500 to-orange-500 rounded-xl font-bold disabled:opacity-50">Devam Et</button>
+                  className="flex-1 py-4 bg-gradient-to-r from-pink-500 to-orange-500 rounded-xl font-bold disabled:opacity-50">{t('here.continue')}</button>
               </div>
             </div>
           )}
@@ -593,12 +598,12 @@ export default function HerePage() {
           {setupStep === 3 && (
             <div className="space-y-6">
               <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold mb-2">Tercihler</h2>
-                <p className="text-gray-400">Kimleri görmek istiyorsun?</p>
+                <h2 className="text-2xl font-bold mb-2">{t('here.step3Title')}</h2>
+                <p className="text-gray-400">{t('here.step3Subtitle')}</p>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">Görmek İstediğin</label>
+                <label className="block text-sm font-medium text-gray-400 mb-2">{t('here.lookingForTitle')}</label>
                 <div className="grid grid-cols-3 gap-2">
                   {lookingForOptions.map(opt => (
                     <button key={opt.id} onClick={() => setLookingFor(opt.id)}
@@ -610,7 +615,7 @@ export default function HerePage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">Yaş Aralığı</label>
+                <label className="block text-sm font-medium text-gray-400 mb-2">{t('here.ageRangeTitle')}</label>
                 <div className="grid grid-cols-2 gap-2">
                   {ageRanges.map(range => (
                     <button key={range.label} onClick={() => { setAgeRangeMin(range.min); setAgeRangeMax(range.max); }}
@@ -621,21 +626,21 @@ export default function HerePage() {
                 </div>
                 <button onClick={() => { setAgeRangeMin(18); setAgeRangeMax(99); }}
                   className={`w-full mt-2 py-3 rounded-xl text-sm font-medium ${ageRangeMin === 18 && ageRangeMax === 99 ? 'bg-pink-500 text-white' : 'bg-[#1a1a1a] text-gray-300'}`}>
-                  Tüm Yaşlar
+                  {t('here.allAges')}
                 </button>
               </div>
 
               <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-xl p-4">
                 <p className="text-sm text-yellow-400 flex items-center gap-2">
                   <Shield className="w-4 h-4" />
-                  Bilgilerin güvende. Gerçek ismin hiçbir zaman gösterilmez.
+                  {t('here.privacyInfo')}
                 </p>
               </div>
 
               <div className="flex gap-3">
-                <button onClick={() => setSetupStep(2)} className="flex-1 py-4 border border-white/20 rounded-xl font-medium">Geri</button>
+                <button onClick={() => setSetupStep(2)} className="flex-1 py-4 border border-white/20 rounded-xl font-medium">{t('here.back')}</button>
                 <button onClick={saveProfile} className="flex-1 py-4 bg-gradient-to-r from-pink-500 to-orange-500 rounded-xl font-bold">
-                  {hasProfile ? 'Kaydet' : 'Profili Oluştur'}
+                  {hasProfile ? t('here.save') : t('here.createProfile')}
                 </button>
               </div>
             </div>
@@ -656,7 +661,7 @@ export default function HerePage() {
           <AvatarImage src={selectedMatch.user.avatar_url} blur={selectedMatch.user.avatar_blur} size="sm" />
           <div className="flex-1">
             <h2 className="font-semibold">{selectedMatch.user.nickname}</h2>
-            <p className="text-xs text-gray-400">Nickname ile sohbet</p>
+            <p className="text-xs text-gray-400">{t('here.chatWithNickname')}</p>
           </div>
           <button onClick={() => setShowTitChatModal(true)} className="p-2 bg-green-500/20 rounded-full">
             <ExternalLink className="w-5 h-5 text-green-500" />
@@ -664,7 +669,7 @@ export default function HerePage() {
         </div>
 
         <div className="px-4 py-2 bg-pink-500/10 border-b border-pink-500/20">
-          <p className="text-xs text-pink-400 text-center">🔒 Gerçek isimler gizli • Nickname ile görüşüyorsunuz</p>
+          <p className="text-xs text-pink-400 text-center">{t('here.namesHiddenNote')}</p>
         </div>
 
         <div className="flex-1 p-4 space-y-3 overflow-y-auto pb-24">
@@ -681,7 +686,7 @@ export default function HerePage() {
         <div className="fixed bottom-0 left-0 right-0 p-4 border-t border-white/10 bg-[#1a1a1a]">
           <div className="flex gap-2">
             <input type="text" value={newMessage} onChange={(e) => setNewMessage(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-              placeholder="Mesaj yaz..." className="flex-1 px-4 py-3 bg-[#2a2a2a] rounded-full focus:outline-none focus:ring-2 focus:ring-pink-500" />
+              placeholder={t('here.typeMessage')} className="flex-1 px-4 py-3 bg-[#2a2a2a] rounded-full focus:outline-none focus:ring-2 focus:ring-pink-500" />
             <button onClick={handleSendMessage} disabled={!newMessage.trim()} className="p-3 bg-gradient-to-r from-pink-500 to-orange-500 rounded-full disabled:opacity-50">
               <Send className="w-5 h-5" />
             </button>
@@ -695,15 +700,15 @@ export default function HerePage() {
                 <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
                   <MessageCircle className="w-8 h-8" />
                 </div>
-                <h2 className="text-xl font-bold mb-2">TiT Chat'e Geç</h2>
-                <p className="text-gray-400 text-sm">Sohbeti TiT Chat'e taşıyarak gerçek isimlerinizle görüşebilirsiniz.</p>
+                <h2 className="text-xl font-bold mb-2">{t('here.moveToTitChat')}</h2>
+                <p className="text-gray-400 text-sm">{t('here.moveToTitChatDesc')}</p>
               </div>
               <div className="bg-yellow-500/20 border border-yellow-500/30 rounded-xl p-3 mb-6">
-                <p className="text-xs text-yellow-400 text-center">⚠️ Her iki tarafın da onaylaması gerekir</p>
+                <p className="text-xs text-yellow-400 text-center">{t('here.bothMustApprove')}</p>
               </div>
               <div className="flex gap-3">
-                <button onClick={() => setShowTitChatModal(false)} className="flex-1 py-3 border border-white/20 rounded-xl font-medium">Burada Kal</button>
-                <button onClick={moveToTitChat} className="flex-1 py-3 bg-green-500 rounded-xl font-medium">Onayla</button>
+                <button onClick={() => setShowTitChatModal(false)} className="flex-1 py-3 border border-white/20 rounded-xl font-medium">{t('here.stayHere')}</button>
+                <button onClick={moveToTitChat} className="flex-1 py-3 bg-green-500 rounded-xl font-medium">{t('here.approve')}</button>
               </div>
             </div>
           </div>
@@ -718,7 +723,7 @@ export default function HerePage() {
       <div className="min-h-screen bg-[#0a0a0a] text-white pb-24">
         <div className="p-4 border-b border-white/10 flex items-center gap-4">
           <button onClick={() => setActiveTab('venue')}><ArrowLeft className="w-6 h-6" /></button>
-          <h1 className="font-bold text-lg">Profil Ayarları</h1>
+          <h1 className="font-bold text-lg">{t('here.profileSettings')}</h1>
         </div>
 
         <div className="p-4 space-y-4">
@@ -742,7 +747,7 @@ export default function HerePage() {
             className="w-full bg-[#1a1a1a] rounded-xl p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <User className="w-5 h-5 text-gray-400" />
-              <span>Profili Düzenle</span>
+              <span>{t('here.editProfile')}</span>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </button>
@@ -751,8 +756,8 @@ export default function HerePage() {
             <div className="flex items-center gap-3">
               <EyeOff className="w-5 h-5 text-gray-400" />
               <div className="text-left">
-                <p>Görünmez Mod</p>
-                <p className="text-xs text-gray-500">Check-in yap ama HERE'da görünme</p>
+                <p>{t('here.invisibleMode')}</p>
+                <p className="text-xs text-gray-500">{t('here.invisibleModeDesc')}</p>
               </div>
             </div>
             <div className={`w-12 h-6 rounded-full ${profile?.invisible_mode ? 'bg-pink-500' : 'bg-gray-600'} relative`}>
@@ -763,7 +768,7 @@ export default function HerePage() {
           <button className="w-full bg-[#1a1a1a] rounded-xl p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Ban className="w-5 h-5 text-gray-400" />
-              <span>Engellenen Kullanıcılar</span>
+              <span>{t('here.blockedUsers')}</span>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </button>
@@ -771,7 +776,7 @@ export default function HerePage() {
           <button onClick={handleDeleteProfile}
             className="w-full bg-red-500/20 text-red-400 rounded-xl p-4 flex items-center justify-center gap-2">
             <LogOut className="w-5 h-5" />
-            Profili Sil
+            {t('here.deleteProfile')}
           </button>
         </div>
       </div>
@@ -794,7 +799,7 @@ export default function HerePage() {
           {user.avatar_blur && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/30">
               <div className="bg-black/60 px-4 py-2 rounded-full">
-                <p className="text-sm">🔒 Eşleşince görünür</p>
+                <p className="text-sm">{t('here.visibleAfterMatch')}</p>
               </div>
             </div>
           )}
@@ -802,7 +807,7 @@ export default function HerePage() {
           <div className="absolute top-4 left-4 right-4 flex justify-between items-start">
             {showVenueBadge && (
               <div className="px-3 py-2 bg-green-500 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg">
-                <CheckCircle className="w-4 h-4" />Aynı Mekanda
+                <CheckCircle className="w-4 h-4" />{t('here.sameVenue')}
               </div>
             )}
             {showDistance && user.distance && (
@@ -853,7 +858,7 @@ export default function HerePage() {
           <Zap className="w-8 h-8 text-blue-500" />
         </button>
       </div>
-      <p className="text-center text-xs text-gray-500 mt-4">⚡ Süper Beğeni = Garantili eşleşme</p>
+      <p className="text-center text-xs text-gray-500 mt-4">{t('here.superLikeNote')}</p>
     </div>
   )
 
@@ -875,7 +880,7 @@ export default function HerePage() {
           <button onClick={() => router.back()}><ArrowLeft className="w-6 h-6" /></button>
           <div className="flex-1">
             <h1 className="font-bold text-lg flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-pink-500" />HERE
+              <Sparkles className="w-5 h-5 text-pink-500" />{t('here.title')}
             </h1>
           </div>
           <button onClick={() => setShowFilters(true)} className="p-2 hover:bg-white/10 rounded-full">
@@ -889,15 +894,15 @@ export default function HerePage() {
         <div className="flex px-4 pb-4 gap-2">
           <button onClick={() => setActiveTab('venue')}
             className={`flex-1 py-3 rounded-xl font-medium flex items-center justify-center gap-2 ${activeTab === 'venue' ? 'bg-gradient-to-r from-pink-500 to-orange-500' : 'bg-[#1a1a1a] text-gray-400'}`}>
-            <Building2 className="w-4 h-4" />Mekanda
+            <Building2 className="w-4 h-4" />{t('here.tabVenue')}
           </button>
           <button onClick={() => setActiveTab('nearby')}
             className={`flex-1 py-3 rounded-xl font-medium flex items-center justify-center gap-2 ${activeTab === 'nearby' ? 'bg-gradient-to-r from-pink-500 to-orange-500' : 'bg-[#1a1a1a] text-gray-400'}`}>
-            <Navigation className="w-4 h-4" />Yakında
+            <Navigation className="w-4 h-4" />{t('here.tabNearby')}
           </button>
           <button onClick={() => setActiveTab('messages')}
             className={`flex-1 py-3 rounded-xl font-medium flex items-center justify-center gap-2 relative ${activeTab === 'messages' ? 'bg-gradient-to-r from-pink-500 to-orange-500' : 'bg-[#1a1a1a] text-gray-400'}`}>
-            <MessageCircle className="w-4 h-4" />Mesajlar
+            <MessageCircle className="w-4 h-4" />{t('here.tabMessages')}
             {matches.filter(m => m.unreadCount > 0).length > 0 && (
               <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-xs flex items-center justify-center">
                 {matches.filter(m => m.unreadCount > 0).length}
@@ -915,8 +920,8 @@ export default function HerePage() {
               <div className="w-24 h-24 bg-gradient-to-br from-pink-500 to-orange-500 rounded-full flex items-center justify-center mb-6">
                 <Building2 className="w-12 h-12" />
               </div>
-              <h2 className="text-2xl font-bold mb-2">Mekana Check-in Yap</h2>
-              <p className="text-gray-400 mb-8 max-w-xs">Aynı mekandaki insanları görmek için check-in yap</p>
+              <h2 className="text-2xl font-bold mb-2">{t('here.checkInTitle')}</h2>
+              <p className="text-gray-400 mb-8 max-w-xs">{t('here.checkInSubtitle')}</p>
               <div className="w-full max-w-sm bg-[#1a1a1a] rounded-2xl p-4 mb-6">
                 <div className="flex items-center gap-4">
                   <div className="w-14 h-14 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center text-2xl">☕</div>
@@ -926,14 +931,14 @@ export default function HerePage() {
                   </div>
                   <div className="text-right">
                     <p className="text-pink-500 font-bold">{currentVenue.activeUsers}</p>
-                    <p className="text-xs text-gray-500">kişi</p>
+                    <p className="text-xs text-gray-500">{t('here.person')}</p>
                   </div>
                 </div>
               </div>
               <button onClick={handleCheckIn} className="w-full max-w-sm py-4 bg-gradient-to-r from-pink-500 to-orange-500 rounded-2xl font-bold text-lg flex items-center justify-center gap-2">
-                <CheckCircle className="w-5 h-5" />Check-in Yap
+                <CheckCircle className="w-5 h-5" />{t('here.checkIn')}
               </button>
-              <p className="text-xs text-gray-500 mt-4 max-w-xs">⏱️ Hesabı ödedikten 15 dakika sonra otomatik check-out yapılır</p>
+              <p className="text-xs text-gray-500 mt-4 max-w-xs">{t('here.autoCheckoutNote')}</p>
             </div>
           ) : (
             <div className="p-4">
@@ -943,7 +948,7 @@ export default function HerePage() {
                     <MapPin className="w-5 h-5" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-xs text-pink-400">Check-in yapıldı</p>
+                    <p className="text-xs text-pink-400">{t('here.checkedIn')}</p>
                     <h3 className="font-bold">{checkin?.venue_name || currentVenue.name}</h3>
                   </div>
                   <button onClick={handleCheckOut} className="p-2 hover:bg-white/10 rounded-full">
@@ -955,7 +960,7 @@ export default function HerePage() {
               {currentVenueUser ? (
                 <UserCard user={currentVenueUser} showVenueBadge={true} />
               ) : (
-                <EmptyState icon={Users} title="Herkesi gördün!" subtitle="Biraz bekle, yeni insanlar gelecek." />
+                <EmptyState icon={Users} title={t('here.seenEveryone')} subtitle={t('here.waitForMore')} />
               )}
             </div>
           )}
@@ -971,12 +976,12 @@ export default function HerePage() {
                 <Navigation className="w-5 h-5" />
               </div>
               <div className="flex-1">
-                <p className="text-xs text-blue-400">Yakınındaki mekanlar</p>
-                <h3 className="font-bold">1km çevresinde</h3>
+                <p className="text-xs text-blue-400">{t('here.nearbyTitle')}</p>
+                <h3 className="font-bold">{t('here.nearbyRadius')}</h3>
               </div>
               <div className="text-center">
                 <p className="text-xl font-bold text-blue-500">{availableNearbyUsers.length}</p>
-                <p className="text-xs text-gray-400">kişi</p>
+                <p className="text-xs text-gray-400">{t('here.person')}</p>
               </div>
             </div>
           </div>
@@ -984,7 +989,7 @@ export default function HerePage() {
           {currentNearbyUser ? (
             <UserCard user={currentNearbyUser} showDistance={true} />
           ) : (
-            <EmptyState icon={Navigation} title="Yakında kimse yok" subtitle="Çevrende şu an aktif HERE kullanıcısı yok." />
+            <EmptyState icon={Navigation} title={t('here.noOneNearby')} subtitle={t('here.noOneNearbyDesc')} />
           )}
         </div>
       )}
@@ -993,10 +998,10 @@ export default function HerePage() {
       {activeTab === 'messages' && (
         <div className="p-4 space-y-4">
           {matches.length === 0 ? (
-            <EmptyState icon={Heart} title="Henüz eşleşme yok" subtitle="Mekanda veya Yakında sekmesinden beğenmeye başla!" />
+            <EmptyState icon={Heart} title={t('here.noMatches')} subtitle={t('here.startLiking')} />
           ) : (
             <>
-              <h3 className="text-sm font-medium text-gray-400">Eşleşmeler ({matches.length})</h3>
+              <h3 className="text-sm font-medium text-gray-400">{t('here.matchesTitle')} ({matches.length})</h3>
               {matches.map(match => (
                 <button key={match.id} onClick={() => openChat(match)}
                   className="w-full bg-[#1a1a1a] rounded-2xl p-4 flex items-center gap-4 text-left hover:bg-[#222]">
@@ -1014,10 +1019,10 @@ export default function HerePage() {
                     <p className="text-xs text-pink-400 mb-1 flex items-center gap-1">
                       <MapPin className="w-3 h-3" />{match.venue.name}
                     </p>
-                    <p className="text-sm text-gray-400 truncate">{match.lastMessage || 'Yeni eşleşme! 👋'}</p>
+                    <p className="text-sm text-gray-400 truncate">{match.lastMessage || t('here.newMatch')}</p>
                   </div>
                   {match.movedToTitChat && (
-                    <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded-full text-xs">TiT Chat</span>
+                    <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded-full text-xs">{t('here.titChat')}</span>
                   )}
                   {match.unreadCount > 0 && (
                     <div className="w-6 h-6 bg-pink-500 rounded-full flex items-center justify-center text-xs font-bold">{match.unreadCount}</div>
@@ -1034,13 +1039,13 @@ export default function HerePage() {
         <div className="fixed inset-0 bg-black/80 z-50">
           <div className="absolute inset-x-0 bottom-0 bg-[#1a1a1a] rounded-t-3xl p-4" style={{ maxHeight: '60vh' }}>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold">Filtreler</h2>
+              <h2 className="text-lg font-bold">{t('here.filtersTitle')}</h2>
               <button onClick={() => setShowFilters(false)}><X className="w-6 h-6" /></button>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">Cinsiyet</label>
+                <label className="block text-sm font-medium text-gray-400 mb-2">{t('here.genderTitle')}</label>
                 <div className="flex flex-wrap gap-2">
                   {genderOptions.map(opt => (
                     <button key={opt.id} onClick={() => setFilterGender(prev => prev.includes(opt.id) ? prev.filter(g => g !== opt.id) : [...prev, opt.id])}
@@ -1052,7 +1057,7 @@ export default function HerePage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">Yaş Aralığı</label>
+                <label className="block text-sm font-medium text-gray-400 mb-2">{t('here.ageRangeTitle')}</label>
                 <div className="flex flex-wrap gap-2">
                   {ageRanges.map(range => (
                     <button key={range.label} onClick={() => setFilterAgeRange(filterAgeRange?.min === range.min ? null : range)}
@@ -1065,7 +1070,7 @@ export default function HerePage() {
 
               <button onClick={() => { setFilterGender([]); setFilterAgeRange(null); setShowFilters(false); }}
                 className="w-full py-3 bg-gradient-to-r from-pink-500 to-orange-500 rounded-xl font-medium">
-                Uygula
+                {t('here.apply')}
               </button>
             </div>
           </div>
@@ -1085,17 +1090,17 @@ export default function HerePage() {
               <Heart className="w-12 h-12 text-pink-500 fill-pink-500 animate-pulse" />
               <AvatarImage src={newMatchUser.avatar_url} blur={false} size="lg" />
             </div>
-            <h2 className="text-3xl font-bold bg-gradient-to-r from-pink-500 to-orange-500 bg-clip-text text-transparent mb-2">Eşleşme!</h2>
-            <p className="text-gray-400 mb-2">Sen ve {newMatchUser.nickname} birbirinizi beğendiniz!</p>
-            <p className="text-sm text-gray-500 mb-8">🔒 Gerçek isimler hâlâ gizli</p>
+            <h2 className="text-3xl font-bold bg-gradient-to-r from-pink-500 to-orange-500 bg-clip-text text-transparent mb-2">{t('here.itsAMatch')}</h2>
+            <p className="text-gray-400 mb-2">{t('here.youBothLiked', { name: newMatchUser.nickname })}</p>
+            <p className="text-sm text-gray-500 mb-8">{t('here.namesStillHidden')}</p>
             <div className="flex gap-4">
-              <button onClick={() => { setShowMatch(false); setNewMatchUser(null); }} className="flex-1 py-3 border border-white/20 rounded-xl font-medium">Devam Et</button>
+              <button onClick={() => { setShowMatch(false); setNewMatchUser(null); }} className="flex-1 py-3 border border-white/20 rounded-xl font-medium">{t('here.keepSwiping')}</button>
               <button onClick={() => {
                 setShowMatch(false)
                 const match = matches.find(m => m.user.id === newMatchUser.id)
                 if (match) openChat(match)
                 setNewMatchUser(null)
-              }} className="flex-1 py-3 bg-gradient-to-r from-pink-500 to-orange-500 rounded-xl font-medium">Mesaj Gönder</button>
+              }} className="flex-1 py-3 bg-gradient-to-r from-pink-500 to-orange-500 rounded-xl font-medium">{t('here.sendMessage')}</button>
             </div>
           </div>
         </div>

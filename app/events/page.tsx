@@ -8,6 +8,7 @@ import {
   Wine, Sparkles, Users, DollarSign, Sun, Waves, UtensilsCrossed
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { useI18n } from '@/lib/i18n'
 
 interface Event {
   id: string
@@ -43,52 +44,9 @@ interface Filters {
   searchQuery: string
 }
 
-const typeConfig: Record<string, { icon: any; label: string; color: string }> = {
-  dj: { icon: Radio, label: 'DJ', color: 'bg-pink-500' },
-  entertainment: { icon: Sparkles, label: 'Eğlence', color: 'bg-cyan-500' },
-  music: { icon: Music, label: 'Canlı Müzik', color: 'bg-purple-500' },
-  food: { icon: Utensils, label: 'Yemek', color: 'bg-orange-500' },
-  party: { icon: PartyPopper, label: 'Parti', color: 'bg-pink-500' },
-  brunch: { icon: UtensilsCrossed, label: 'Brunch', color: 'bg-yellow-500' },
-  wine: { icon: Wine, label: 'Şarap Tadımı', color: 'bg-red-500' },
-  standup: { icon: Mic2, label: 'Stand-up', color: 'bg-indigo-500' },
-  other: { icon: Star, label: 'Etkinlik', color: 'bg-blue-500' }
-}
-
-const musicGenres = [
-  { id: 'live_music', label: 'Canlı Müzik', icon: Music },
-  { id: 'dj', label: 'DJ', icon: Radio },
-  { id: 'fasil', label: 'Fasıl', icon: Guitar },
-  { id: 'acoustic', label: 'Akustik', icon: Guitar },
-  { id: 'karaoke', label: 'Karaoke', icon: Mic2 },
-  { id: 'concert', label: 'Konser', icon: Music },
-]
-
-const featureOptions = [
-  { id: 'fix_menu', label: 'Fix Menü', icon: UtensilsCrossed },
-  { id: 'outdoor', label: 'Açık Hava', icon: Sun },
-  { id: 'sea_view', label: 'Deniz Manzarası', icon: Waves },
-  { id: 'reservation_required', label: 'Rezervasyon Gerekli', icon: Calendar },
-  { id: 'free_entry', label: 'Ücretsiz Giriş', icon: Sparkles },
-]
-
-const priceRanges = [
-  { id: 'free', label: 'Ücretsiz', min: 0, max: 0 },
-  { id: '0-500', label: '0 - 500 ₺', min: 0, max: 500 },
-  { id: '500-1000', label: '500 - 1000 ₺', min: 500, max: 1000 },
-  { id: '1000+', label: '1000 ₺+', min: 1000, max: 999999 },
-]
-
-const dateRanges = [
-  { id: 'today', label: 'Bugün' },
-  { id: 'tomorrow', label: 'Yarın' },
-  { id: 'this_weekend', label: 'Bu Hafta Sonu' },
-  { id: 'this_week', label: 'Bu Hafta' },
-  { id: 'this_month', label: 'Bu Ay' },
-]
-
 export default function EventsPage() {
   const router = useRouter()
+  const { t, locale } = useI18n()
   const [events, setEvents] = useState<Event[]>([])
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
@@ -103,6 +61,51 @@ export default function EventsPage() {
     features: [],
     searchQuery: ''
   })
+
+  // Dynamic configs with translations
+  const typeConfig: Record<string, { icon: any; label: string; color: string }> = {
+    dj: { icon: Radio, label: t('events.typeDJ'), color: 'bg-pink-500' },
+    entertainment: { icon: Sparkles, label: t('events.typeEntertainment'), color: 'bg-cyan-500' },
+    music: { icon: Music, label: t('events.typeMusic'), color: 'bg-purple-500' },
+    food: { icon: Utensils, label: t('events.typeFood'), color: 'bg-orange-500' },
+    party: { icon: PartyPopper, label: t('events.typeParty'), color: 'bg-pink-500' },
+    brunch: { icon: UtensilsCrossed, label: t('events.typeBrunch'), color: 'bg-yellow-500' },
+    wine: { icon: Wine, label: t('events.typeWine'), color: 'bg-red-500' },
+    standup: { icon: Mic2, label: t('events.typeStandup'), color: 'bg-indigo-500' },
+    other: { icon: Star, label: t('events.typeOther'), color: 'bg-blue-500' }
+  }
+
+  const musicGenres = [
+    { id: 'live_music', label: t('events.musicLive'), icon: Music },
+    { id: 'dj', label: t('events.musicDJ'), icon: Radio },
+    { id: 'fasil', label: t('events.musicFasil'), icon: Guitar },
+    { id: 'acoustic', label: t('events.musicAcoustic'), icon: Guitar },
+    { id: 'karaoke', label: t('events.musicKaraoke'), icon: Mic2 },
+    { id: 'concert', label: t('events.musicConcert'), icon: Music },
+  ]
+
+  const featureOptions = [
+    { id: 'fix_menu', label: t('events.featureFixMenu'), icon: UtensilsCrossed },
+    { id: 'outdoor', label: t('events.featureOutdoor'), icon: Sun },
+    { id: 'sea_view', label: t('events.featureSeaView'), icon: Waves },
+    { id: 'reservation_required', label: t('events.featureReservationRequired'), icon: Calendar },
+    { id: 'free_entry', label: t('events.featureFreeEntry'), icon: Sparkles },
+  ]
+
+  const priceRanges = [
+    { id: 'free', label: t('events.priceFree'), min: 0, max: 0 },
+    { id: '0-500', label: t('events.price0to500'), min: 0, max: 500 },
+    { id: '500-1000', label: t('events.price500to1000'), min: 500, max: 1000 },
+    { id: '1000+', label: t('events.price1000plus'), min: 1000, max: 999999 },
+  ]
+
+  const dateRanges = [
+    { id: 'today', label: t('events.dateToday') },
+    { id: 'tomorrow', label: t('events.dateTomorrow') },
+    { id: 'this_weekend', label: t('events.dateThisWeekend') },
+    { id: 'this_week', label: t('events.dateThisWeek') },
+    { id: 'this_month', label: t('events.dateThisMonth') },
+  ]
 
   useEffect(() => {
     loadEvents()
@@ -147,7 +150,7 @@ export default function EventsPage() {
   const applyFilters = () => {
     let result = [...events]
 
-    // Arama
+    // Search
     if (filters.searchQuery) {
       const query = filters.searchQuery.toLowerCase()
       result = result.filter(e => 
@@ -157,19 +160,19 @@ export default function EventsPage() {
       )
     }
 
-    // Tür filtresi
+    // Type filter
     if (filters.types.length > 0) {
       result = result.filter(e => filters.types.includes(e.type))
     }
 
-    // Müzik türü
+    // Music genre
     if (filters.musicGenres.length > 0) {
       result = result.filter(e => 
         e.music_genre && filters.musicGenres.includes(e.music_genre)
       )
     }
 
-    // Tarih filtresi
+    // Date filter
     if (filters.dateRange) {
       const today = new Date()
       today.setHours(0, 0, 0, 0)
@@ -204,7 +207,7 @@ export default function EventsPage() {
       })
     }
 
-    // Fiyat filtresi
+    // Price filter
     if (filters.priceRange) {
       const range = priceRanges.find(r => r.id === filters.priceRange)
       if (range) {
@@ -216,7 +219,7 @@ export default function EventsPage() {
       }
     }
 
-    // Özellik filtresi
+    // Feature filter
     if (filters.features.length > 0) {
       result = result.filter(e => {
         if (!e.features) return false
@@ -258,10 +261,11 @@ export default function EventsPage() {
     const tomorrow = new Date(today)
     tomorrow.setDate(tomorrow.getDate() + 1)
     
-    if (date.toDateString() === today.toDateString()) return 'Bugün'
-    if (date.toDateString() === tomorrow.toDateString()) return 'Yarın'
+    if (date.toDateString() === today.toDateString()) return t('events.dateToday')
+    if (date.toDateString() === tomorrow.toDateString()) return t('events.dateTomorrow')
     
-    return date.toLocaleDateString('tr-TR', { 
+    const localeCode = locale === 'tr' ? 'tr-TR' : locale === 'en' ? 'en-US' : locale
+    return date.toLocaleDateString(localeCode, { 
       weekday: 'long',
       day: 'numeric', 
       month: 'long' 
@@ -287,8 +291,8 @@ export default function EventsPage() {
             <ChevronLeft className="w-5 h-5" />
           </button>
           <div className="flex-1">
-            <h1 className="text-xl font-bold">Etkinlikler</h1>
-            <p className="text-gray-400 text-sm">{filteredEvents.length} etkinlik bulundu</p>
+            <h1 className="text-xl font-bold">{t('events.title')}</h1>
+            <p className="text-gray-400 text-sm">{t('events.eventsFound', { count: filteredEvents.length })}</p>
           </div>
           <button 
             onClick={() => setShowFilterModal(true)}
@@ -303,11 +307,11 @@ export default function EventsPage() {
           </button>
         </div>
 
-        {/* Arama */}
+        {/* Search */}
         <div className="mt-3 relative">
           <input
             type="text"
-            placeholder="Etkinlik, mekan veya sanatçı ara..."
+            placeholder={t('events.searchPlaceholder')}
             value={filters.searchQuery}
             onChange={(e) => setFilters(prev => ({ ...prev, searchQuery: e.target.value }))}
             className="w-full px-4 py-3 bg-[#1a1a1a] rounded-xl text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-orange-500"
@@ -322,7 +326,7 @@ export default function EventsPage() {
           )}
         </div>
 
-        {/* Hızlı Filtreler */}
+        {/* Quick Filters */}
         <div className="mt-3 flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-hide">
           {dateRanges.slice(0, 3).map(range => (
             <button
@@ -357,14 +361,14 @@ export default function EventsPage() {
 
       {/* Content */}
       <main className="px-4 py-4">
-        {/* Aktif Filtreler */}
+        {/* Active Filters */}
         {activeFilterCount > 0 && (
           <div className="flex items-center gap-2 mb-4 flex-wrap">
-            <span className="text-sm text-gray-400">Aktif filtreler:</span>
-            {filters.types.map(t => (
-              <span key={t} className="px-2 py-1 bg-orange-500/20 text-orange-400 rounded-full text-xs flex items-center gap-1">
-                {typeConfig[t]?.label || t}
-                <button onClick={() => toggleFilter('types', t)}><X className="w-3 h-3" /></button>
+            <span className="text-sm text-gray-400">{t('events.activeFilters')}</span>
+            {filters.types.map(type => (
+              <span key={type} className="px-2 py-1 bg-orange-500/20 text-orange-400 rounded-full text-xs flex items-center gap-1">
+                {typeConfig[type]?.label || type}
+                <button onClick={() => toggleFilter('types', type)}><X className="w-3 h-3" /></button>
               </span>
             ))}
             {filters.dateRange && (
@@ -380,7 +384,7 @@ export default function EventsPage() {
               </span>
             )}
             <button onClick={clearFilters} className="text-xs text-red-400 underline">
-              Temizle
+              {t('events.clear')}
             </button>
           </div>
         )}
@@ -406,7 +410,7 @@ export default function EventsPage() {
                     )}
                     {event.is_featured && (
                       <div className="absolute top-3 left-3 px-2 py-1 bg-yellow-500 rounded-full text-xs font-bold text-black flex items-center gap-1">
-                        <Star className="w-3 h-3" /> Öne Çıkan
+                        <Star className="w-3 h-3" /> {t('events.featured')}
                       </div>
                     )}
                     <div className={`absolute top-3 right-3 px-2 py-1 ${config.color} rounded-full text-xs font-medium flex items-center gap-1`}>
@@ -419,7 +423,7 @@ export default function EventsPage() {
                     )}
                     {event.price === 0 && (
                       <div className="absolute bottom-3 right-3 px-2 py-1 bg-green-500 rounded-full text-xs font-bold">
-                        Ücretsiz
+                        {t('events.free')}
                       </div>
                     )}
                   </div>
@@ -460,7 +464,7 @@ export default function EventsPage() {
                       {event.available_spots !== undefined && (
                         <div className="flex items-center gap-2 text-gray-300">
                           <Users className="w-4 h-4 text-orange-500" />
-                          {event.available_spots} kişilik yer mevcut
+                          {t('events.spotsAvailable', { count: event.available_spots })}
                         </div>
                       )}
                     </div>
@@ -472,13 +476,13 @@ export default function EventsPage() {
         ) : (
           <div className="text-center py-20">
             <Calendar className="w-16 h-16 text-gray-600 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold mb-2">Etkinlik bulunamadı</h3>
-            <p className="text-gray-400 mb-4">Filtreleri değiştirmeyi deneyin</p>
+            <h3 className="text-xl font-semibold mb-2">{t('events.noEvents')}</h3>
+            <p className="text-gray-400 mb-4">{t('events.noEventsDesc')}</p>
             <button 
               onClick={clearFilters}
               className="px-4 py-2 bg-orange-500 rounded-xl text-sm font-medium"
             >
-              Filtreleri Temizle
+              {t('events.clearFilters')}
             </button>
           </div>
         )}
@@ -490,7 +494,7 @@ export default function EventsPage() {
           <div className="bg-[#1a1a1a] w-full max-h-[85vh] rounded-t-3xl overflow-hidden">
             {/* Modal Header */}
             <div className="sticky top-0 bg-[#1a1a1a] border-b border-white/10 px-4 py-4 flex items-center justify-between">
-              <h2 className="text-lg font-bold">Tüm Filtreler</h2>
+              <h2 className="text-lg font-bold">{t('events.allFilters')}</h2>
               <button onClick={() => setShowFilterModal(false)}>
                 <X className="w-6 h-6" />
               </button>
@@ -499,11 +503,11 @@ export default function EventsPage() {
             {/* Modal Content */}
             <div className="overflow-y-auto max-h-[calc(85vh-140px)] p-4 space-y-6">
               
-              {/* Tarih */}
+              {/* Date */}
               <div>
                 <h3 className="font-semibold mb-3 flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-orange-500" />
-                  Tarih
+                  {t('events.dateTitle')}
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {dateRanges.map(range => (
@@ -522,11 +526,11 @@ export default function EventsPage() {
                 </div>
               </div>
 
-              {/* Etkinlik Türü */}
+              {/* Event Type */}
               <div>
                 <h3 className="font-semibold mb-3 flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-orange-500" />
-                  Etkinlik Türü
+                  {t('events.typeTitle')}
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {Object.entries(typeConfig).map(([key, config]) => (
@@ -546,11 +550,11 @@ export default function EventsPage() {
                 </div>
               </div>
 
-              {/* Müzik Türü */}
+              {/* Music Genre */}
               <div>
                 <h3 className="font-semibold mb-3 flex items-center gap-2">
                   <Music className="w-4 h-4 text-orange-500" />
-                  Müzik Türü
+                  {t('events.musicTitle')}
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {musicGenres.map(genre => (
@@ -570,11 +574,11 @@ export default function EventsPage() {
                 </div>
               </div>
 
-              {/* Fiyat Aralığı */}
+              {/* Price Range */}
               <div>
                 <h3 className="font-semibold mb-3 flex items-center gap-2">
                   <DollarSign className="w-4 h-4 text-orange-500" />
-                  Fiyat Aralığı
+                  {t('events.priceTitle')}
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {priceRanges.map(range => (
@@ -593,11 +597,11 @@ export default function EventsPage() {
                 </div>
               </div>
 
-              {/* Özellikler */}
+              {/* Features */}
               <div>
                 <h3 className="font-semibold mb-3 flex items-center gap-2">
                   <Filter className="w-4 h-4 text-orange-500" />
-                  Özellikler
+                  {t('events.featureTitle')}
                 </h3>
                 <div className="space-y-2">
                   {featureOptions.map(feature => (
@@ -629,13 +633,13 @@ export default function EventsPage() {
                 onClick={clearFilters}
                 className="flex-1 py-3 rounded-xl border border-white/20 text-white font-medium"
               >
-                Temizle
+                {t('events.clear')}
               </button>
               <button
                 onClick={() => setShowFilterModal(false)}
                 className="flex-1 py-3 rounded-xl bg-orange-500 text-white font-medium"
               >
-                {filteredEvents.length} Sonuç Göster
+                {t('events.showResults', { count: filteredEvents.length })}
               </button>
             </div>
           </div>
