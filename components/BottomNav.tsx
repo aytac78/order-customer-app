@@ -7,7 +7,7 @@ import { useI18n } from '@/lib/i18n';
 export function BottomNav() {
   const pathname = usePathname();
   const router = useRouter();
-  const { t } = useI18n();
+  const { translations: t } = useI18n();
 
   const navItems = [
     { href: '/', icon: Home, label: t.nav?.home || 'Home' },

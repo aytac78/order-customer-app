@@ -21,7 +21,7 @@ interface Reservation {
 export default function ReservationsPage() {
   const router = useRouter()
   const { user, loading: authLoading } = useAuth()
-  const { t, locale } = useI18n()
+  const { translations: t, locale } = useI18n()
   const [reservations, setReservations] = useState<Reservation[]>([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming')
