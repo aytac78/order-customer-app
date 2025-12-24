@@ -11,22 +11,15 @@ import { id } from './locales/id';
 import { th } from './locales/th';
 import { ms } from './locales/ms';
 
-// Translations object
 const translations: Record<Locale, any> = {
-  tr,
-  en,
-  ar,
-  fa,
-  it,
-  id,
-  th,
-  ms,
+  tr, en, ar, fa, it, id, th, ms,
 };
 
 interface I18nContextType {
   locale: Locale;
   setLocale: (locale: Locale) => void;
-  t: TranslationKeys;
+  t: (key: string, params?: Record<string, any>) => string;
+  translations: TranslationKeys;
   isRTL: boolean;
   formatNumber: (num: number) => string;
   formatCurrency: (amount: number, currency?: string) => string;
@@ -36,24 +29,17 @@ interface I18nContextType {
 
 const I18nContext = createContext<I18nContextType | undefined>(undefined);
 
-// Detect browser language
 function detectBrowserLocale(): Locale {
   if (typeof window === 'undefined') return defaultLocale;
-  
   const browserLang = navigator.language.split('-')[0];
-  if (locales.includes(browserLang as Locale)) {
-    return browserLang as Locale;
-  }
+  if (locales.includes(browserLang as Locale)) return browserLang as Locale;
   return defaultLocale;
 }
 
-// Get stored locale
 function getStoredLocale(): Locale | null {
   if (typeof window === 'undefined') return null;
   const stored = localStorage.getItem('order-locale');
-  if (stored && locales.includes(stored as Locale)) {
-    return stored as Locale;
-  }
+  if (stored && locales.includes(stored as Locale)) return stored as Locale;
   return null;
 }
 
@@ -69,21 +55,14 @@ export function I18nProvider({ children, initialLocale }: I18nProviderProps) {
   useEffect(() => {
     setMounted(true);
     const stored = getStoredLocale();
-    if (stored) {
-      setLocaleState(stored);
-    } else {
-      const detected = detectBrowserLocale();
-      setLocaleState(detected);
-    }
+    if (stored) setLocaleState(stored);
+    else setLocaleState(detectBrowserLocale());
   }, []);
 
   useEffect(() => {
     if (mounted) {
-      // Update HTML attributes
       document.documentElement.lang = locale;
       document.documentElement.dir = isRTL(locale) ? 'rtl' : 'ltr';
-      
-      // Store preference
       localStorage.setItem('order-locale', locale);
     }
   }, [locale, mounted]);
@@ -92,7 +71,20 @@ export function I18nProvider({ children, initialLocale }: I18nProviderProps) {
     setLocaleState(newLocale);
   }, []);
 
-  const t = translations[locale];
+  const currentTranslations = translations[locale];
+
+  const t = useCallback((key: string, params?: Record<string, any>): string => {
+    const keys = key.split('.');
+    let value: any = translations[locale];
+    for (const k of keys) {
+      if (value && typeof value === 'object') value = value[k];
+      else return key;
+    }
+    if (typeof value === 'string' && params) {
+      return value.replace(/\{\{(\w+)\}\}/g, (_, p) => params[p]?.toString() || '');
+    }
+    return typeof value === 'string' ? value : key;
+  }, [locale]);
 
   const formatNumber = useCallback((num: number): string => {
     return new Intl.NumberFormat(locale).format(num);
@@ -100,20 +92,13 @@ export function I18nProvider({ children, initialLocale }: I18nProviderProps) {
 
   const formatCurrency = useCallback((amount: number, currency: string = 'TRY'): string => {
     return new Intl.NumberFormat(locale, {
-      style: 'currency',
-      currency,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2,
+      style: 'currency', currency, minimumFractionDigits: 0, maximumFractionDigits: 2,
     }).format(amount);
   }, [locale]);
 
   const formatDate = useCallback((date: Date | string, options?: Intl.DateTimeFormatOptions): string => {
     const d = typeof date === 'string' ? new Date(date) : date;
-    return new Intl.DateTimeFormat(locale, options || {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    }).format(d);
+    return new Intl.DateTimeFormat(locale, options || { year: 'numeric', month: 'long', day: 'numeric' }).format(d);
   }, [locale]);
 
   const formatRelativeTime = useCallback((date: Date | string): string => {
@@ -123,38 +108,24 @@ export function I18nProvider({ children, initialLocale }: I18nProviderProps) {
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
-
-    if (diffMins < 1) return t.time.justNow;
-    if (diffMins < 60) return t.time.minutesAgo.replace('{{count}}', diffMins.toString());
-    if (diffHours < 24) return t.time.hoursAgo.replace('{{count}}', diffHours.toString());
-    if (diffDays === 1) return t.time.yesterday;
-    if (diffDays < 7) return t.time.daysAgo.replace('{{count}}', diffDays.toString());
-    
+    if (diffMins < 1) return currentTranslations.time.justNow;
+    if (diffMins < 60) return currentTranslations.time.minutesAgo.replace('{{count}}', diffMins.toString());
+    if (diffHours < 24) return currentTranslations.time.hoursAgo.replace('{{count}}', diffHours.toString());
+    if (diffDays === 1) return currentTranslations.time.yesterday;
+    if (diffDays < 7) return currentTranslations.time.daysAgo.replace('{{count}}', diffDays.toString());
     return formatDate(d);
-  }, [locale, t, formatDate]);
+  }, [locale, currentTranslations, formatDate]);
 
   const value: I18nContextType = {
-    locale,
-    setLocale,
-    t,
-    isRTL: isRTL(locale),
-    formatNumber,
-    formatCurrency,
-    formatDate,
-    formatRelativeTime,
+    locale, setLocale, t, translations: currentTranslations,
+    isRTL: isRTL(locale), formatNumber, formatCurrency, formatDate, formatRelativeTime,
   };
 
-  return (
-    <I18nContext.Provider value={value}>
-      {children}
-    </I18nContext.Provider>
-  );
+  return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }
 
 export function useI18n(): I18nContextType {
   const context = useContext(I18nContext);
-  if (context === undefined) {
-    throw new Error('useI18n must be used within an I18nProvider');
-  }
+  if (context === undefined) throw new Error('useI18n must be used within an I18nProvider');
   return context;
 }

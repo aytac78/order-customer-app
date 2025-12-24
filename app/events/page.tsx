@@ -491,9 +491,9 @@ export default function EventsPage() {
       {/* Filter Modal */}
       {showFilterModal && (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-end">
-          <div className="bg-[#1a1a1a] w-full max-h-[85vh] rounded-t-3xl overflow-hidden">
+          <div className="bg-[#1a1a1a] w-full max-h-[85vh] rounded-t-3xl flex flex-col">
             {/* Modal Header */}
-            <div className="sticky top-0 bg-[#1a1a1a] border-b border-white/10 px-4 py-4 flex items-center justify-between">
+            <div className="shrink-0 bg-[#1a1a1a] border-b border-white/10 px-4 py-4 flex items-center justify-between">
               <h2 className="text-lg font-bold">{t('events.allFilters')}</h2>
               <button onClick={() => setShowFilterModal(false)}>
                 <X className="w-6 h-6" />
@@ -501,7 +501,7 @@ export default function EventsPage() {
             </div>
 
             {/* Modal Content */}
-            <div className="overflow-y-auto max-h-[calc(85vh-140px)] p-4 space-y-6">
+            <div className="flex-1 overflow-y-auto p-4 space-y-6 pb-4">
               
               {/* Date */}
               <div>
@@ -628,7 +628,7 @@ export default function EventsPage() {
             </div>
 
             {/* Modal Footer */}
-            <div className="sticky bottom-0 bg-[#1a1a1a] border-t border-white/10 p-4 flex gap-3">
+            <div className="shrink-0 bg-[#1a1a1a] border-t border-white/10 p-4 flex gap-3 safe-area-bottom">
               <button
                 onClick={clearFilters}
                 className="flex-1 py-3 rounded-xl border border-white/20 text-white font-medium"
