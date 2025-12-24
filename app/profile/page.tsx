@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/AuthContext'
 import {
   User, Settings, CreditCard, LogOut, ChevronRight, ChevronDown,
   Instagram, Facebook, Copy, Check, Edit2, Shield,
-  Wallet, MapPin, Star, Heart, Package, Plus, Trash2, X, Loader2,
+  Wallet, MapPin, Star, Heart, Package, CalendarCheck, Plus, Trash2, X, Loader2,
   Fingerprint, KeyRound, Eye, EyeOff, ArrowLeft
 } from 'lucide-react'
 
@@ -510,6 +510,20 @@ export default function ProfilePage() {
           <div className="flex-1 text-left">
             <p className="font-medium">Sipariş Geçmişim</p>
             <p className="text-xs text-gray-400">Geçmiş siparişleri görüntüle</p>
+          </div>
+          <ChevronRight className="w-5 h-5 text-gray-500" />
+        </button>
+
+        <button 
+          onClick={() => router.push("/reservations")}
+          className="w-full flex items-center gap-3 p-4 bg-[#1a1a1a] rounded-xl"
+        >
+          <div className="w-10 h-10 bg-green-500/20 rounded-lg flex items-center justify-center">
+            <CalendarCheck className="w-5 h-5 text-green-500" />
+          </div>
+          <div className="flex-1 text-left">
+            <p className="font-medium">Rezervasyonlarım</p>
+            <p className="text-xs text-gray-400">Masa rezervasyonlarını yönet</p>
           </div>
           <ChevronRight className="w-5 h-5 text-gray-500" />
         </button>

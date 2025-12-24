@@ -13,6 +13,7 @@ import {
   Zap, Snowflake, CreditCard as CardIcon, Globe
 } from 'lucide-react'
 import WaiterCall from '@/components/WaiterCall'
+import { useFavorites } from '@/hooks/useFavorites'
 
 interface Venue {
   id: string
@@ -78,9 +79,10 @@ export default function VenuePage() {
   const tableNumber = searchParams.get('table')
 
   const [venue, setVenue] = useState<Venue | null>(null)
+  const { isFavorite, toggleFavorite } = useFavorites()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [isFavorite, setIsFavorite] = useState(false)
+  
   const [showGallery, setShowGallery] = useState(false)
   const [galleryIndex, setGalleryIndex] = useState(0)
 
@@ -134,7 +136,7 @@ export default function VenuePage() {
     window.open(`https://instagram.com/${getInstagramUsername()}`, '_blank')
   }
 
-  const toggleFavorite = () => setIsFavorite(!isFavorite)
+  
 
   const shareVenue = async () => {
     if (navigator.share) {
@@ -202,8 +204,8 @@ export default function VenuePage() {
         </button>
 
         <div className="absolute top-4 right-4 flex gap-2">
-          <button onClick={toggleFavorite} className={`p-2 rounded-full backdrop-blur-sm ${isFavorite ? 'bg-red-500' : 'bg-black/50'}`}>
-            <Heart className={`w-6 h-6 ${isFavorite ? 'fill-white' : ''}`} />
+          <button onClick={() => venue && toggleFavorite({ venue_id: venue.id, venue_name: venue.name, venue_image: venue.photos?.[0], venue_address: venue.address, venue_rating: venue.rating })} className={`p-2 rounded-full backdrop-blur-sm ${isFavorite(venue?.id || "") ? "bg-red-500" : "bg-black/50"}`}>
+            <Heart className={`w-6 h-6 ${isFavorite(venue?.id || "") ? "fill-white text-white" : "text-white"}`} />
           </button>
           <button onClick={shareVenue} className="p-2 bg-black/50 rounded-full backdrop-blur-sm">
             <Share2 className="w-6 h-6" />
