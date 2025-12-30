@@ -54,7 +54,7 @@ export const fetchOrderVenues = async (lat: number, lon: number, filters: Search
   
   const { data, error } = await supabase
     .from('venues')
-    .select('id, name, district, neighborhood, category, cuisine_type, lat, lon, rating, price_level, features, address')
+    .select('id, name, type, city, district, rating, address, logo_url, location')
     .eq('is_active', true)
 
   console.log('📡 Supabase sonuç:', { dataLength: data?.length, error })

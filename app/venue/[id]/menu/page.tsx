@@ -67,14 +67,14 @@ export default function VenueMenuPage() {
 
       // 2. Kategoriler
       const { data: categoriesData } = await supabase
-        .from('menu_categories')
+        .from('categories')
         .select('id, name, sort_order')
         .eq('venue_id', venueId)
         .order('sort_order')
 
       // 3. Ürünler
       const { data: productsData } = await supabase
-        .from('menu_items')
+        .from('products')
         .select('id, name, description, price, image_url, category_id, is_available, is_popular')
         .eq('venue_id', venueId)
         .eq('is_available', true)

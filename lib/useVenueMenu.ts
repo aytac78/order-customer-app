@@ -56,7 +56,7 @@ export function useVenueMenu(slug: string) {
         if (venueError) throw venueError
 
         const { data: categories, error: catError } = await supabase
-          .from('menu_categories')
+          .from('categories')
           .select('*')
           .eq('venue_id', venueData.id)
           .eq('is_active', true)
@@ -65,7 +65,7 @@ export function useVenueMenu(slug: string) {
         if (catError) throw catError
 
         const { data: items, error: itemError } = await supabase
-          .from('menu_items')
+          .from('products')
           .select('*')
           .eq('venue_id', venueData.id)
           .eq('is_available', true)

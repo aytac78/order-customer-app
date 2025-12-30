@@ -77,14 +77,14 @@ export default function ProfilePage() {
     
     try {
       const { data, error } = await supabase
-        .from('user_profiles')
+        .from('profiles')
         .select('*')
         .eq('id', user.id)
         .single()
 
       if (error && error.code === 'PGRST116') {
         const { data: newProfile } = await supabase
-          .from('user_profiles')
+          .from('profiles')
           .insert({
             id: user.id,
             full_name: user.user_metadata?.full_name || '',
@@ -563,7 +563,7 @@ export default function ProfilePage() {
           onSave={async (updates) => {
             try {
               const { error } = await supabase
-                .from('user_profiles')
+                .from('profiles')
                 .update(updates)
                 .eq('id', user.id)
               
@@ -587,7 +587,7 @@ export default function ProfilePage() {
           onSave={async (cards, defaultMethod) => {
             try {
               const { error } = await supabase
-                .from('user_profiles')
+                .from('profiles')
                 .update({ 
                   saved_cards: cards,
                   default_payment_method: defaultMethod
@@ -612,7 +612,7 @@ export default function ProfilePage() {
           onSave={async (updates) => {
             try {
               const { error } = await supabase
-                .from('user_profiles')
+                .from('profiles')
                 .update(updates)
                 .eq('id', user.id)
               

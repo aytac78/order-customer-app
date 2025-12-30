@@ -39,13 +39,13 @@ function CallbackContent() {
         if (data.session) {
           // Profil var mı kontrol et, yoksa oluştur
           const { data: existingProfile } = await supabase
-            .from('user_profiles')
+            .from('profiles')
             .select('id')
             .eq('id', data.session.user.id)
             .single()
           
           if (!existingProfile) {
-            await supabase.from('user_profiles').insert({
+            await supabase.from('profiles').insert({
               id: data.session.user.id,
               full_name: data.session.user.user_metadata?.full_name || '',
               avatar_url: data.session.user.user_metadata?.avatar_url || ''

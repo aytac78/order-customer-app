@@ -93,14 +93,14 @@ function ScanPageContent() {
     setVenue(venueData)
 
     const { data: categoriesData } = await supabase
-      .from('menu_categories')
+      .from('categories')
       .select('*')
       .eq('venue_id', venueData.id)
       .eq('is_active', true)
       .order('display_order')
 
     const { data: itemsData } = await supabase
-      .from('menu_items')
+      .from('products')
       .select('*')
       .eq('venue_id', venueData.id)
       .eq('is_available', true)

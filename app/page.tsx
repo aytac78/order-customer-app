@@ -66,7 +66,7 @@ export default function HomePage() {
     if (!user?.id) return
     try {
       const { data } = await supabase
-        .from('user_profiles')
+        .from('profiles')
         .select('full_name, avatar_url')
         .eq('id', user.id)
         .single()
@@ -82,21 +82,15 @@ export default function HomePage() {
       const [venuesRes, dishesRes, eventsRes] = await Promise.all([
         supabase
           .from('venues')
-          .select('id, name, category, emoji, rating, order_count')
-          .order('order_count', { ascending: false })
+          .select('id, name, type, rating, logo_url, city')
+          .order('rating', { ascending: false })
           .limit(10),
         supabase
-          .from('menu_items')
-          .select('id, name, price, order_count, venue_id, venues(name)')
-          .order('order_count', { ascending: false })
+          .from('products')
+          .select('id, name, price, venue_id, image_url')
+          .order('price', { ascending: false })
           .limit(5),
-        supabase
-          .from('events')
-          .select('id, title, description, type, start_date, start_time, is_featured')
-          .eq('is_active', true)
-          .gte('start_date', new Date().toISOString().split('T')[0])
-          .order('start_date', { ascending: true })
-          .limit(5)
+        Promise.resolve({ data: [], error: null }) // events disabled
       ])
 
       if (venuesRes.data) setPopularVenues(venuesRes.data)
