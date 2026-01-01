@@ -32,7 +32,7 @@ export default function AuthPage() {
   const handleDemoLogin = () => {
     signIn({
       id: '00000000-0000-0000-0000-000000000001',
-      email: 'demo@order.app',
+      email: '',
       name: 'Demo Kullanıcı',
     })
     router.push('/')
