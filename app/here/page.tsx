@@ -63,16 +63,8 @@ const currentVenue: Venue = {
   activeUsers: 5
 }
 
-const demoUsersAtVenue: HereUser[] = [
-  { id: 'u1', nickname: 'KahveSever', age: 26, avatar_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400', bio: 'Kahve tutkunu ☕ Kitap kurdu 📚', interests: ['Kahve', 'Kitap', 'Seyahat'], gender: 'female', orientation: 'hetero', isHere: true, lastSeenMinutes: 2, venue: "Nihal's Break Point", avatar_blur: false },
-  { id: 'u2', nickname: 'TechGuy', age: 28, avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400', bio: 'Yazılımcı 💻 Müzik sever 🎵', interests: ['Teknoloji', 'Müzik', 'Film'], gender: 'male', orientation: 'hetero', isHere: true, lastSeenMinutes: 5, venue: "Nihal's Break Point", avatar_blur: true },
-  { id: 'u3', nickname: 'ArtLover', age: 24, avatar_url: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400', bio: 'Tasarımcı 🎨 Yoga lover 🧘‍♀️', interests: ['Tasarım', 'Yoga', 'Doğa'], gender: 'female', orientation: 'bisexual', isHere: true, lastSeenMinutes: 0, venue: "Nihal's Break Point", avatar_blur: false },
-]
-
-const nearbyUsers: HereUser[] = [
-  { id: 'u4', nickname: 'FoodieChef', age: 30, avatar_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400', bio: 'Gurme 🍷 Yemek bloggerı', interests: ['Yemek', 'Şarap', 'Fotoğraf'], gender: 'male', orientation: 'gay', isHere: false, lastSeenMinutes: 10, distance: 150, venue: 'Cafe Nero', avatar_blur: false },
-  { id: 'u5', nickname: 'DancerPM', age: 27, avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400', bio: 'PM 📊 Dans etmeyi seviyorum 💃', interests: ['İş', 'Dans', 'Netflix'], gender: 'female', orientation: 'hetero', isHere: false, lastSeenMinutes: 3, distance: 320, venue: 'Starbucks', avatar_blur: true },
-]
+const demoUsersAtVenue: HereUser[] = []
+const nearbyUsers: HereUser[] = []
 
 type TabType = 'venue' | 'nearby' | 'messages' | 'chat' | 'profile' | 'setup'
 
