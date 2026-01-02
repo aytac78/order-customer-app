@@ -20,7 +20,7 @@ export default function HereSettingsPage() {
       <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-400 mb-4">Giriş yapmanız gerekiyor</p>
-          <button
+          <button type="button"
             onClick={() => router.push('/auth')}
             className="px-6 py-2 bg-purple-500 rounded-xl"
           >
@@ -48,7 +48,7 @@ export default function HereSettingsPage() {
       {/* Header */}
       <header className="sticky top-0 bg-[#0a0a0a]/95 backdrop-blur-lg border-b border-white/5 px-4 py-4 z-10">
         <div className="flex items-center gap-4">
-          <button onClick={() => router.back()} className="p-2 -ml-2">
+          <button type="button" onClick={() => router.back()} className="p-2 -ml-2">
             <ArrowLeft className="w-6 h-6" />
           </button>
           <div>
@@ -77,7 +77,7 @@ export default function HereSettingsPage() {
                 </p>
               </div>
             </div>
-            <button
+            <button type="button"
               onClick={() => handleToggle('is_discoverable')}
               disabled={saving}
               className={`w-14 h-8 rounded-full transition-colors relative ${
@@ -117,7 +117,7 @@ export default function HereSettingsPage() {
                   <p className="text-sm text-gray-500">Check-in yaptığın mekanda</p>
                 </div>
               </div>
-              <button
+              <button type="button"
                 onClick={() => handleToggle('show_in_venue')}
                 disabled={saving || !settings.is_discoverable}
                 className={`w-12 h-7 rounded-full transition-colors relative ${
@@ -143,7 +143,7 @@ export default function HereSettingsPage() {
                   <p className="text-sm text-gray-500">Konum bazlı keşifte</p>
                 </div>
               </div>
-              <button
+              <button type="button"
                 onClick={() => handleToggle('show_nearby')}
                 disabled={saving || !settings.is_discoverable}
                 className={`w-12 h-7 rounded-full transition-colors relative ${
@@ -173,7 +173,7 @@ export default function HereSettingsPage() {
                     <p className="text-sm text-gray-500">Check-in aktif</p>
                   </div>
                 </div>
-                <button
+                <button type="button"
                   onClick={handleCheckOut}
                   className="px-4 py-2 bg-red-500/20 text-red-400 rounded-lg text-sm font-medium"
                 >

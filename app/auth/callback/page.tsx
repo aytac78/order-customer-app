@@ -103,7 +103,7 @@ function CallbackContent() {
         <XCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
         <p className="text-white mb-2">Giriş başarısız</p>
         <p className="text-red-400 text-sm mb-6">{error}</p>
-        <button onClick={() => router.push('/login')} className="px-6 py-3 bg-orange-500 rounded-xl font-medium text-white">
+        <button type="button" onClick={() => router.push('/login')} className="px-6 py-3 bg-orange-500 rounded-xl font-medium text-white">
           Tekrar Dene
         </button>
       </div>

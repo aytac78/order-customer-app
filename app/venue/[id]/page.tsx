@@ -180,7 +180,7 @@ export default function VenuePage() {
         <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
         <h2 className="text-xl font-bold mb-2">Mekan Bulunamadı</h2>
         <p className="text-gray-400 mb-6">{error}</p>
-        <button onClick={() => router.back()} className="px-6 py-3 bg-orange-500 rounded-xl font-semibold">
+        <button type="button" onClick={() => router.back()} className="px-6 py-3 bg-orange-500 rounded-xl font-semibold">
           Geri Dön
         </button>
       </div>
@@ -199,15 +199,15 @@ export default function VenuePage() {
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-black/30" />
         
-        <button onClick={() => router.back()} className="absolute top-4 left-4 p-2 bg-black/50 rounded-full backdrop-blur-sm">
+        <button type="button" onClick={() => router.back()} className="absolute top-4 left-4 p-2 bg-black/50 rounded-full backdrop-blur-sm">
           <ArrowLeft className="w-6 h-6" />
         </button>
 
         <div className="absolute top-4 right-4 flex gap-2">
-          <button onClick={() => venue && toggleFavorite({ venue_id: venue.id, venue_name: venue.name, venue_image: venue.photos?.[0], venue_address: venue.address, venue_rating: venue.rating })} className={`p-2 rounded-full backdrop-blur-sm ${isFavorite(venue?.id || "") ? "bg-red-500" : "bg-black/50"}`}>
+          <button type="button" onClick={() => venue && toggleFavorite({ venue_id: venue.id, venue_name: venue.name, venue_image: venue.photos?.[0], venue_address: venue.address, venue_rating: venue.rating })} className={`p-2 rounded-full backdrop-blur-sm ${isFavorite(venue?.id || "") ? "bg-red-500" : "bg-black/50"}`}>
             <Heart className={`w-6 h-6 ${isFavorite(venue?.id || "") ? "fill-white text-white" : "text-white"}`} />
           </button>
-          <button onClick={shareVenue} className="p-2 bg-black/50 rounded-full backdrop-blur-sm">
+          <button type="button" onClick={shareVenue} className="p-2 bg-black/50 rounded-full backdrop-blur-sm">
             <Share2 className="w-6 h-6" />
           </button>
         </div>
@@ -270,11 +270,11 @@ export default function VenuePage() {
 
       {/* Quick Actions - 4 Buttons */}
       <div className="px-4 mt-4 grid grid-cols-4 gap-3">
-        <button onClick={() => router.push(`/reservations/new?venue=${venueId}`)} className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-xl active:scale-95 transition-transform">
+        <button type="button" onClick={() => router.push(`/reservations/new?venue=${venueId}`)} className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-xl active:scale-95 transition-transform">
           <Calendar className="w-5 h-5 text-orange-500" />
           <span className="text-xs">Rezervasyon</span>
         </button>
-        <button onClick={() => {
+        <button type="button" onClick={() => {
           // URL'den mode parametresini kontrol et
           const mode = searchParams.get('mode')
           const menuUrl = mode === 'takeaway' 
@@ -287,11 +287,11 @@ export default function VenuePage() {
           <UtensilsCrossed className="w-5 h-5 text-green-500" />
           <span className="text-xs">Menü</span>
         </button>
-        <button onClick={callVenue} disabled={!venue.phone} className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-xl disabled:opacity-50 active:scale-95 transition-transform">
+        <button type="button" onClick={callVenue} disabled={!venue.phone} className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-xl disabled:opacity-50 active:scale-95 transition-transform">
           <Phone className="w-5 h-5 text-blue-500" />
           <span className="text-xs">Ara</span>
         </button>
-        <button onClick={openMaps} className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-xl active:scale-95 transition-transform">
+        <button type="button" onClick={openMaps} className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-xl active:scale-95 transition-transform">
           <Navigation className="w-5 h-5 text-purple-500" />
           <span className="text-xs">Yol Tarifi</span>
         </button>
@@ -322,12 +322,12 @@ export default function VenuePage() {
 
         {/* Instagram & Website */}
         <div className="flex gap-3 mb-4">
-          <button onClick={openInstagram} className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex-1">
+          <button type="button" onClick={openInstagram} className="flex items-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex-1">
             <Instagram className="w-5 h-5" />
             <span className="text-sm font-medium">@{getInstagramUsername()}</span>
           </button>
           {venue.website && (
-            <button onClick={() => window.open(venue.website, '_blank')} className="flex items-center gap-2 px-4 py-3 bg-[#1a1a1a] rounded-xl flex-1">
+            <button type="button" onClick={() => window.open(venue.website, '_blank')} className="flex items-center gap-2 px-4 py-3 bg-[#1a1a1a] rounded-xl flex-1">
               <Globe className="w-5 h-5 text-blue-400" />
               <span className="text-sm font-medium">Website</span>
             </button>
@@ -340,7 +340,7 @@ export default function VenuePage() {
             <h3 className="font-medium mb-3">Fotoğraflar</h3>
             <div className="flex gap-2 overflow-x-auto pb-2 -mx-4 px-4">
               {photos.map((photo, index) => (
-                <button key={index} onClick={() => { setGalleryIndex(index); setShowGallery(true); }} className="flex-shrink-0">
+                <button type="button" key={index} onClick={() => { setGalleryIndex(index); setShowGallery(true); }} className="flex-shrink-0">
                   <img src={photo} alt={`${venue.name}`} className="w-28 h-28 rounded-xl object-cover" />
                 </button>
               ))}
@@ -352,7 +352,7 @@ export default function VenuePage() {
       {/* Address */}
       {venue.address && (
         <div className="px-4 mt-2">
-          <button onClick={openMaps} className="w-full bg-[#1a1a1a] rounded-2xl p-4 text-left">
+          <button type="button" onClick={openMaps} className="w-full bg-[#1a1a1a] rounded-2xl p-4 text-left">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-blue-500/20 rounded-xl flex items-center justify-center">
@@ -373,7 +373,7 @@ export default function VenuePage() {
       {showGallery && photos.length > 0 && (
         <div className="fixed inset-0 bg-black z-50 flex flex-col">
           <div className="flex items-center justify-between p-4">
-            <button onClick={() => setShowGallery(false)}><X className="w-6 h-6" /></button>
+            <button type="button" onClick={() => setShowGallery(false)}><X className="w-6 h-6" /></button>
             <span className="text-sm">{galleryIndex + 1} / {photos.length}</span>
             <div className="w-6" />
           </div>

@@ -249,7 +249,7 @@ export default function ProfilePage() {
         <User className="w-16 h-16 text-gray-600 mb-4" />
         <h2 className="text-xl font-bold mb-2">Giriş Yapın</h2>
         <p className="text-gray-400 text-center mb-6">Profilinizi görüntülemek için giriş yapmanız gerekiyor.</p>
-        <button
+        <button type="button"
           onClick={() => router.push('/login')}
           className="px-8 py-3 bg-orange-500 rounded-xl font-bold"
         >
@@ -264,11 +264,11 @@ export default function ProfilePage() {
       {/* Header */}
       <div className="bg-gradient-to-br from-orange-500 to-red-500 pt-8 pb-16 px-4 relative">
         <div className="flex items-center justify-between mb-6">
-          <button onClick={() => router.back()} className="p-2 -ml-2">
+          <button type="button" onClick={() => router.back()} className="p-2 -ml-2">
             <ArrowLeft className="w-6 h-6" />
           </button>
           <h1 className="text-xl font-bold">Profilim</h1>
-          <button 
+          <button type="button" 
             onClick={() => setShowEditModal(true)}
             className="p-2 bg-white/20 rounded-full"
           >
@@ -335,7 +335,7 @@ export default function ProfilePage() {
             <span className="text-xl font-mono font-bold tracking-wider">
               {formatTitId(profile?.tit_id || '')}
             </span>
-            <button 
+            <button type="button" 
               onClick={copyTitId}
               className="p-2 bg-white/20 rounded-lg"
             >
@@ -388,7 +388,7 @@ export default function ProfilePage() {
       {/* Top Venues - Expandable */}
       {topVenues.length > 0 && (
         <div className="px-4 mt-4">
-          <button 
+          <button type="button" 
             onClick={() => setShowVenues(!showVenues)}
             className="w-full flex items-center justify-between p-4 bg-[#1a1a1a] rounded-xl"
           >
@@ -405,7 +405,7 @@ export default function ProfilePage() {
           {showVenues && (
             <div className="mt-2 space-y-2">
               {topVenues.map((venue, index) => (
-                <button
+                <button type="button"
                   key={venue.venue_id}
                   onClick={() => router.push(`/venue/${venue.venue_id}`)}
                   className="w-full flex items-center gap-3 p-3 bg-[#1a1a1a] rounded-xl"
@@ -430,7 +430,7 @@ export default function ProfilePage() {
       {/* Top Items - Expandable */}
       {topItems.length > 0 && (
         <div className="px-4 mt-4">
-          <button 
+          <button type="button" 
             onClick={() => setShowItems(!showItems)}
             className="w-full flex items-center justify-between p-4 bg-[#1a1a1a] rounded-xl"
           >
@@ -469,7 +469,7 @@ export default function ProfilePage() {
 
       {/* Payment Methods */}
       <div className="px-4 mt-6">
-        <button 
+        <button type="button" 
           onClick={() => setShowPaymentModal(true)}
           className="w-full flex items-center gap-3 p-4 bg-[#1a1a1a] rounded-xl"
         >
@@ -486,7 +486,7 @@ export default function ProfilePage() {
 
       {/* Menu Items */}
       <div className="px-4 mt-4 space-y-2">
-        <button 
+        <button type="button" 
           onClick={() => setShowSecurityModal(true)}
           className="w-full flex items-center gap-3 p-4 bg-[#1a1a1a] rounded-xl"
         >
@@ -500,7 +500,7 @@ export default function ProfilePage() {
           <ChevronRight className="w-5 h-5 text-gray-500" />
         </button>
 
-        <button 
+        <button type="button" 
           onClick={() => router.push('/orders')}
           className="w-full flex items-center gap-3 p-4 bg-[#1a1a1a] rounded-xl"
         >
@@ -514,7 +514,7 @@ export default function ProfilePage() {
           <ChevronRight className="w-5 h-5 text-gray-500" />
         </button>
 
-        <button 
+        <button type="button" 
           onClick={() => router.push("/reservations")}
           className="w-full flex items-center gap-3 p-4 bg-[#1a1a1a] rounded-xl"
         >
@@ -528,7 +528,7 @@ export default function ProfilePage() {
           <ChevronRight className="w-5 h-5 text-gray-500" />
         </button>
 
-        <button 
+        <button type="button" 
           onClick={() => router.push('/favorites')}
           className="w-full flex items-center gap-3 p-4 bg-[#1a1a1a] rounded-xl"
         >
@@ -545,7 +545,7 @@ export default function ProfilePage() {
 
       {/* Logout */}
       <div className="px-4 mt-6">
-        <button 
+        <button type="button" 
           onClick={handleSignOut}
           className="w-full flex items-center justify-center gap-2 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-500 font-medium"
         >
@@ -655,7 +655,7 @@ function EditProfileModal({ profile, user, onClose, onSave }: any) {
       {/* Header - Fixed */}
       <div className="flex-shrink-0 p-4 border-b border-white/10 flex items-center justify-between bg-[#0a0a0a]">
         <h2 className="text-lg font-bold">Profili Düzenle</h2>
-        <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full">
+        <button type="button" onClick={onClose} className="p-2 hover:bg-white/10 rounded-full">
           <X className="w-6 h-6" />
         </button>
       </div>
@@ -723,7 +723,7 @@ function EditProfileModal({ profile, user, onClose, onSave }: any) {
 
       {/* Footer - Fixed */}
       <div className="flex-shrink-0 p-4 border-t border-white/10 bg-[#0a0a0a]">
-        <button
+        <button type="button"
           onClick={handleSave}
           disabled={saving}
           className="w-full py-4 bg-orange-500 rounded-xl font-bold flex items-center justify-center gap-2"
@@ -782,7 +782,7 @@ function PaymentMethodsModal({ savedCards, defaultMethod, onClose, onSave }: any
     <div className="fixed inset-0 bg-[#0a0a0a] z-[9999] flex flex-col">
       <div className="flex-shrink-0 p-4 border-b border-white/10 flex items-center justify-between">
         <h2 className="text-lg font-bold">Ödeme Yöntemleri</h2>
-        <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full">
+        <button type="button" onClick={onClose} className="p-2 hover:bg-white/10 rounded-full">
           <X className="w-6 h-6" />
         </button>
       </div>
@@ -792,7 +792,7 @@ function PaymentMethodsModal({ savedCards, defaultMethod, onClose, onSave }: any
         <div>
           <label className="text-sm text-gray-400 mb-2 block">Varsayılan Ödeme</label>
           <div className="space-y-2">
-            <button
+            <button type="button"
               onClick={() => setMethod('tit_pay')}
               className={`w-full flex items-center gap-3 p-4 rounded-xl border ${
                 method === 'tit_pay' ? 'border-purple-500 bg-purple-500/10' : 'border-gray-700 bg-[#1a1a1a]'
@@ -805,7 +805,7 @@ function PaymentMethodsModal({ savedCards, defaultMethod, onClose, onSave }: any
               {method === 'tit_pay' && <Check className="w-5 h-5 text-purple-500" />}
             </button>
 
-            <button
+            <button type="button"
               onClick={() => setMethod('cash')}
               className={`w-full flex items-center gap-3 p-4 rounded-xl border ${
                 method === 'cash' ? 'border-green-500 bg-green-500/10' : 'border-gray-700 bg-[#1a1a1a]'
@@ -836,10 +836,10 @@ function PaymentMethodsModal({ savedCards, defaultMethod, onClose, onSave }: any
                   <p className="font-medium">•••• {card.last4}</p>
                   <p className="text-xs text-gray-400">{card.brand} • {card.expiry}</p>
                 </div>
-                <button onClick={() => setDefaultCard(card.id)} className="p-2">
+                <button type="button" onClick={() => setDefaultCard(card.id)} className="p-2">
                   {card.isDefault ? <Check className="w-5 h-5 text-orange-500" /> : <div className="w-5 h-5 border border-gray-600 rounded-full" />}
                 </button>
-                <button onClick={() => removeCard(card.id)} className="p-2 text-red-500">
+                <button type="button" onClick={() => removeCard(card.id)} className="p-2 text-red-500">
                   <Trash2 className="w-5 h-5" />
                 </button>
               </div>
@@ -871,12 +871,12 @@ function PaymentMethodsModal({ savedCards, defaultMethod, onClose, onSave }: any
                   />
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={() => setShowAddCard(false)} className="flex-1 py-3 bg-gray-700 rounded-lg">İptal</button>
-                  <button onClick={addCard} className="flex-1 py-3 bg-orange-500 rounded-lg font-medium">Ekle</button>
+                  <button type="button" onClick={() => setShowAddCard(false)} className="flex-1 py-3 bg-gray-700 rounded-lg">İptal</button>
+                  <button type="button" onClick={addCard} className="flex-1 py-3 bg-orange-500 rounded-lg font-medium">Ekle</button>
                 </div>
               </div>
             ) : (
-              <button
+              <button type="button"
                 onClick={() => setShowAddCard(true)}
                 className="w-full flex items-center justify-center gap-2 p-4 border border-dashed border-gray-700 rounded-xl text-gray-400"
               >
@@ -889,7 +889,7 @@ function PaymentMethodsModal({ savedCards, defaultMethod, onClose, onSave }: any
       </div>
 
       <div className="flex-shrink-0 p-4 border-t border-white/10">
-        <button
+        <button type="button"
           onClick={handleSave}
           disabled={saving}
           className="w-full py-4 bg-orange-500 rounded-xl font-bold flex items-center justify-center gap-2"
@@ -922,7 +922,7 @@ function SecurityModal({ profile, onClose, onSave }: any) {
     <div className="fixed inset-0 bg-[#0a0a0a] z-[9999] flex flex-col">
       <div className="flex-shrink-0 p-4 border-b border-white/10 flex items-center justify-between">
         <h2 className="text-lg font-bold">Güvenlik Ayarları</h2>
-        <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full">
+        <button type="button" onClick={onClose} className="p-2 hover:bg-white/10 rounded-full">
           <X className="w-6 h-6" />
         </button>
       </div>
@@ -941,7 +941,7 @@ function SecurityModal({ profile, onClose, onSave }: any) {
               <p className="text-xs text-gray-400">Biyometrik doğrulama</p>
             </div>
           </div>
-          <button
+          <button type="button"
             onClick={() => setBiometricEnabled(!biometricEnabled)}
             className={`w-12 h-7 rounded-full transition-colors ${biometricEnabled ? 'bg-green-500' : 'bg-gray-600'}`}
           >
@@ -959,7 +959,7 @@ function SecurityModal({ profile, onClose, onSave }: any) {
                 <p className="text-xs text-gray-400">4-6 haneli şifre</p>
               </div>
             </div>
-            <button
+            <button type="button"
               onClick={() => setPinEnabled(!pinEnabled)}
               className={`w-12 h-7 rounded-full transition-colors ${pinEnabled ? 'bg-blue-500' : 'bg-gray-600'}`}
             >
@@ -976,7 +976,7 @@ function SecurityModal({ profile, onClose, onSave }: any) {
                 placeholder="PIN kodunuzu girin"
                 className="w-full p-3 bg-[#2a2a2a] rounded-lg text-white text-center tracking-widest"
               />
-              <button
+              <button type="button"
                 onClick={() => setShowPin(!showPin)}
                 className="absolute right-3 top-1/2 -translate-y-1/2"
               >
@@ -988,7 +988,7 @@ function SecurityModal({ profile, onClose, onSave }: any) {
       </div>
 
       <div className="flex-shrink-0 p-4 border-t border-white/10">
-        <button
+        <button type="button"
           onClick={handleSave}
           disabled={saving}
           className="w-full py-4 bg-orange-500 rounded-xl font-bold flex items-center justify-center gap-2"

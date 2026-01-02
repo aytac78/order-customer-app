@@ -238,10 +238,10 @@ export default function CartPage() {
           </div>
 
           <div className="space-y-3">
-            <button onClick={() => router.push(`/orders/${orderId}`)} className="w-full py-4 bg-orange-500 rounded-xl font-semibold">
+            <button type="button" onClick={() => router.push(`/orders/${orderId}`)} className="w-full py-4 bg-orange-500 rounded-xl font-semibold">
               {t.cart?.trackOrder || 'Siparişi Takip Et'}
             </button>
-            <button onClick={() => router.push('/')} className="w-full py-4 bg-[#1a1a1a] rounded-xl font-semibold">
+            <button type="button" onClick={() => router.push('/')} className="w-full py-4 bg-[#1a1a1a] rounded-xl font-semibold">
               {t.cart?.backToHome || 'Ana Sayfaya Dön'}
             </button>
           </div>
@@ -257,7 +257,7 @@ export default function CartPage() {
         <ShoppingBag className="w-20 h-20 text-gray-600 mb-4" />
         <h2 className="text-xl font-bold mb-2">{t.cart?.empty || 'Sepetiniz Boş'}</h2>
         <p className="text-gray-400 mb-6">{t.cart?.addItems || 'Lezzetli yemekler ekleyin'}</p>
-        <button onClick={() => router.push('/')} className="px-6 py-3 bg-orange-500 rounded-xl font-semibold">
+        <button type="button" onClick={() => router.push('/')} className="px-6 py-3 bg-orange-500 rounded-xl font-semibold">
           {t.cart?.browseMenu || 'Menüye Göz At'}
         </button>
       </div>
@@ -269,7 +269,7 @@ export default function CartPage() {
       {/* Header */}
       <header className="sticky top-0 z-40 bg-[#0a0a0a]/95 backdrop-blur border-b border-white/5 px-4 py-4">
         <div className="flex items-center gap-3">
-          <button onClick={() => router.back()} className="w-10 h-10 rounded-full bg-[#1a1a1a] flex items-center justify-center">
+          <button type="button" onClick={() => router.back()} className="w-10 h-10 rounded-full bg-[#1a1a1a] flex items-center justify-center">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div className="flex-1">
@@ -288,15 +288,15 @@ export default function CartPage() {
         <div className="bg-[#1a1a1a] rounded-2xl p-4">
           <h3 className="font-semibold mb-3">{t.cart?.orderType || 'Sipariş Tipi'}</h3>
           <div className="grid grid-cols-3 gap-2">
-            <button onClick={() => setOrderType('dine_in')} className={`p-3 rounded-xl flex flex-col items-center gap-2 transition-all ${orderType === 'dine_in' ? 'bg-orange-500 text-white' : 'bg-[#242424] text-gray-400'}`}>
+            <button type="button" onClick={() => setOrderType('dine_in')} className={`p-3 rounded-xl flex flex-col items-center gap-2 transition-all ${orderType === 'dine_in' ? 'bg-orange-500 text-white' : 'bg-[#242424] text-gray-400'}`}>
               <Store className="w-6 h-6" />
               <span className="text-xs font-medium">{t.cart?.dineIn || 'Masada'}</span>
             </button>
-            <button onClick={() => setOrderType('takeaway')} className={`p-3 rounded-xl flex flex-col items-center gap-2 transition-all ${orderType === 'takeaway' ? 'bg-purple-500 text-white' : 'bg-[#242424] text-gray-400'}`}>
+            <button type="button" onClick={() => setOrderType('takeaway')} className={`p-3 rounded-xl flex flex-col items-center gap-2 transition-all ${orderType === 'takeaway' ? 'bg-purple-500 text-white' : 'bg-[#242424] text-gray-400'}`}>
               <ShoppingBag className="w-6 h-6" />
               <span className="text-xs font-medium">{t.cart?.takeaway || 'Paket Al'}</span>
             </button>
-            <button onClick={() => setOrderType('delivery')} className={`p-3 rounded-xl flex flex-col items-center gap-2 transition-all ${orderType === 'delivery' ? 'bg-green-500 text-white' : 'bg-[#242424] text-gray-400'}`}>
+            <button type="button" onClick={() => setOrderType('delivery')} className={`p-3 rounded-xl flex flex-col items-center gap-2 transition-all ${orderType === 'delivery' ? 'bg-green-500 text-white' : 'bg-[#242424] text-gray-400'}`}>
               <Bike className="w-6 h-6" />
               <span className="text-xs font-medium">{t.cart?.delivery || 'Teslimat'}</span>
             </button>
@@ -335,18 +335,18 @@ export default function CartPage() {
           <div className="bg-[#1a1a1a] rounded-2xl p-4">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-semibold">{t.cart?.deliveryAddress || 'Teslimat Adresi'}</h3>
-              <button onClick={() => router.push('/addresses')} className="text-orange-500 text-sm">{t.cart?.manageAddresses || 'Yönet'}</button>
+              <button type="button" onClick={() => router.push('/addresses')} className="text-orange-500 text-sm">{t.cart?.manageAddresses || 'Yönet'}</button>
             </div>
             
             {addresses.length === 0 ? (
-              <button onClick={() => router.push('/addresses')} className="w-full p-4 border-2 border-dashed border-gray-700 rounded-xl flex items-center justify-center gap-2 text-gray-400">
+              <button type="button" onClick={() => router.push('/addresses')} className="w-full p-4 border-2 border-dashed border-gray-700 rounded-xl flex items-center justify-center gap-2 text-gray-400">
                 <Plus className="w-5 h-5" />
                 {t.cart?.addAddress || 'Adres Ekle'}
               </button>
             ) : (
               <div className="space-y-2">
                 {addresses.slice(0, 3).map(address => (
-                  <button key={address.id} onClick={() => setSelectedAddress(address)} className={`w-full p-3 rounded-xl flex items-start gap-3 text-left transition-all ${selectedAddress?.id === address.id ? 'bg-green-500/20 border-2 border-green-500' : 'bg-[#242424] border-2 border-transparent'}`}>
+                  <button type="button" key={address.id} onClick={() => setSelectedAddress(address)} className={`w-full p-3 rounded-xl flex items-start gap-3 text-left transition-all ${selectedAddress?.id === address.id ? 'bg-green-500/20 border-2 border-green-500' : 'bg-[#242424] border-2 border-transparent'}`}>
                     <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${selectedAddress?.id === address.id ? 'bg-green-500' : 'bg-[#1a1a1a]'}`}>
                       {address.title === 'Ev' || address.title === 'Home' ? <Home className="w-5 h-5" /> : <MapPin className="w-5 h-5" />}
                     </div>
@@ -393,9 +393,9 @@ export default function CartPage() {
                   <p className="text-orange-500 text-sm mt-1">₺{item.price}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="w-8 h-8 rounded-lg bg-[#242424] flex items-center justify-center"><Minus className="w-4 h-4" /></button>
+                  <button type="button" onClick={() => updateQuantity(item.id, item.quantity - 1)} className="w-8 h-8 rounded-lg bg-[#242424] flex items-center justify-center"><Minus className="w-4 h-4" /></button>
                   <span className="w-8 text-center font-medium">{item.quantity}</span>
-                  <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center"><Plus className="w-4 h-4" /></button>
+                  <button type="button" onClick={() => updateQuantity(item.id, item.quantity + 1)} className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center"><Plus className="w-4 h-4" /></button>
                 </div>
               </div>
             </div>
@@ -416,7 +416,7 @@ export default function CartPage() {
           </div>
           <div className="flex gap-2 mb-3">
             {tipOptions.map(percent => (
-              <button key={percent} onClick={() => { setTipPercent(percent); setCustomTip('') }} className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${tipPercent === percent && !customTip ? 'bg-green-500 text-white' : 'bg-[#242424] text-gray-400'}`}>
+              <button type="button" key={percent} onClick={() => { setTipPercent(percent); setCustomTip('') }} className={`flex-1 py-2 rounded-lg text-sm font-medium transition-colors ${tipPercent === percent && !customTip ? 'bg-green-500 text-white' : 'bg-[#242424] text-gray-400'}`}>
                 {percent === 0 ? (t.cart?.noTip || 'Yok') : `%${percent}`}
               </button>
             ))}
@@ -433,7 +433,7 @@ export default function CartPage() {
               { id: 'card', icon: CreditCard, label: t.cart?.card || 'Kart' },
               { id: 'tit_pay', icon: Wallet, label: 'TiT Pay' }
             ].map(method => (
-              <button key={method.id} onClick={() => setPaymentMethod(method.id as any)} className={`p-3 rounded-xl flex flex-col items-center gap-2 transition-colors ${paymentMethod === method.id ? 'bg-orange-500 text-white' : 'bg-[#242424] text-gray-400'}`}>
+              <button type="button" key={method.id} onClick={() => setPaymentMethod(method.id as any)} className={`p-3 rounded-xl flex flex-col items-center gap-2 transition-colors ${paymentMethod === method.id ? 'bg-orange-500 text-white' : 'bg-[#242424] text-gray-400'}`}>
                 <method.icon className="w-5 h-5" />
                 <span className="text-xs">{method.label}</span>
               </button>
@@ -442,7 +442,7 @@ export default function CartPage() {
         </div>
 
         {/* Hesap Bölme */}
-        <button onClick={() => setShowSplitModal(true)} className="w-full bg-[#1a1a1a] rounded-2xl p-4 flex items-center justify-between">
+        <button type="button" onClick={() => setShowSplitModal(true)} className="w-full bg-[#1a1a1a] rounded-2xl p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-purple-500/20 rounded-xl flex items-center justify-center">
               <Users className="w-5 h-5 text-purple-400" />
@@ -469,7 +469,7 @@ export default function CartPage() {
           {splitCount > 1 && <div className="flex justify-between text-purple-400 text-sm"><span>Kişi başı</span><span>₺{perPerson}</span></div>}
         </div>
 
-        <button onClick={handleOrder} disabled={loading || !isMinimumMet || items.length === 0} className="w-full py-4 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-700 rounded-xl font-bold flex items-center justify-center gap-2">
+        <button type="button" onClick={handleOrder} disabled={loading || !isMinimumMet || items.length === 0} className="w-full py-4 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-700 rounded-xl font-bold flex items-center justify-center gap-2">
           {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Check className="w-5 h-5" />{t.cart?.placeOrder || 'Sipariş Ver'} • ₺{total}</>}
         </button>
       </div>
@@ -480,13 +480,13 @@ export default function CartPage() {
           <div className="w-full bg-[#1a1a1a] rounded-t-3xl p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-bold">{t.cart?.splitBill || 'Hesabı Böl'}</h2>
-              <button onClick={() => setShowSplitModal(false)}><X className="w-6 h-6" /></button>
+              <button type="button" onClick={() => setShowSplitModal(false)}><X className="w-6 h-6" /></button>
             </div>
             <p className="text-center text-gray-400 mb-4">{t.cart?.howManyPeople || 'Kaç kişisiniz?'}</p>
             <div className="flex items-center justify-center gap-6 mb-6">
-              <button onClick={() => setSplitCount(Math.max(1, splitCount - 1))} className="w-14 h-14 bg-[#242424] rounded-full flex items-center justify-center"><Minus className="w-6 h-6" /></button>
+              <button type="button" onClick={() => setSplitCount(Math.max(1, splitCount - 1))} className="w-14 h-14 bg-[#242424] rounded-full flex items-center justify-center"><Minus className="w-6 h-6" /></button>
               <span className="text-5xl font-bold w-20 text-center">{splitCount}</span>
-              <button onClick={() => setSplitCount(Math.min(20, splitCount + 1))} className="w-14 h-14 bg-orange-500 rounded-full flex items-center justify-center"><Plus className="w-6 h-6" /></button>
+              <button type="button" onClick={() => setSplitCount(Math.min(20, splitCount + 1))} className="w-14 h-14 bg-orange-500 rounded-full flex items-center justify-center"><Plus className="w-6 h-6" /></button>
             </div>
             {splitCount > 1 && (
               <div className="bg-purple-500/20 rounded-xl p-4 text-center mb-6">
@@ -495,8 +495,8 @@ export default function CartPage() {
               </div>
             )}
             <div className="grid grid-cols-2 gap-3">
-              <button onClick={() => { setSplitCount(1); setShowSplitModal(false) }} className="py-3 bg-[#242424] rounded-xl font-medium">Bölme</button>
-              <button onClick={() => setShowSplitModal(false)} className="py-3 bg-orange-500 rounded-xl font-medium">Tamam</button>
+              <button type="button" onClick={() => { setSplitCount(1); setShowSplitModal(false) }} className="py-3 bg-[#242424] rounded-xl font-medium">Bölme</button>
+              <button type="button" onClick={() => setShowSplitModal(false)} className="py-3 bg-orange-500 rounded-xl font-medium">Tamam</button>
             </div>
           </div>
         </div>

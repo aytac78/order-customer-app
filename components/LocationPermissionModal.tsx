@@ -23,7 +23,7 @@ export default function LocationPermissionModal() {
 
         {/* Options */}
         <div className="p-4 space-y-3">
-          <button
+          <button type="button"
             onClick={() => setPermission('always')}
             className="w-full p-4 bg-[#242424] hover:bg-[#2a2a2a] rounded-xl text-left transition-colors"
           >
@@ -31,7 +31,7 @@ export default function LocationPermissionModal() {
             <p className="text-sm text-gray-400 mt-1">Uygulama her açıldığında konumunuz kullanılır</p>
           </button>
 
-          <button
+          <button type="button"
             onClick={() => setPermission('while_using')}
             className="w-full p-4 bg-[#242424] hover:bg-[#2a2a2a] rounded-xl text-left transition-colors"
           >
@@ -39,7 +39,7 @@ export default function LocationPermissionModal() {
             <p className="text-sm text-gray-400 mt-1">Sadece uygulama açıkken konumunuz kullanılır</p>
           </button>
 
-          <button
+          <button type="button"
             onClick={() => setPermission('never')}
             className="w-full p-4 bg-[#242424] hover:bg-[#2a2a2a] rounded-xl text-left transition-colors"
           >

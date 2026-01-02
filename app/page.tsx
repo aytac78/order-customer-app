@@ -72,7 +72,7 @@ export default function HomePage() {
         .single()
       if (data) setProfile(data)
     } catch (err) {
-      console.log('Profile load failed')
+      // console.log('Profile load failed')
     }
   }
 
@@ -134,7 +134,7 @@ export default function HomePage() {
         </div>
         <div className="flex items-center gap-2">
           <LanguageSelector />
-          <button 
+          <button type="button" 
             onClick={() => router.push(user ? '/profile' : '/login')}
             className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center overflow-hidden"
           >
@@ -149,7 +149,7 @@ export default function HomePage() {
 
       {/* Search */}
       <div className="px-4 mb-6">
-        <button 
+        <button type="button" 
           onClick={() => router.push('/discover')}
           className="w-full flex items-center gap-3 px-4 py-3 bg-[#1a1a1a] rounded-2xl text-gray-400"
         >
@@ -161,31 +161,31 @@ export default function HomePage() {
       {/* Quick Actions - 5 buton */}
       <div className="px-4 mb-6">
         <div className="grid grid-cols-5 gap-2">
-          <button onClick={() => router.push('/scan')} className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-2xl">
+          <button type="button" onClick={() => router.push('/scan')} className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-2xl">
             <div className="w-11 h-11 bg-gradient-to-br from-red-500 to-orange-500 rounded-xl flex items-center justify-center">
               <QrCode className="w-5 h-5" />
             </div>
             <span className="text-[10px] font-medium">{t.home?.scanQR || 'Scan QR'}</span>
           </button>
-          <button onClick={() => router.push('/discover')} className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-2xl">
+          <button type="button" onClick={() => router.push('/discover')} className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-2xl">
             <div className="w-11 h-11 bg-gradient-to-br from-orange-500 to-yellow-500 rounded-xl flex items-center justify-center">
               <Search className="w-5 h-5" />
             </div>
             <span className="text-[10px] font-medium">{t.home?.discover || 'Discover'}</span>
           </button>
-          <button onClick={() => router.push('/orders')} className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-2xl">
+          <button type="button" onClick={() => router.push('/orders')} className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-2xl">
             <div className="w-11 h-11 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center">
               <Package className="w-5 h-5" />
             </div>
             <span className="text-[10px] font-medium">{t.home?.takeaway || 'Takeaway'}</span>
           </button>
-          <button onClick={() => router.push('/coffeestar')} className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-2xl">
+          <button type="button" onClick={() => router.push('/coffeestar')} className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-2xl">
             <div className="w-11 h-11 bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl flex items-center justify-center">
               <Coffee className="w-5 h-5" />
             </div>
             <span className="text-[10px] font-medium">Coffeestar</span>
           </button>
-          <button onClick={() => router.push('/here')} className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-2xl">
+          <button type="button" onClick={() => router.push('/here')} className="flex flex-col items-center gap-2 p-3 bg-[#1a1a1a] rounded-2xl">
             <div className="w-11 h-11 bg-gradient-to-br from-pink-500 to-orange-500 rounded-xl flex items-center justify-center">
               <Users className="w-5 h-5" />
             </div>
@@ -202,14 +202,14 @@ export default function HomePage() {
               <Calendar className="w-4 h-4 text-purple-500" />
               {t.home?.upcomingEvents || 'Upcoming Events'}
             </h3>
-            <button onClick={() => router.push('/events')} className="text-purple-500 text-sm flex items-center gap-1">
+            <button type="button" onClick={() => router.push('/events')} className="text-purple-500 text-sm flex items-center gap-1">
               {t.common?.seeAll || 'See All'} <ChevronRight className="w-4 h-4" />
             </button>
           </div>
           
           <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
             {events.map((event) => (
-              <button
+              <button type="button"
                 key={event.id}
                 onClick={() => router.push(`/events?id=${event.id}`)}
                 className="flex-shrink-0 w-64 bg-gradient-to-br from-purple-900/50 to-pink-900/50 border border-purple-500/30 rounded-2xl overflow-hidden"
@@ -264,7 +264,7 @@ export default function HomePage() {
                 <Award className="w-4 h-4 text-yellow-500" />
                 {t.home?.popularVenues || 'Popular Venues'}
               </h3>
-              <button onClick={() => router.push('/discover')} className="text-orange-500 text-sm flex items-center gap-1">
+              <button type="button" onClick={() => router.push('/discover')} className="text-orange-500 text-sm flex items-center gap-1">
                 {t.common?.seeAll || 'See All'} <ChevronRight className="w-4 h-4" />
               </button>
             </div>
@@ -272,7 +272,7 @@ export default function HomePage() {
             {popularVenues.length > 0 ? (
               <div className="flex gap-3 overflow-x-auto pb-2 -mx-4 px-4 scrollbar-hide">
                 {popularVenues.map((venue, index) => (
-                  <button
+                  <button type="button"
                     key={venue.id}
                     onClick={() => router.push(`/venue/${venue.id}`)}
                     className="flex-shrink-0 w-40 bg-[#1a1a1a] rounded-2xl overflow-hidden"
@@ -321,7 +321,7 @@ export default function HomePage() {
             {popularDishes.length > 0 ? (
               <div className="space-y-3">
                 {popularDishes.map((dish, index) => (
-                  <button
+                  <button type="button"
                     key={dish.id}
                     onClick={() => router.push(`/venue/${dish.venue_id}/menu`)}
                     className="w-full flex items-center gap-4 p-3 bg-[#1a1a1a] rounded-2xl text-left"

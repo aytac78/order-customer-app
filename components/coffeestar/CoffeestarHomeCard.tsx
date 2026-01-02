@@ -21,7 +21,7 @@ export default function CoffeestarHomeCard() {
   const coffeesUntilFree = getCoffeesUntilFree()
 
   return (
-    <button
+    <button type="button"
       onClick={() => router.push('/coffeestar')}
       className="w-full text-left"
     >

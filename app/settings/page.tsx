@@ -44,7 +44,7 @@ export default function SettingsPage() {
     <div className="min-h-screen bg-[#0a0a0a] text-white pb-24">
       {/* Header */}
       <div className="p-4 pt-8 flex items-center gap-4">
-        <button onClick={() => router.back()} className="p-2 -ml-2">
+        <button type="button" onClick={() => router.back()} className="p-2 -ml-2">
           <ArrowLeft className="w-6 h-6" />
         </button>
         <h1 className="text-2xl font-bold">{t.nav?.settings || 'Settings'}</h1>
@@ -53,7 +53,8 @@ export default function SettingsPage() {
       {/* Profile Link */}
       {user && (
         <div className="px-4 mb-6">
-          <button
+          <button type="button"
+            type="button"
             onClick={() => router.push('/profile')}
             className="w-full flex items-center gap-4 p-4 bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-500/30 rounded-2xl"
           >
@@ -80,7 +81,8 @@ export default function SettingsPage() {
               <Bell className="w-5 h-5 text-orange-500" />
               <span>{t.settings?.pushNotifications || 'Push Notifications'}</span>
             </div>
-            <button
+            <button type="button"
+              type="button"
               onClick={() => setPushEnabled(!pushEnabled)}
               className={`w-12 h-7 rounded-full transition-colors ${pushEnabled ? 'bg-orange-500' : 'bg-gray-600'}`}
             >
@@ -92,7 +94,8 @@ export default function SettingsPage() {
               <Volume2 className="w-5 h-5 text-blue-500" />
               <span>{t.settings?.notificationSound || 'Notification Sound'}</span>
             </div>
-            <button
+            <button type="button"
+              type="button"
               onClick={() => setSoundEnabled(!soundEnabled)}
               className={`w-12 h-7 rounded-full transition-colors ${soundEnabled ? 'bg-orange-500' : 'bg-gray-600'}`}
             >
@@ -113,7 +116,8 @@ export default function SettingsPage() {
               <Moon className="w-5 h-5 text-purple-500" />
               <span>{t.settings?.darkMode || 'Dark Mode'}</span>
             </div>
-            <button
+            <button type="button"
+              type="button"
               onClick={() => setDarkMode(!darkMode)}
               className={`w-12 h-7 rounded-full transition-colors ${darkMode ? 'bg-orange-500' : 'bg-gray-600'}`}
             >
@@ -129,7 +133,8 @@ export default function SettingsPage() {
             </div>
             <div className="grid grid-cols-2 gap-2">
               {languages.map((lang) => (
-                <button
+                <button type="button"
+                  type="button"
                   key={lang.code}
                   onClick={() => setLocale(lang.code)}
                   className={`flex items-center gap-2 p-3 rounded-xl transition-colors ${
@@ -161,7 +166,8 @@ export default function SettingsPage() {
                 <p className="text-xs text-gray-500">Face ID / {t.settings?.fingerprint || 'Fingerprint'}</p>
               </div>
             </div>
-            <button
+            <button type="button"
+              type="button"
               onClick={() => setBiometricEnabled(!biometricEnabled)}
               className={`w-12 h-7 rounded-full transition-colors ${biometricEnabled ? 'bg-orange-500' : 'bg-gray-600'}`}
             >
@@ -176,7 +182,8 @@ export default function SettingsPage() {
                 <p className="text-xs text-gray-500">{t.settings?.pinCodeDesc || '4-6 digit security code'}</p>
               </div>
             </div>
-            <button
+            <button type="button"
+              type="button"
               onClick={() => setPinEnabled(!pinEnabled)}
               className={`w-12 h-7 rounded-full transition-colors ${pinEnabled ? 'bg-orange-500' : 'bg-gray-600'}`}
             >
@@ -192,28 +199,28 @@ export default function SettingsPage() {
           {t.settings?.support || 'Support'}
         </h2>
         <div className="bg-[#1a1a1a] rounded-2xl overflow-hidden">
-          <button className="w-full flex items-center justify-between p-4 border-b border-white/5">
+          <button type="button" className="w-full flex items-center justify-between p-4 border-b border-white/5">
             <div className="flex items-center gap-3">
               <HelpCircle className="w-5 h-5 text-yellow-500" />
               <span>{t.settings?.helpCenter || 'Help Center'}</span>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-500" />
           </button>
-          <button className="w-full flex items-center justify-between p-4 border-b border-white/5">
+          <button type="button" className="w-full flex items-center justify-between p-4 border-b border-white/5">
             <div className="flex items-center gap-3">
               <FileText className="w-5 h-5 text-gray-400" />
               <span>{t.settings?.contactUs || 'Contact Us'}</span>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-500" />
           </button>
-          <button className="w-full flex items-center justify-between p-4 border-b border-white/5">
+          <button type="button" className="w-full flex items-center justify-between p-4 border-b border-white/5">
             <div className="flex items-center gap-3">
               <FileText className="w-5 h-5 text-gray-400" />
               <span>{t.settings?.termsOfService || 'Terms of Service'}</span>
             </div>
             <ChevronRight className="w-5 h-5 text-gray-500" />
           </button>
-          <button className="w-full flex items-center justify-between p-4">
+          <button type="button" className="w-full flex items-center justify-between p-4">
             <div className="flex items-center gap-3">
               <FileText className="w-5 h-5 text-gray-400" />
               <span>{t.settings?.privacyPolicy || 'Privacy Policy'}</span>
@@ -226,7 +233,8 @@ export default function SettingsPage() {
       {/* Logout */}
       {user && (
         <div className="px-4 mb-6">
-          <button 
+          <button type="button" 
+            type="button"
             onClick={handleSignOut}
             className="w-full flex items-center justify-center gap-2 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-500 font-medium"
           >

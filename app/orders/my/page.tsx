@@ -150,7 +150,7 @@ export default function MyOrdersPage() {
           <ShoppingBag className="w-16 h-16 text-gray-600 mx-auto mb-4" />
           <h2 className="text-xl font-bold mb-2">{t.auth?.loginRequired || 'Giriş Yapın'}</h2>
           <p className="text-gray-400 mb-4">{t.orders?.loginToSee || 'Siparişlerinizi görmek için giriş yapın'}</p>
-          <button onClick={() => router.push('/auth')} className="px-6 py-3 bg-orange-500 rounded-xl font-medium">
+          <button type="button" onClick={() => router.push('/auth')} className="px-6 py-3 bg-orange-500 rounded-xl font-medium">
             {t.auth?.login || 'Giriş Yap'}
           </button>
         </div>
@@ -162,7 +162,7 @@ export default function MyOrdersPage() {
     <div className="min-h-screen bg-[#0a0a0a] text-white pb-32">
       <header className="sticky top-0 z-50 bg-[#0a0a0a]/90 backdrop-blur border-b border-white/5 px-4 py-4">
         <div className="flex items-center gap-4">
-          <button onClick={() => router.back()} className="p-2 hover:bg-white/10 rounded-full">
+          <button type="button" onClick={() => router.back()} className="p-2 hover:bg-white/10 rounded-full">
             <ArrowLeft className="w-6 h-6" />
           </button>
           <h1 className="text-xl font-bold">{t.orders?.myOrders || 'Siparişlerim'}</h1>
@@ -186,13 +186,13 @@ export default function MyOrdersPage() {
                 <span className="text-xl font-bold text-orange-500">₺{totalBill}</span>
               </div>
               <div className="flex gap-2">
-                <button
+                <button type="button"
                   onClick={handleRequestBill}
                   className="flex-1 py-2 bg-orange-500/30 rounded-xl text-sm font-medium"
                 >
                   {t.orders?.requestBill || 'Hesap İste'}
                 </button>
-                <button
+                <button type="button"
                   onClick={() => setShowPayment(true)}
                   className="flex-1 py-2 bg-green-500/30 rounded-xl text-sm font-medium text-green-400"
                 >
@@ -257,7 +257,7 @@ export default function MyOrdersPage() {
                         <span className="text-gray-400 text-sm">{formatDate(order.created_at)}</span>
                         <div className="flex items-center gap-2">
                           <span className="font-bold">₺{order.total}</span>
-                          <button
+                          <button type="button"
                             onClick={() => handleReorder(order)}
                             className="px-3 py-1 bg-orange-500/20 text-orange-500 rounded-lg text-sm"
                           >
@@ -289,14 +289,14 @@ export default function MyOrdersPage() {
           <div className="w-full bg-[#1a1a1a] rounded-t-3xl p-6">
             <h2 className="text-xl font-bold mb-4">{t.orders?.paymentMethod || 'Ödeme Yöntemi'}</h2>
             <div className="space-y-3">
-              <button
+              <button type="button"
                 onClick={() => handlePayment('card')}
                 className="w-full p-4 bg-[#242424] rounded-xl flex items-center gap-3"
               >
                 <CreditCard className="w-6 h-6 text-blue-500" />
                 <span>{t.orders?.payWithCard || 'Kredi Kartı ile Öde'}</span>
               </button>
-              <button
+              <button type="button"
                 onClick={() => handlePayment('tit_pay')}
                 className="w-full p-4 bg-gradient-to-r from-purple-500/20 to-indigo-500/20 rounded-xl flex items-center gap-3 border border-purple-500/30"
               >
@@ -304,7 +304,7 @@ export default function MyOrdersPage() {
                 <span>TiT Pay ile Öde</span>
               </button>
             </div>
-            <button
+            <button type="button"
               onClick={() => setShowPayment(false)}
               className="w-full mt-4 py-3 text-gray-400"
             >

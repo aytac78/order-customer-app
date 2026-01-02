@@ -112,7 +112,7 @@ export default function QROrderPage() {
         {/* Venue Header */}
         <div className="relative h-48 bg-gradient-to-br from-orange-600 to-amber-700">
           <div className="absolute inset-0 bg-black/30" />
-          <button 
+          <button type="button" 
             onClick={() => router.back()} 
             className="absolute top-4 left-4 w-10 h-10 rounded-full bg-black/30 backdrop-blur flex items-center justify-center z-10"
           >
@@ -161,7 +161,7 @@ export default function QROrderPage() {
             className="w-full max-w-xs px-6 py-4 bg-[#1a1a1a] rounded-xl border border-white/10 text-center text-2xl font-bold outline-none focus:border-orange-500 mb-4"
           />
           
-          <button
+          <button type="button"
             onClick={() => tableNumber && setShowTableInput(false)}
             disabled={!tableNumber}
             className="w-full max-w-xs py-4 bg-orange-500 rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
@@ -218,7 +218,7 @@ export default function QROrderPage() {
           </div>
         </div>
 
-        <button
+        <button type="button"
           onClick={() => {
             setOrderPlaced(false)
             setPlacedOrderId('')
@@ -228,7 +228,7 @@ export default function QROrderPage() {
         >
           Yeni Sipariş Ver
         </button>
-        <button
+        <button type="button"
           onClick={() => router.push('/orders/my')}
           className="w-full max-w-sm py-4 bg-[#1a1a1a] border border-white/10 rounded-xl font-semibold"
         >
@@ -245,7 +245,7 @@ export default function QROrderPage() {
       <header className="sticky top-0 z-40 bg-[#0a0a0a]/90 backdrop-blur border-b border-white/5 px-4 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <button onClick={() => setShowTableInput(true)} className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-white/10 flex items-center justify-center">
+            <button type="button" onClick={() => setShowTableInput(true)} className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-white/10 flex items-center justify-center">
               <ChevronLeft className="w-5 h-5" />
             </button>
             <div>
@@ -253,7 +253,7 @@ export default function QROrderPage() {
               <p className="text-sm text-gray-400">Masa {tableNumber}</p>
             </div>
           </div>
-          <button
+          <button type="button"
             onClick={() => setShowCart(true)}
             className="relative w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center"
           >
@@ -271,7 +271,7 @@ export default function QROrderPage() {
       <div className="sticky top-[73px] z-30 bg-[#0a0a0a] border-b border-white/5">
         <div className="flex overflow-x-auto py-3 px-4 gap-2 no-scrollbar">
           {venue.menu.map(cat => (
-            <button
+            <button type="button"
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
               className={`flex-shrink-0 px-4 py-2 rounded-full font-medium transition-all text-sm ${
@@ -310,14 +310,14 @@ export default function QROrderPage() {
                     <div className="flex items-center gap-2">
                       {qty > 0 ? (
                         <>
-                          <button
+                          <button type="button"
                             onClick={() => removeFromCart(item.id)}
                             className="w-8 h-8 rounded-full bg-[#242424] flex items-center justify-center"
                           >
                             <Minus className="w-4 h-4" />
                           </button>
                           <span className="w-6 text-center font-semibold">{qty}</span>
-                          <button
+                          <button type="button"
                             onClick={() => addToCart(item)}
                             className="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center"
                           >
@@ -325,7 +325,7 @@ export default function QROrderPage() {
                           </button>
                         </>
                       ) : (
-                        <button
+                        <button type="button"
                           onClick={() => addToCart(item)}
                           className="px-4 py-2 bg-orange-500 rounded-lg font-medium text-sm"
                         >
@@ -343,7 +343,7 @@ export default function QROrderPage() {
       {/* Cart Button Fixed */}
       {cartCount > 0 && !showCart && (
         <div className="fixed bottom-24 left-4 right-4 z-50">
-          <button
+          <button type="button"
             onClick={() => setShowCart(true)}
             className="w-full py-4 bg-orange-500 rounded-xl font-semibold flex items-center justify-center gap-3 shadow-lg shadow-orange-500/30"
           >
@@ -360,7 +360,7 @@ export default function QROrderPage() {
             {/* Cart Header */}
             <div className="flex items-center justify-between p-4 border-b border-white/5">
               <h2 className="text-xl font-bold">Sepetim</h2>
-              <button onClick={() => setShowCart(false)} className="w-8 h-8 rounded-full bg-[#242424] flex items-center justify-center">
+              <button type="button" onClick={() => setShowCart(false)} className="w-8 h-8 rounded-full bg-[#242424] flex items-center justify-center">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -381,14 +381,14 @@ export default function QROrderPage() {
                         <p className="text-orange-500">₺{item.price} x {item.quantity} = ₺{item.price * item.quantity}</p>
                       </div>
                       <div className="flex items-center gap-2">
-                        <button
+                        <button type="button"
                           onClick={() => removeFromCart(item.id)}
                           className="w-8 h-8 rounded-full bg-[#1a1a1a] flex items-center justify-center"
                         >
                           <Minus className="w-4 h-4" />
                         </button>
                         <span className="w-6 text-center">{item.quantity}</span>
-                        <button
+                        <button type="button"
                           onClick={() => addToCart(item)}
                           className="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center"
                         >
@@ -432,7 +432,7 @@ export default function QROrderPage() {
                   <span className="text-gray-400">Toplam</span>
                   <span className="text-2xl font-bold">₺{cartTotal}</span>
                 </div>
-                <button
+                <button type="button"
                   onClick={handlePlaceOrder}
                   className="w-full py-4 bg-orange-500 rounded-xl font-semibold flex items-center justify-center gap-2"
                 >

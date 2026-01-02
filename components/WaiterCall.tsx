@@ -166,7 +166,7 @@ export default function WaiterCall({ venueId, venueName, tableNumber, orderId, o
     return (
       <>
         {/* Floating Button - Active Call */}
-        <button
+        <button type="button"
           onClick={() => setIsOpen(true)}
           className="fixed bottom-24 right-4 z-40"
         >
@@ -184,7 +184,7 @@ export default function WaiterCall({ venueId, venueName, tableNumber, orderId, o
             <div className="bg-[#1a1a1a] rounded-t-3xl w-full max-w-lg p-6 animate-slide-up">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-white">Garson Çağrısı</h2>
-                <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-white/10 rounded-full">
+                <button type="button" onClick={() => setIsOpen(false)} className="p-2 hover:bg-white/10 rounded-full">
                   <X className="w-6 h-6 text-white" />
                 </button>
               </div>
@@ -207,7 +207,7 @@ export default function WaiterCall({ venueId, venueName, tableNumber, orderId, o
                 </p>
               </div>
 
-              <button
+              <button type="button"
                 onClick={cancelCall}
                 className="w-full py-4 border border-red-500 text-red-500 rounded-xl font-medium hover:bg-red-500/10"
               >
@@ -223,7 +223,7 @@ export default function WaiterCall({ venueId, venueName, tableNumber, orderId, o
   return (
     <>
       {/* Floating Button */}
-      <button
+      <button type="button"
         onClick={() => setIsOpen(true)}
         className="fixed bottom-24 right-4 z-40 p-4 bg-orange-500 rounded-full shadow-lg hover:bg-orange-600 transition-colors"
       >
@@ -251,7 +251,7 @@ export default function WaiterCall({ venueId, venueName, tableNumber, orderId, o
                     <h2 className="text-xl font-bold text-white">Garson Çağır</h2>
                     <p className="text-sm text-gray-400">Masa {tableNumber}</p>
                   </div>
-                  <button onClick={() => setIsOpen(false)} className="p-2 hover:bg-white/10 rounded-full">
+                  <button type="button" onClick={() => setIsOpen(false)} className="p-2 hover:bg-white/10 rounded-full">
                     <X className="w-6 h-6 text-white" />
                   </button>
                 </div>
@@ -259,7 +259,7 @@ export default function WaiterCall({ venueId, venueName, tableNumber, orderId, o
                 {/* Call Types */}
                 <div className="grid grid-cols-2 gap-3 mb-4">
                   {callTypes.map(type => (
-                    <button
+                    <button type="button"
                       key={type.id}
                       onClick={() => !loading && handleCall(type.id)}
                       disabled={loading}

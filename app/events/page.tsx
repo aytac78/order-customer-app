@@ -287,14 +287,14 @@ export default function EventsPage() {
       {/* Header */}
       <header className="sticky top-0 z-40 bg-[#0a0a0a]/95 backdrop-blur border-b border-white/5 px-4 py-4">
         <div className="flex items-center gap-3">
-          <button onClick={() => router.back()} className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-white/10 flex items-center justify-center">
+          <button type="button" onClick={() => router.back()} className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-white/10 flex items-center justify-center">
             <ChevronLeft className="w-5 h-5" />
           </button>
           <div className="flex-1">
             <h1 className="text-xl font-bold">{t('events.title')}</h1>
             <p className="text-gray-400 text-sm">{t('events.eventsFound', { count: filteredEvents.length })}</p>
           </div>
-          <button 
+          <button type="button" 
             onClick={() => setShowFilterModal(true)}
             className="relative w-10 h-10 rounded-full bg-[#1a1a1a] border border-white/10 flex items-center justify-center"
           >
@@ -317,7 +317,7 @@ export default function EventsPage() {
             className="w-full px-4 py-3 bg-[#1a1a1a] rounded-xl text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-orange-500"
           />
           {filters.searchQuery && (
-            <button 
+            <button type="button" 
               onClick={() => setFilters(prev => ({ ...prev, searchQuery: '' }))}
               className="absolute right-3 top-1/2 -translate-y-1/2"
             >
@@ -329,7 +329,7 @@ export default function EventsPage() {
         {/* Quick Filters */}
         <div className="mt-3 flex gap-2 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-hide">
           {dateRanges.slice(0, 3).map(range => (
-            <button
+            <button type="button"
               key={range.id}
               onClick={() => toggleFilter('dateRange', range.id)}
               className={`px-3 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors ${
@@ -343,7 +343,7 @@ export default function EventsPage() {
           ))}
           <div className="w-px bg-white/10" />
           {Object.entries(typeConfig).slice(0, 4).map(([key, config]) => (
-            <button
+            <button type="button"
               key={key}
               onClick={() => toggleFilter('types', key)}
               className={`px-3 py-1.5 rounded-full text-sm whitespace-nowrap transition-colors flex items-center gap-1.5 ${
@@ -368,22 +368,22 @@ export default function EventsPage() {
             {filters.types.map(type => (
               <span key={type} className="px-2 py-1 bg-orange-500/20 text-orange-400 rounded-full text-xs flex items-center gap-1">
                 {typeConfig[type]?.label || type}
-                <button onClick={() => toggleFilter('types', type)}><X className="w-3 h-3" /></button>
+                <button type="button" onClick={() => toggleFilter('types', type)}><X className="w-3 h-3" /></button>
               </span>
             ))}
             {filters.dateRange && (
               <span className="px-2 py-1 bg-purple-500/20 text-purple-400 rounded-full text-xs flex items-center gap-1">
                 {dateRanges.find(d => d.id === filters.dateRange)?.label}
-                <button onClick={() => toggleFilter('dateRange', filters.dateRange)}><X className="w-3 h-3" /></button>
+                <button type="button" onClick={() => toggleFilter('dateRange', filters.dateRange)}><X className="w-3 h-3" /></button>
               </span>
             )}
             {filters.priceRange && (
               <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded-full text-xs flex items-center gap-1">
                 {priceRanges.find(p => p.id === filters.priceRange)?.label}
-                <button onClick={() => toggleFilter('priceRange', filters.priceRange)}><X className="w-3 h-3" /></button>
+                <button type="button" onClick={() => toggleFilter('priceRange', filters.priceRange)}><X className="w-3 h-3" /></button>
               </span>
             )}
-            <button onClick={clearFilters} className="text-xs text-red-400 underline">
+            <button type="button" onClick={clearFilters} className="text-xs text-red-400 underline">
               {t('events.clear')}
             </button>
           </div>
@@ -478,7 +478,7 @@ export default function EventsPage() {
             <Calendar className="w-16 h-16 text-gray-600 mx-auto mb-4" />
             <h3 className="text-xl font-semibold mb-2">{t('events.noEvents')}</h3>
             <p className="text-gray-400 mb-4">{t('events.noEventsDesc')}</p>
-            <button 
+            <button type="button" 
               onClick={clearFilters}
               className="px-4 py-2 bg-orange-500 rounded-xl text-sm font-medium"
             >
@@ -495,7 +495,7 @@ export default function EventsPage() {
             {/* Modal Header */}
             <div className="shrink-0 bg-[#1a1a1a] border-b border-white/10 px-4 py-4 flex items-center justify-between">
               <h2 className="text-lg font-bold">{t('events.allFilters')}</h2>
-              <button onClick={() => setShowFilterModal(false)}>
+              <button type="button" onClick={() => setShowFilterModal(false)}>
                 <X className="w-6 h-6" />
               </button>
             </div>
@@ -511,7 +511,7 @@ export default function EventsPage() {
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {dateRanges.map(range => (
-                    <button
+                    <button type="button"
                       key={range.id}
                       onClick={() => toggleFilter('dateRange', range.id)}
                       className={`px-4 py-2 rounded-xl text-sm transition-colors ${
@@ -534,7 +534,7 @@ export default function EventsPage() {
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {Object.entries(typeConfig).map(([key, config]) => (
-                    <button
+                    <button type="button"
                       key={key}
                       onClick={() => toggleFilter('types', key)}
                       className={`px-4 py-2 rounded-xl text-sm transition-colors flex items-center gap-2 ${
@@ -558,7 +558,7 @@ export default function EventsPage() {
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {musicGenres.map(genre => (
-                    <button
+                    <button type="button"
                       key={genre.id}
                       onClick={() => toggleFilter('musicGenres', genre.id)}
                       className={`px-4 py-2 rounded-xl text-sm transition-colors flex items-center gap-2 ${
@@ -582,7 +582,7 @@ export default function EventsPage() {
                 </h3>
                 <div className="flex flex-wrap gap-2">
                   {priceRanges.map(range => (
-                    <button
+                    <button type="button"
                       key={range.id}
                       onClick={() => toggleFilter('priceRange', range.id)}
                       className={`px-4 py-2 rounded-xl text-sm transition-colors ${
@@ -605,7 +605,7 @@ export default function EventsPage() {
                 </h3>
                 <div className="space-y-2">
                   {featureOptions.map(feature => (
-                    <button
+                    <button type="button"
                       key={feature.id}
                       onClick={() => toggleFilter('features', feature.id)}
                       className={`w-full px-4 py-3 rounded-xl text-sm transition-colors flex items-center justify-between ${
@@ -629,13 +629,13 @@ export default function EventsPage() {
 
             {/* Modal Footer */}
             <div className="shrink-0 bg-[#1a1a1a] border-t border-white/10 p-4 flex gap-3 safe-area-bottom">
-              <button
+              <button type="button"
                 onClick={clearFilters}
                 className="flex-1 py-3 rounded-xl border border-white/20 text-white font-medium"
               >
                 {t('events.clear')}
               </button>
-              <button
+              <button type="button"
                 onClick={() => setShowFilterModal(false)}
                 className="flex-1 py-3 rounded-xl bg-orange-500 text-white font-medium"
               >

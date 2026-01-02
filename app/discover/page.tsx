@@ -369,11 +369,11 @@ function DiscoverContent() {
                 <span className="text-xs text-purple-400 font-medium">Paket</span>
               </div>
             )}
-            <button onClick={() => setShowFilterModal(true)} className="relative p-2 hover:bg-white/10 rounded-full">
+            <button type="button" onClick={() => setShowFilterModal(true)} className="relative p-2 hover:bg-white/10 rounded-full">
               <SlidersHorizontal className="w-5 h-5 text-gray-400" />
               {activeFilterCount > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-orange-500 rounded-full text-xs flex items-center justify-center font-bold">{activeFilterCount}</span>}
             </button>
-            <button onClick={() => loadPlaces(userLocation.lat, userLocation.lng)} disabled={loading} className="p-2 hover:bg-white/10 rounded-full disabled:opacity-50">
+            <button type="button" onClick={() => loadPlaces(userLocation.lat, userLocation.lng)} disabled={loading} className="p-2 hover:bg-white/10 rounded-full disabled:opacity-50">
               <RefreshCw className={`w-4 h-4 text-gray-400 ${loading ? 'animate-spin' : ''}`} />
             </button>
           </div>
@@ -384,7 +384,7 @@ function DiscoverContent() {
           <input type="text" placeholder="Döner, pizza, cafe ara..." value={filters.searchQuery} onChange={(e) => setFilters(prev => ({ ...prev, searchQuery: e.target.value }))}
             className="w-full pl-10 pr-10 py-3 bg-[#1a1a1a] rounded-xl text-white placeholder-gray-500 outline-none focus:ring-2 focus:ring-orange-500" />
           {(filters.searchQuery || searching) && (
-            <button onClick={() => setFilters(prev => ({ ...prev, searchQuery: '' }))} className="absolute right-3 top-1/2 -translate-y-1/2">
+            <button type="button" onClick={() => setFilters(prev => ({ ...prev, searchQuery: '' }))} className="absolute right-3 top-1/2 -translate-y-1/2">
               {searching ? <Loader2 className="w-4 h-4 text-orange-500 animate-spin" /> : <X className="w-4 h-4 text-gray-500" />}
             </button>
           )}
@@ -392,7 +392,7 @@ function DiscoverContent() {
 
         <div className="flex gap-2 mt-3 overflow-x-auto pb-1 -mx-4 px-4 scrollbar-hide">
           {categories.map(cat => (
-            <button key={cat.id} onClick={() => { if (cat.id === 'all') setFilters(prev => ({ ...prev, categories: [] })); else toggleArrayFilter('categories', cat.id) }}
+            <button type="button" key={cat.id} onClick={() => { if (cat.id === 'all') setFilters(prev => ({ ...prev, categories: [] })); else toggleArrayFilter('categories', cat.id) }}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm whitespace-nowrap ${(cat.id === 'all' && filters.categories.length === 0) || filters.categories.includes(cat.id) ? 'bg-orange-500 text-white' : 'bg-[#1a1a1a] text-gray-400'}`}>
               <span>{cat.emoji}</span><span>{cat.label}</span>
             </button>
@@ -406,36 +406,36 @@ function DiscoverContent() {
           <span className="text-xs text-gray-400">Filtreler:</span>
           {filters.categories.map(c => (
             <span key={c} className="px-2 py-1 bg-orange-500/20 text-orange-400 rounded-full text-xs flex items-center gap-1">
-              {categories.find(cat => cat.id === c)?.label}<button onClick={() => toggleArrayFilter('categories', c)}><X className="w-3 h-3" /></button>
+              {categories.find(cat => cat.id === c)?.label}<button type="button" onClick={() => toggleArrayFilter('categories', c)}><X className="w-3 h-3" /></button>
             </span>
           ))}
           {filters.budgetRange && (
             <span className="px-2 py-1 bg-green-500/20 text-green-400 rounded-full text-xs flex items-center gap-1">
               {budgetRanges.find(b => b.min === filters.budgetRange?.min)?.label}
-              <button onClick={() => setBudgetRange(null)}><X className="w-3 h-3" /></button>
+              <button type="button" onClick={() => setBudgetRange(null)}><X className="w-3 h-3" /></button>
             </span>
           )}
           {filters.dietary.map(d => (
             <span key={d} className="px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded-full text-xs flex items-center gap-1">
-              {dietaryOptions.find(opt => opt.id === d)?.label}<button onClick={() => toggleArrayFilter('dietary', d)}><X className="w-3 h-3" /></button>
+              {dietaryOptions.find(opt => opt.id === d)?.label}<button type="button" onClick={() => toggleArrayFilter('dietary', d)}><X className="w-3 h-3" /></button>
             </span>
           ))}
           {filters.entertainment.map(e => (
             <span key={e} className="px-2 py-1 bg-purple-500/20 text-purple-400 rounded-full text-xs flex items-center gap-1">
-              {entertainmentOptions.find(opt => opt.id === e)?.label}<button onClick={() => toggleArrayFilter('entertainment', e)}><X className="w-3 h-3" /></button>
+              {entertainmentOptions.find(opt => opt.id === e)?.label}<button type="button" onClick={() => toggleArrayFilter('entertainment', e)}><X className="w-3 h-3" /></button>
             </span>
           ))}
           {filters.features.map(f => (
             <span key={f} className="px-2 py-1 bg-blue-500/20 text-blue-400 rounded-full text-xs flex items-center gap-1">
-              {featureOptions.find(opt => opt.id === f)?.label}<button onClick={() => toggleArrayFilter('features', f)}><X className="w-3 h-3" /></button>
+              {featureOptions.find(opt => opt.id === f)?.label}<button type="button" onClick={() => toggleArrayFilter('features', f)}><X className="w-3 h-3" /></button>
             </span>
           ))}
           {filters.reservationToday && (
             <span className="px-2 py-1 bg-cyan-500/20 text-cyan-400 rounded-full text-xs flex items-center gap-1">
-              Bugün Müsait<button onClick={() => setFilters(prev => ({ ...prev, reservationToday: false }))}><X className="w-3 h-3" /></button>
+              Bugün Müsait<button type="button" onClick={() => setFilters(prev => ({ ...prev, reservationToday: false }))}><X className="w-3 h-3" /></button>
             </span>
           )}
-          <button onClick={clearFilters} className="text-xs text-red-400 underline ml-2">Temizle</button>
+          <button type="button" onClick={clearFilters} className="text-xs text-red-400 underline ml-2">Temizle</button>
         </div>
       )}
 
@@ -456,13 +456,13 @@ function DiscoverContent() {
           <div className="text-center py-10">
             <p className="text-gray-400 mb-2">{filters.searchQuery ? `"${filters.searchQuery}" için sonuç bulunamadı` : 'Bu filtrelere uygun mekan bulunamadı'}</p>
             {hasOrderOnlyFilters && <p className="text-xs text-gray-500 mb-3">Seçili özellikler sadece ORDER üyesi mekanlarda aranıyor</p>}
-            <button onClick={clearFilters} className="text-orange-500 text-sm">Filtreleri temizle</button>
+            <button type="button" onClick={clearFilters} className="text-orange-500 text-sm">Filtreleri temizle</button>
           </div>
         ) : (
           <>
             {filters.searchQuery && <p className="text-sm text-gray-400 mb-2">"{filters.searchQuery}" için <span className="text-orange-500 font-medium">{places.length}</span> sonuç</p>}
             {places.map(place => (
-              <button key={place.id} onClick={() => handlePlaceClick(place)} className="w-full bg-[#1a1a1a] rounded-xl p-4 text-left hover:bg-[#222] transition-colors">
+              <button type="button" key={place.id} onClick={() => handlePlaceClick(place)} className="w-full bg-[#1a1a1a] rounded-xl p-4 text-left hover:bg-[#222] transition-colors">
                 <div className="flex items-center justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
@@ -512,7 +512,7 @@ function DiscoverContent() {
           <div className="absolute inset-x-0 bottom-0 bg-[#1a1a1a] rounded-t-3xl flex flex-col" style={{ height: '60vh', marginBottom: '80px' }}>
             <div className="px-4 py-4 border-b border-white/10 flex items-center justify-between flex-shrink-0">
               <h2 className="text-lg font-bold">Filtreler</h2>
-              <button onClick={() => setShowFilterModal(false)}><X className="w-6 h-6" /></button>
+              <button type="button" onClick={() => setShowFilterModal(false)}><X className="w-6 h-6" /></button>
             </div>
 
             <div className="flex-1 overflow-y-auto p-4 space-y-6">
@@ -521,7 +521,7 @@ function DiscoverContent() {
                 <h3 className="font-semibold mb-3 flex items-center gap-2"><UtensilsCrossed className="w-4 h-4 text-orange-500" />Kategori</h3>
                 <div className="flex flex-wrap gap-2">
                   {categories.filter(c => c.id !== 'all').map(cat => (
-                    <button key={cat.id} onClick={() => toggleArrayFilter('categories', cat.id)}
+                    <button type="button" key={cat.id} onClick={() => toggleArrayFilter('categories', cat.id)}
                       className={`px-4 py-2 rounded-xl text-sm flex items-center gap-2 ${filters.categories.includes(cat.id) ? 'bg-orange-500 text-white' : 'bg-[#242424] text-gray-300'}`}>
                       <span>{cat.emoji}</span>{cat.label}
                     </button>
@@ -534,7 +534,7 @@ function DiscoverContent() {
                 <h3 className="font-semibold mb-3 flex items-center gap-2"><Wallet className="w-4 h-4 text-orange-500" />Kişi Başı Bütçe</h3>
                 <div className="grid grid-cols-2 gap-2">
                   {budgetRanges.map(range => (
-                    <button key={range.id} onClick={() => setBudgetRange(filters.budgetRange?.min === range.min ? null : { min: range.min, max: range.max })}
+                    <button type="button" key={range.id} onClick={() => setBudgetRange(filters.budgetRange?.min === range.min ? null : { min: range.min, max: range.max })}
                       className={`px-4 py-3 rounded-xl text-sm text-left ${filters.budgetRange?.min === range.min ? `${range.color} text-white` : 'bg-[#242424] text-gray-300'}`}>
                       <p className="font-medium">{range.label}</p>
                       <p className="text-xs opacity-70">{range.desc}</p>
@@ -548,7 +548,7 @@ function DiscoverContent() {
                 <h3 className="font-semibold mb-3 flex items-center gap-2"><DollarSign className="w-4 h-4 text-orange-500" />Fiyat Seviyesi</h3>
                 <div className="flex flex-wrap gap-2">
                   {priceLevels.map(p => (
-                    <button key={p.level} onClick={() => toggleArrayFilter('priceLevel', p.level)}
+                    <button type="button" key={p.level} onClick={() => toggleArrayFilter('priceLevel', p.level)}
                       className={`px-4 py-2 rounded-xl text-sm ${filters.priceLevel.includes(p.level) ? 'bg-amber-500 text-white' : 'bg-[#242424] text-gray-300'}`}>
                       {p.label} <span className="text-xs opacity-70">({p.desc})</span>
                     </button>
@@ -565,7 +565,7 @@ function DiscoverContent() {
                   <h3 className="font-semibold mb-3 flex items-center gap-2"><Leaf className="w-4 h-4 text-orange-500" />Diyet Seçenekleri</h3>
                   <div className="flex flex-wrap gap-2">
                     {dietaryOptions.map(opt => (
-                      <button key={opt.id} onClick={() => toggleArrayFilter('dietary', opt.id)}
+                      <button type="button" key={opt.id} onClick={() => toggleArrayFilter('dietary', opt.id)}
                         className={`px-4 py-2 rounded-xl text-sm flex items-center gap-2 ${filters.dietary.includes(opt.id) ? 'bg-emerald-500 text-white' : 'bg-[#242424] text-gray-300'}`}>
                         <opt.icon className="w-4 h-4" />{opt.label}
                       </button>
@@ -578,7 +578,7 @@ function DiscoverContent() {
                   <h3 className="font-semibold mb-3 flex items-center gap-2"><Music className="w-4 h-4 text-orange-500" />Eğlence</h3>
                   <div className="flex flex-wrap gap-2">
                     {entertainmentOptions.map(opt => (
-                      <button key={opt.id} onClick={() => toggleArrayFilter('entertainment', opt.id)}
+                      <button type="button" key={opt.id} onClick={() => toggleArrayFilter('entertainment', opt.id)}
                         className={`px-4 py-2 rounded-xl text-sm flex items-center gap-2 ${filters.entertainment.includes(opt.id) ? 'bg-purple-500 text-white' : 'bg-[#242424] text-gray-300'}`}>
                         <opt.icon className="w-4 h-4" />{opt.label}
                       </button>
@@ -591,7 +591,7 @@ function DiscoverContent() {
                   <h3 className="font-semibold mb-3 flex items-center gap-2"><Sparkles className="w-4 h-4 text-orange-500" />Özellikler</h3>
                   <div className="grid grid-cols-2 gap-2">
                     {featureOptions.map(opt => (
-                      <button key={opt.id} onClick={() => toggleArrayFilter('features', opt.id)}
+                      <button type="button" key={opt.id} onClick={() => toggleArrayFilter('features', opt.id)}
                         className={`px-4 py-3 rounded-xl text-sm flex items-center gap-2 ${filters.features.includes(opt.id) ? 'bg-blue-500 text-white' : 'bg-[#242424] text-gray-300'}`}>
                         <opt.icon className="w-4 h-4" />{opt.label}
                       </button>
@@ -601,7 +601,7 @@ function DiscoverContent() {
 
                 {/* Bugün Rezervasyon */}
                 <div className="pb-2">
-                  <button onClick={() => setFilters(prev => ({ ...prev, reservationToday: !prev.reservationToday }))}
+                  <button type="button" onClick={() => setFilters(prev => ({ ...prev, reservationToday: !prev.reservationToday }))}
                     className={`w-full px-4 py-4 rounded-xl text-sm flex items-center justify-between ${filters.reservationToday ? 'bg-cyan-500 text-white' : 'bg-[#242424] text-gray-300'}`}>
                     <span className="flex items-center gap-3"><Calendar className="w-5 h-5" /><span>Bugün Rezervasyon Müsait</span></span>
                     {filters.reservationToday && <Check className="w-5 h-5" />}
@@ -611,8 +611,8 @@ function DiscoverContent() {
             </div>
 
             <div className="px-4 py-4 border-t border-white/10 flex gap-3 flex-shrink-0 bg-[#1a1a1a]">
-              <button onClick={clearFilters} className="flex-1 py-3 rounded-xl border border-white/20 text-white font-medium">Temizle</button>
-              <button onClick={() => setShowFilterModal(false)} className="flex-1 py-3 rounded-xl bg-orange-500 text-white font-medium">{places.length} Sonuç Göster</button>
+              <button type="button" onClick={clearFilters} className="flex-1 py-3 rounded-xl border border-white/20 text-white font-medium">Temizle</button>
+              <button type="button" onClick={() => setShowFilterModal(false)} className="flex-1 py-3 rounded-xl bg-orange-500 text-white font-medium">{places.length} Sonuç Göster</button>
             </div>
           </div>
         </div>

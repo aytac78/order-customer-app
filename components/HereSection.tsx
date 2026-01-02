@@ -72,7 +72,7 @@ export default function HereSection({ onOpenSettings }: HereSectionProps) {
             <p className="text-xs text-gray-400">{t.here.loginToDiscover}</p>
           </div>
         </div>
-        <button
+        <button type="button"
           onClick={() => router.push('/auth')}
           className="w-full py-2.5 bg-purple-500 hover:bg-purple-600 rounded-xl text-white font-medium transition-colors"
         >
@@ -102,7 +102,7 @@ export default function HereSection({ onOpenSettings }: HereSectionProps) {
         </div>
         
         <div className="flex items-center gap-2">
-          <button
+          <button type="button"
             onClick={toggleDiscoverable}
             className={`p-2 rounded-lg transition-colors ${
               settings.is_discoverable 
@@ -112,7 +112,7 @@ export default function HereSection({ onOpenSettings }: HereSectionProps) {
           >
             {settings.is_discoverable ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
           </button>
-          <button
+          <button type="button"
             onClick={() => router.push('/here/settings')}
             className="p-2 rounded-lg bg-gray-700 text-gray-400 hover:text-white transition-colors"
           >
@@ -154,7 +154,7 @@ export default function HereSection({ onOpenSettings }: HereSectionProps) {
               {venueUsers.length > 5 && (
                 <span className="text-xs text-purple-400">+{venueUsers.length - 5}</span>
               )}
-              <button
+              <button type="button"
                 onClick={() => router.push(`/here/venue/${currentVenueId}`)}
                 className="ml-auto text-xs text-purple-400 hover:text-purple-300 flex items-center gap-1"
               >
@@ -169,7 +169,7 @@ export default function HereSection({ onOpenSettings }: HereSectionProps) {
 
       {/* Yakındakiler */}
       <div className="space-y-3">
-        <button
+        <button type="button"
           onClick={() => {
             if (!settings.show_nearby) {
               updateSettings({ show_nearby: true, is_discoverable: true })
@@ -203,7 +203,7 @@ export default function HereSection({ onOpenSettings }: HereSectionProps) {
           <div className="space-y-2 pl-2">
             <div className="flex gap-2 mb-3">
               {[0.5, 1, 5].map(r => (
-                <button
+                <button type="button"
                   key={r}
                   onClick={() => {
                     setRadius(r)
@@ -236,7 +236,7 @@ export default function HereSection({ onOpenSettings }: HereSectionProps) {
             )}
 
             {nearbyUsers.length > 5 && (
-              <button
+              <button type="button"
                 onClick={() => router.push('/here/nearby')}
                 className="w-full py-2 text-center text-sm text-pink-400 hover:text-pink-300"
               >
@@ -249,7 +249,7 @@ export default function HereSection({ onOpenSettings }: HereSectionProps) {
 
       {/* Keşfet Butonu */}
       {!currentVenue && !showNearby && (
-        <button
+        <button type="button"
           onClick={() => router.push('/here')}
           className="w-full mt-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl text-white font-medium flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"
         >
@@ -285,7 +285,7 @@ function NearbyUserCard({ user, onChat, t }: { user: NearbyUser; onChat: () => v
         <p className="text-xs text-gray-500">{distanceText} {t.here.away}</p>
       </div>
 
-      <button
+      <button type="button"
         onClick={onChat}
         className="p-2 rounded-lg bg-purple-500/20 text-purple-400 hover:bg-purple-500/30 transition-colors"
       >

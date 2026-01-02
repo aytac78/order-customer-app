@@ -97,13 +97,13 @@ export function NotificationPrompt({ onClose, showAsModal = false }: Notificatio
             </div>
 
             <div className="flex gap-3">
-              <button
+              <button type="button"
                 onClick={handleLater}
                 className="flex-1 py-3 border border-gray-200 rounded-xl font-medium text-gray-700 hover:bg-gray-50"
               >
                 Daha Sonra
               </button>
-              <button
+              <button type="button"
                 onClick={handleEnable}
                 disabled={loading}
                 className="flex-1 py-3 bg-orange-500 text-white rounded-xl font-medium hover:bg-orange-600 disabled:opacity-50 flex items-center justify-center gap-2"
@@ -120,7 +120,7 @@ export function NotificationPrompt({ onClose, showAsModal = false }: Notificatio
             </div>
           </div>
 
-          <button
+          <button type="button"
             onClick={handleDismiss}
             className="w-full py-3 border-t border-gray-100 text-sm text-gray-400 hover:text-gray-600"
           >
@@ -146,14 +146,14 @@ export function NotificationPrompt({ onClose, showAsModal = false }: Notificatio
           </p>
           
           <div className="flex gap-2">
-            <button
+            <button type="button"
               onClick={handleEnable}
               disabled={loading}
               className="px-4 py-2 bg-white text-orange-600 rounded-lg font-medium text-sm hover:bg-white/90 disabled:opacity-50"
             >
               {loading ? 'Yükleniyor...' : 'Bildirimleri Aç'}
             </button>
-            <button
+            <button type="button"
               onClick={handleLater}
               className="px-4 py-2 bg-white/20 rounded-lg font-medium text-sm hover:bg-white/30"
             >
@@ -162,7 +162,7 @@ export function NotificationPrompt({ onClose, showAsModal = false }: Notificatio
           </div>
         </div>
 
-        <button onClick={handleDismiss} className="p-1 hover:bg-white/20 rounded-full">
+        <button type="button" onClick={handleDismiss} className="p-1 hover:bg-white/20 rounded-full">
           <X className="w-4 h-4" />
         </button>
       </div>
@@ -205,7 +205,7 @@ export function NotificationSettings() {
               <p className="font-medium text-orange-800">Bildirimler Kapalı</p>
               <p className="text-sm text-orange-600">Bildirimleri açarak önemli güncellemeleri kaçırmayın.</p>
             </div>
-            <button
+            <button type="button"
               onClick={handleEnableNotifications}
               disabled={loading}
               className="px-4 py-2 bg-orange-500 text-white rounded-lg font-medium text-sm disabled:opacity-50"
@@ -236,7 +236,7 @@ export function NotificationSettings() {
               <p className="font-medium text-gray-900">{label}</p>
               <p className="text-sm text-gray-500">{description}</p>
             </div>
-            <button
+            <button type="button"
               onClick={() => handleToggle(key)}
               disabled={!isEnabled}
               className={`relative w-12 h-6 rounded-full transition-colors ${

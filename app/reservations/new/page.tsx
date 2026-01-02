@@ -95,7 +95,7 @@ function NewReservationContent() {
       {/* Header */}
       <header className="sticky top-0 z-40 bg-[#0a0a0a]/95 backdrop-blur border-b border-white/5 px-4 py-4">
         <div className="flex items-center gap-3">
-          <button onClick={() => router.back()} className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-white/10 flex items-center justify-center">
+          <button type="button" onClick={() => router.back()} className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-white/10 flex items-center justify-center">
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
@@ -129,7 +129,7 @@ function NewReservationContent() {
           </label>
           <div className="grid grid-cols-5 gap-2">
             {timeSlots.map((time) => (
-              <button
+              <button type="button"
                 key={time}
                 onClick={() => setFormData({ ...formData, time })}
                 className={`py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -151,14 +151,14 @@ function NewReservationContent() {
             Kişi Sayısı
           </label>
           <div className="flex items-center justify-center gap-6 bg-[#1a1a1a] border border-white/10 rounded-xl py-4">
-            <button
+            <button type="button"
               onClick={() => setFormData({ ...formData, partySize: Math.max(1, formData.partySize - 1) })}
               className="w-12 h-12 rounded-full bg-[#242424] flex items-center justify-center"
             >
               <Minus className="w-5 h-5" />
             </button>
             <span className="text-3xl font-bold w-12 text-center">{formData.partySize}</span>
-            <button
+            <button type="button"
               onClick={() => setFormData({ ...formData, partySize: Math.min(20, formData.partySize + 1) })}
               className="w-12 h-12 rounded-full bg-[#242424] flex items-center justify-center"
             >
@@ -227,7 +227,7 @@ function NewReservationContent() {
         </div>
 
         {/* Submit Button */}
-        <button
+        <button type="button"
           onClick={handleSubmit}
           disabled={loading || !formData.date || !formData.time || !formData.name || !formData.phone}
           className="w-full py-4 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-700 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-colors"

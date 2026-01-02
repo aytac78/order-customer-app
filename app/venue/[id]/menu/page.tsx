@@ -210,16 +210,16 @@ export default function VenueMenuPage() {
             {canOrder && (
               quantity > 0 ? (
                 <div className="flex items-center gap-2 bg-orange-500 rounded-full px-2 py-1">
-                  <button onClick={() => removeFromCart(product.id)} className="p-1">
+                  <button type="button" onClick={() => removeFromCart(product.id)} className="p-1">
                     <Minus className="w-4 h-4" />
                   </button>
                   <span className="font-bold min-w-[20px] text-center">{quantity}</span>
-                  <button onClick={() => addToCart(product)} className="p-1">
+                  <button type="button" onClick={() => addToCart(product)} className="p-1">
                     <Plus className="w-4 h-4" />
                   </button>
                 </div>
               ) : (
-                <button onClick={() => addToCart(product)} className="p-2 bg-orange-500 rounded-full">
+                <button type="button" onClick={() => addToCart(product)} className="p-2 bg-orange-500 rounded-full">
                   <Plus className="w-5 h-5" />
                 </button>
               )
@@ -243,7 +243,7 @@ export default function VenueMenuPage() {
       {/* Header */}
       <div className="sticky top-0 z-10 bg-[#0a0a0a] border-b border-white/10">
         <div className="flex items-center gap-4 p-4">
-          <button onClick={() => router.back()} className="p-2 -ml-2">
+          <button type="button" onClick={() => router.back()} className="p-2 -ml-2">
             <ArrowLeft className="w-6 h-6" />
           </button>
           <div className="flex-1">
@@ -274,14 +274,14 @@ export default function VenueMenuPage() {
         {/* Categories */}
         <div className="px-4 pb-4 overflow-x-auto">
           <div className="flex gap-2">
-            <button
+            <button type="button"
               onClick={() => setSelectedCategory(null)}
               className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${!selectedCategory ? 'bg-orange-500 text-white' : 'bg-[#1a1a1a] text-gray-400'}`}
             >
               Tümü
             </button>
             {popularProducts.length > 0 && (
-              <button
+              <button type="button"
                 onClick={() => setSelectedCategory('popular')}
                 className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
                   selectedCategory === 'popular' 
@@ -293,7 +293,7 @@ export default function VenueMenuPage() {
               </button>
             )}
             {categories.map(cat => (
-              <button
+              <button type="button"
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
                 className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
@@ -396,7 +396,7 @@ export default function VenueMenuPage() {
       {/* Cart Button */}
       {canOrder && cartItemCount > 0 && (
         <div className="fixed bottom-20 left-0 right-0 p-4 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a] to-transparent">
-          <button
+          <button type="button"
             onClick={() => setShowCart(true)}
             className="w-full py-4 bg-orange-500 rounded-2xl font-bold flex items-center justify-between px-6"
           >
@@ -417,7 +417,7 @@ export default function VenueMenuPage() {
           <div className="h-full flex flex-col">
             <div className="p-4 border-b border-white/10 flex items-center justify-between bg-[#1a1a1a]">
               <h2 className="text-lg font-bold">Sepetim ({cartItemCount})</h2>
-              <button onClick={() => setShowCart(false)} className="p-2 hover:bg-white/10 rounded-full">
+              <button type="button" onClick={() => setShowCart(false)} className="p-2 hover:bg-white/10 rounded-full">
                 <X className="w-6 h-6" />
               </button>
             </div>
@@ -437,9 +437,9 @@ export default function VenueMenuPage() {
                     <p className="text-orange-500 font-bold">₺{(item.product.price * item.quantity).toLocaleString()}</p>
                   </div>
                   <div className="flex items-center gap-2 bg-[#2a2a2a] rounded-full px-2 py-1">
-                    <button onClick={() => removeFromCart(item.product.id)} className="p-1"><Minus className="w-4 h-4" /></button>
+                    <button type="button" onClick={() => removeFromCart(item.product.id)} className="p-1"><Minus className="w-4 h-4" /></button>
                     <span className="font-bold min-w-[20px] text-center">{item.quantity}</span>
-                    <button onClick={() => addToCart(item.product)} className="p-1"><Plus className="w-4 h-4" /></button>
+                    <button type="button" onClick={() => addToCart(item.product)} className="p-1"><Plus className="w-4 h-4" /></button>
                   </div>
                 </div>
               ))}
@@ -450,7 +450,7 @@ export default function VenueMenuPage() {
                 <span className="text-gray-400">Toplam</span>
                 <span className="text-xl font-bold">₺{cartTotal.toLocaleString()}</span>
               </div>
-              <button 
+              <button type="button" 
                 onClick={async () => {
                   // Siparişi Supabase'e kaydet
                   const orderNumber = `ORD-${Math.floor(1000 + Math.random() * 9000)}`

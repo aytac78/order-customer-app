@@ -23,7 +23,7 @@ export default function WalletPage() {
     <div className="min-h-screen bg-[#0a0a0a] text-white pb-8">
       <header className="sticky top-0 z-40 glass border-b border-white/5 px-4 py-4">
         <div className="flex items-center gap-3">
-          <button onClick={() => router.back()} className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-white/10 flex items-center justify-center">
+          <button type="button" onClick={() => router.back()} className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-white/10 flex items-center justify-center">
             <ChevronLeft className="w-5 h-5" />
           </button>
           <h1 className="text-xl font-bold">TiT Pay Cüzdan</h1>
@@ -51,19 +51,19 @@ export default function WalletPage() {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-3 gap-3 mb-6">
-          <button onClick={() => setShowTopup(true)} className="bg-[#1a1a1a] rounded-2xl p-4 flex flex-col items-center gap-2 border border-white/5">
+          <button type="button" onClick={() => setShowTopup(true)} className="bg-[#1a1a1a] rounded-2xl p-4 flex flex-col items-center gap-2 border border-white/5">
             <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center">
               <Plus className="w-6 h-6 text-green-500" />
             </div>
             <span className="text-sm">Yükle</span>
           </button>
-          <button onClick={() => alert('Para gönderme özelliği yakında!')} className="bg-[#1a1a1a] rounded-2xl p-4 flex flex-col items-center gap-2 border border-white/5">
+          <button type="button" onClick={() => alert('Para gönderme özelliği yakında!')} className="bg-[#1a1a1a] rounded-2xl p-4 flex flex-col items-center gap-2 border border-white/5">
             <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
               <Send className="w-6 h-6 text-blue-500" />
             </div>
             <span className="text-sm">Gönder</span>
           </button>
-          <button onClick={() => alert('QR ile ödeme özelliği yakında!')} className="bg-[#1a1a1a] rounded-2xl p-4 flex flex-col items-center gap-2 border border-white/5">
+          <button type="button" onClick={() => alert('QR ile ödeme özelliği yakında!')} className="bg-[#1a1a1a] rounded-2xl p-4 flex flex-col items-center gap-2 border border-white/5">
             <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center">
               <QrCode className="w-6 h-6 text-purple-500" />
             </div>
@@ -110,7 +110,7 @@ export default function WalletPage() {
           <div className="bg-[#121212] w-full rounded-t-3xl p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold">Bakiye Yükle</h2>
-              <button onClick={() => setShowTopup(false)} className="text-gray-400">✕</button>
+              <button type="button" onClick={() => setShowTopup(false)} className="text-gray-400">✕</button>
             </div>
 
             <div className="mb-6">
@@ -129,7 +129,7 @@ export default function WalletPage() {
 
             <div className="grid grid-cols-4 gap-2 mb-6">
               {quickAmounts.map((amount) => (
-                <button
+                <button type="button"
                   key={amount}
                   onClick={() => setTopupAmount(amount.toString())}
                   className={`py-3 rounded-xl font-medium ${topupAmount === amount.toString() ? 'bg-orange-500' : 'bg-[#1a1a1a]'}`}
@@ -139,7 +139,7 @@ export default function WalletPage() {
               ))}
             </div>
 
-            <button className="w-full py-4 bg-orange-500 rounded-2xl font-semibold flex items-center justify-center gap-2">
+            <button type="button" className="w-full py-4 bg-orange-500 rounded-2xl font-semibold flex items-center justify-center gap-2">
               <CreditCard className="w-5 h-5" />
               Kartla Yükle
             </button>

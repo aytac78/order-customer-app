@@ -354,7 +354,7 @@ export default function MessagesPage() {
         <MessageCircle className="w-16 h-16 text-gray-600 mb-4" />
         <h2 className="text-xl font-bold mb-2">Giriş Yapın</h2>
         <p className="text-gray-400 text-center mb-4">Mesajlarınızı görmek için giriş yapmanız gerekiyor.</p>
-        <button onClick={() => router.push('/login')} className="px-6 py-3 bg-orange-500 rounded-xl font-medium">
+        <button type="button" onClick={() => router.push('/login')} className="px-6 py-3 bg-orange-500 rounded-xl font-medium">
           Giriş Yap
         </button>
       </div>
@@ -371,7 +371,7 @@ export default function MessagesPage() {
         {/* Header */}
         <div className="sticky top-0 z-10 bg-[#1a1a1a] border-b border-white/10 p-4">
           <div className="flex items-center gap-4">
-            <button onClick={() => { setView('list'); setSelectedConversation(null); setMessages([]); }}>
+            <button type="button" onClick={() => { setView('list'); setSelectedConversation(null); setMessages([]); }}>
               <ArrowLeft className="w-6 h-6" />
             </button>
             <div className={`w-10 h-10 ${typeInfo.color} rounded-full flex items-center justify-center`}>
@@ -381,7 +381,7 @@ export default function MessagesPage() {
               <h2 className="font-semibold">{selectedConversation.title || selectedConversation.venue_name}</h2>
               <p className="text-xs text-gray-400">{typeInfo.label}</p>
             </div>
-            <button className="p-2 hover:bg-white/10 rounded-full">
+            <button type="button" className="p-2 hover:bg-white/10 rounded-full">
               <MoreVertical className="w-5 h-5 text-gray-400" />
             </button>
           </div>
@@ -440,7 +440,7 @@ export default function MessagesPage() {
               placeholder="Mesaj yazın..."
               className="flex-1 px-4 py-3 bg-[#2a2a2a] rounded-full focus:outline-none focus:ring-2 focus:ring-orange-500"
             />
-            <button
+            <button type="button"
               onClick={sendMessage}
               disabled={!newMessage.trim() || sending}
               className="p-3 bg-orange-500 rounded-full disabled:opacity-50"
@@ -459,7 +459,7 @@ export default function MessagesPage() {
       <div className="min-h-screen bg-[#0a0a0a] text-white pb-24">
         <div className="sticky top-0 z-10 bg-[#0a0a0a] border-b border-white/10 p-4">
           <div className="flex items-center gap-4">
-            <button onClick={() => setView('list')}><ArrowLeft className="w-6 h-6" /></button>
+            <button type="button" onClick={() => setView('list')}><ArrowLeft className="w-6 h-6" /></button>
             <h1 className="font-bold text-lg">Yeni Sohbet</h1>
           </div>
         </div>
@@ -470,7 +470,7 @@ export default function MessagesPage() {
             <label className="block text-sm font-medium text-gray-400 mb-3">Konu Seçin</label>
             <div className="grid grid-cols-2 gap-3">
               {conversationTypes.map(type => (
-                <button
+                <button type="button"
                   key={type.type}
                   onClick={() => setNewConvType(type.type)}
                   className={`p-4 rounded-xl flex flex-col items-center gap-2 transition-all ${
@@ -498,7 +498,7 @@ export default function MessagesPage() {
             />
           </div>
 
-          <button
+          <button type="button"
             onClick={createConversation}
             className="w-full py-4 bg-orange-500 rounded-xl font-bold text-lg"
           >
@@ -515,14 +515,14 @@ export default function MessagesPage() {
       {/* Header */}
       <div className="sticky top-0 z-10 bg-[#0a0a0a] border-b border-white/10">
         <div className="flex items-center gap-4 p-4">
-          <button onClick={() => router.back()}><ArrowLeft className="w-6 h-6" /></button>
+          <button type="button" onClick={() => router.back()}><ArrowLeft className="w-6 h-6" /></button>
           <div className="flex-1">
             <h1 className="font-bold text-lg">Mesajlar</h1>
             {totalUnread > 0 && (
               <p className="text-xs text-orange-400">{totalUnread} okunmamış mesaj</p>
             )}
           </div>
-          <button
+          <button type="button"
             onClick={() => setView('new')}
             className="p-2 bg-orange-500 rounded-full"
           >
@@ -552,7 +552,7 @@ export default function MessagesPage() {
             <MessageCircle className="w-16 h-16 text-gray-600 mb-4" />
             <h3 className="text-lg font-semibold mb-2">Henüz mesaj yok</h3>
             <p className="text-gray-400 text-center mb-6">Destek almak veya mekanlarla iletişime geçmek için yeni bir sohbet başlatın.</p>
-            <button
+            <button type="button"
               onClick={() => setView('new')}
               className="px-6 py-3 bg-orange-500 rounded-xl font-medium flex items-center gap-2"
             >
@@ -566,7 +566,7 @@ export default function MessagesPage() {
             const TypeIcon = typeInfo.icon
 
             return (
-              <button
+              <button type="button"
                 key={conv.id}
                 onClick={() => { setSelectedConversation(conv); setView('chat'); }}
                 className="w-full bg-[#1a1a1a] rounded-2xl p-4 flex items-center gap-4 text-left hover:bg-[#222] transition-colors"

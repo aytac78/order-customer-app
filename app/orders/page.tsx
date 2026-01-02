@@ -77,14 +77,14 @@ export default function OrdersPage() {
       <div className="sticky top-0 z-10 bg-[#0a0a0a] border-b border-white/10">
         <div className="flex items-center justify-between p-4">
           <h1 className="text-xl font-bold">Siparişlerim</h1>
-          <button onClick={loadOrders} className="p-2 hover:bg-white/10 rounded-full">
+          <button type="button" onClick={loadOrders} className="p-2 hover:bg-white/10 rounded-full">
             <RefreshCw className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tabs */}
         <div className="flex px-4 pb-4 gap-2">
-          <button
+          <button type="button"
             onClick={() => setActiveTab('active')}
             className={`flex-1 py-3 rounded-xl font-medium transition-colors ${
               activeTab === 'active'
@@ -94,7 +94,7 @@ export default function OrdersPage() {
           >
             Aktif Siparişler ({activeOrders.length})
           </button>
-          <button
+          <button type="button"
             onClick={() => setActiveTab('past')}
             className={`flex-1 py-3 rounded-xl font-medium transition-colors ${
               activeTab === 'past'
@@ -172,7 +172,7 @@ export default function OrdersPage() {
                 {/* Actions for active orders */}
                 {activeTab === 'active' && (
                   <div className="pt-2">
-                    <button
+                    <button type="button"
                       onClick={() => router.push(`/orders/${order.id}`)}
                       className="w-full py-2 bg-orange-500/20 text-orange-500 rounded-xl text-sm font-medium"
                     >

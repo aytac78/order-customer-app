@@ -163,7 +163,7 @@ export default function BillPage() {
             Bir mekanda sipariş verdiğinizde hesabınız burada görünecek.
           </p>
           
-          <button
+          <button type="button"
             onClick={() => router.push('/scan')}
             className="flex items-center gap-3 px-6 py-4 bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl font-bold"
           >
@@ -171,7 +171,7 @@ export default function BillPage() {
             QR Kod Tara
           </button>
           
-          <button
+          <button type="button"
             onClick={() => router.push('/discover')}
             className="mt-4 text-orange-500"
           >
@@ -181,7 +181,7 @@ export default function BillPage() {
 
         {/* Past Orders Link */}
         <div className="px-4">
-          <button
+          <button type="button"
             onClick={() => router.push('/orders')}
             className="w-full flex items-center justify-between p-4 bg-[#1a1a1a] rounded-xl"
           >
@@ -257,7 +257,7 @@ export default function BillPage() {
           </div>
 
           {/* Add More */}
-          <button
+          <button type="button"
             onClick={() => router.push(`/venue/${activeOrder.venue_id}/menu?table=${activeOrder.table_number}`)}
             className="w-full p-4 border-t border-white/10 flex items-center justify-center gap-2 text-orange-500"
           >
@@ -289,7 +289,7 @@ export default function BillPage() {
       {/* Actions */}
       <div className="fixed bottom-20 left-0 right-0 p-4 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a] to-transparent">
         <div className="flex gap-3">
-          <button
+          <button type="button"
             onClick={callWaiter}
             disabled={callingWaiter}
             className="flex-1 py-4 bg-[#1a1a1a] border border-white/10 rounded-2xl font-bold flex items-center justify-center gap-2"
@@ -303,7 +303,7 @@ export default function BillPage() {
               </>
             )}
           </button>
-          <button
+          <button type="button"
             onClick={() => setShowPaymentModal(true)}
             className="flex-1 py-4 bg-green-500 rounded-2xl font-bold flex items-center justify-center gap-2"
           >
@@ -357,7 +357,7 @@ function PaymentModal({ order, onClose, onPay }: { order: ActiveOrder; onClose: 
       <div className="w-full bg-[#1a1a1a] rounded-t-3xl max-h-[80vh] overflow-y-auto">
         <div className="p-4 border-b border-white/10 flex items-center justify-between sticky top-0 bg-[#1a1a1a]">
           <h2 className="text-lg font-bold">Ödeme Yap</h2>
-          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full">
+          <button type="button" onClick={onClose} className="p-2 hover:bg-white/10 rounded-full">
             <X className="w-6 h-6" />
           </button>
         </div>
@@ -371,7 +371,7 @@ function PaymentModal({ order, onClose, onPay }: { order: ActiveOrder; onClose: 
 
           {/* Payment Methods */}
           <div className="space-y-2">
-            <button
+            <button type="button"
               onClick={() => setSelectedMethod('tit_pay')}
               className={`w-full flex items-center gap-3 p-4 rounded-xl border ${
                 selectedMethod === 'tit_pay' ? 'border-purple-500 bg-purple-500/10' : 'border-gray-700 bg-[#2a2a2a]'
@@ -387,7 +387,7 @@ function PaymentModal({ order, onClose, onPay }: { order: ActiveOrder; onClose: 
               {selectedMethod === 'tit_pay' && <Check className="w-5 h-5 text-purple-500" />}
             </button>
 
-            <button
+            <button type="button"
               onClick={() => setSelectedMethod('card')}
               className={`w-full flex items-center gap-3 p-4 rounded-xl border ${
                 selectedMethod === 'card' ? 'border-orange-500 bg-orange-500/10' : 'border-gray-700 bg-[#2a2a2a]'
@@ -403,7 +403,7 @@ function PaymentModal({ order, onClose, onPay }: { order: ActiveOrder; onClose: 
               {selectedMethod === 'card' && <Check className="w-5 h-5 text-orange-500" />}
             </button>
 
-            <button
+            <button type="button"
               onClick={() => setSelectedMethod('cash')}
               className={`w-full flex items-center gap-3 p-4 rounded-xl border ${
                 selectedMethod === 'cash' ? 'border-green-500 bg-green-500/10' : 'border-gray-700 bg-[#2a2a2a]'
@@ -421,7 +421,7 @@ function PaymentModal({ order, onClose, onPay }: { order: ActiveOrder; onClose: 
           </div>
 
           {/* Pay Button */}
-          <button
+          <button type="button"
             onClick={handlePay}
             disabled={processing}
             className="w-full py-4 bg-green-500 rounded-xl font-bold flex items-center justify-center gap-2"

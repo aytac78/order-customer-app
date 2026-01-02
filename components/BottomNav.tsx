@@ -31,7 +31,7 @@ export function BottomNav() {
           const Icon = item.icon;
           
           return (
-            <button
+            <button type="button"
               key={item.href}
               onClick={() => router.push(item.href)}
               className={`flex flex-col items-center justify-center w-full h-full gap-1 transition-all ${

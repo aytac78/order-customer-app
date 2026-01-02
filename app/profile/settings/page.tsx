@@ -36,7 +36,7 @@ export default function SettingsPage() {
       {/* Header */}
       <div className="sticky top-0 z-10 bg-[#0a0a0a]/95 backdrop-blur-sm border-b border-white/10">
         <div className="flex items-center gap-4 p-4">
-          <button 
+          <button type="button" 
             onClick={() => router.back()}
             className="p-2 hover:bg-white/10 rounded-full transition-colors"
           >
@@ -51,7 +51,7 @@ export default function SettingsPage() {
         <section>
           <h2 className="text-sm font-medium text-gray-400 mb-3 px-1">{t('profile.language')}</h2>
           <div className="bg-[#1a1a1a] rounded-2xl overflow-hidden">
-            <button
+            <button type="button"
               onClick={() => setShowLanguages(!showLanguages)}
               className="w-full flex items-center gap-4 p-4 hover:bg-white/5 transition-colors"
             >
@@ -69,7 +69,7 @@ export default function SettingsPage() {
               <div className="border-t border-white/10 p-2">
                 <div className="grid grid-cols-2 gap-2">
                   {locales.map((loc) => (
-                    <button
+                    <button type="button"
                       key={loc}
                       onClick={() => {
                         setLocale(loc);
@@ -104,7 +104,7 @@ export default function SettingsPage() {
                 <p className="font-medium">Bildirimler</p>
                 <p className="text-sm text-gray-400">Sipariş ve kampanya bildirimleri</p>
               </div>
-              <button
+              <button type="button"
                 onClick={() => setNotifications(!notifications)}
                 className={`w-12 h-7 rounded-full transition-colors ${notifications ? 'bg-orange-500' : 'bg-gray-600'}`}
               >
@@ -126,7 +126,7 @@ export default function SettingsPage() {
                 <p className="font-medium">Karanlık Mod</p>
                 <p className="text-sm text-gray-400">{darkMode ? 'Açık' : 'Kapalı'}</p>
               </div>
-              <button
+              <button type="button"
                 onClick={() => setDarkMode(!darkMode)}
                 className={`w-12 h-7 rounded-full transition-colors ${darkMode ? 'bg-purple-500' : 'bg-gray-600'}`}
               >
@@ -140,7 +140,7 @@ export default function SettingsPage() {
         <section>
           <h2 className="text-sm font-medium text-gray-400 mb-3 px-1">Diğer</h2>
           <div className="bg-[#1a1a1a] rounded-2xl overflow-hidden divide-y divide-white/10">
-            <button className="w-full flex items-center gap-4 p-4 hover:bg-white/5 transition-colors">
+            <button type="button" className="w-full flex items-center gap-4 p-4 hover:bg-white/5 transition-colors">
               <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
                 <Shield className="w-5 h-5 text-green-400" />
               </div>
@@ -150,7 +150,7 @@ export default function SettingsPage() {
               <ChevronRight className="w-5 h-5 text-gray-400" />
             </button>
             
-            <button className="w-full flex items-center gap-4 p-4 hover:bg-white/5 transition-colors">
+            <button type="button" className="w-full flex items-center gap-4 p-4 hover:bg-white/5 transition-colors">
               <div className="w-10 h-10 rounded-full bg-cyan-500/20 flex items-center justify-center">
                 <HelpCircle className="w-5 h-5 text-cyan-400" />
               </div>
@@ -160,7 +160,7 @@ export default function SettingsPage() {
               <ChevronRight className="w-5 h-5 text-gray-400" />
             </button>
             
-            <button className="w-full flex items-center gap-4 p-4 hover:bg-white/5 transition-colors">
+            <button type="button" className="w-full flex items-center gap-4 p-4 hover:bg-white/5 transition-colors">
               <div className="w-10 h-10 rounded-full bg-gray-500/20 flex items-center justify-center">
                 <FileText className="w-5 h-5 text-gray-400" />
               </div>
@@ -175,7 +175,7 @@ export default function SettingsPage() {
         {/* Çıkış Yap */}
         {user && (
           <section>
-            <button
+            <button type="button"
               onClick={handleSignOut}
               className="w-full flex items-center gap-4 p-4 bg-red-500/10 rounded-2xl hover:bg-red-500/20 transition-colors"
             >

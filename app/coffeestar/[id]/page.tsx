@@ -298,7 +298,7 @@ export default function CoffeeShopDetailPage() {
         <div className="text-center">
           <Coffee className="w-12 h-12 text-gray-500 mx-auto mb-4" />
           <p className="text-gray-400">Coffee shop bulunamadı</p>
-          <button 
+          <button type="button" 
             onClick={() => router.back()}
             className="mt-4 px-4 py-2 bg-amber-500 rounded-lg"
           >
@@ -329,7 +329,7 @@ export default function CoffeeShopDetailPage() {
         
         {/* Back & Actions */}
         <div className="absolute top-4 left-4 right-4 flex items-center justify-between">
-          <button 
+          <button type="button" 
             onClick={() => router.back()}
             className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center"
           >
@@ -337,13 +337,13 @@ export default function CoffeeShopDetailPage() {
           </button>
           
           <div className="flex items-center gap-2">
-            <button 
+            <button type="button" 
               onClick={() => toggleFavoriteShop(shop.id)}
               className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center"
             >
               <Heart className={`w-5 h-5 ${isFavorite ? 'fill-red-500 text-red-500' : ''}`} />
             </button>
-            <button className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center">
+            <button type="button" className="w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center">
               <Share2 className="w-5 h-5" />
             </button>
           </div>
@@ -383,14 +383,14 @@ export default function CoffeeShopDetailPage() {
 
           {/* Quick Actions */}
           <div className="grid grid-cols-4 gap-2">
-            <button 
+            <button type="button" 
               onClick={() => window.open(`tel:${shop.phone}`)}
               className="flex flex-col items-center gap-1 p-3 bg-white/5 rounded-xl"
             >
               <Phone className="w-5 h-5 text-green-400" />
               <span className="text-xs text-gray-400">Ara</span>
             </button>
-            <button 
+            <button type="button" 
               onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${shop.lat},${shop.lng}`)}
               className="flex flex-col items-center gap-1 p-3 bg-white/5 rounded-xl"
             >
@@ -398,7 +398,7 @@ export default function CoffeeShopDetailPage() {
               <span className="text-xs text-gray-400">Yol Tarifi</span>
             </button>
             {shop.website && (
-              <button 
+              <button type="button" 
                 onClick={() => window.open(shop.website)}
                 className="flex flex-col items-center gap-1 p-3 bg-white/5 rounded-xl"
               >
@@ -406,7 +406,7 @@ export default function CoffeeShopDetailPage() {
                 <span className="text-xs text-gray-400">Website</span>
               </button>
             )}
-            <button className="flex flex-col items-center gap-1 p-3 bg-white/5 rounded-xl">
+            <button type="button" className="flex flex-col items-center gap-1 p-3 bg-white/5 rounded-xl">
               <Instagram className="w-5 h-5 text-pink-400" />
               <span className="text-xs text-gray-400">Instagram</span>
             </button>
@@ -433,7 +433,7 @@ export default function CoffeeShopDetailPage() {
       <div className="sticky top-0 z-30 bg-[#0a0a0a] py-4 mt-4">
         <div className="flex gap-2 overflow-x-auto px-4 scrollbar-hide">
           {categories.map((cat) => (
-            <button
+            <button type="button"
               key={cat}
               onClick={() => setActiveCategory(cat)}
               className={`px-4 py-2 rounded-full whitespace-nowrap text-sm transition-colors ${
@@ -451,7 +451,7 @@ export default function CoffeeShopDetailPage() {
       {/* Menu */}
       <div className="px-4 space-y-4">
         {menuByCategory[activeCategory]?.map((item) => (
-          <button
+          <button type="button"
             key={item.id}
             onClick={() => {
               setSelectedItem(item)
@@ -495,7 +495,7 @@ export default function CoffeeShopDetailPage() {
           <div className="bg-[#1a1a1a] w-full rounded-t-3xl max-h-[90vh] overflow-y-auto">
             <div className="sticky top-0 bg-[#1a1a1a] p-4 border-b border-white/5 flex items-center justify-between">
               <h2 className="text-lg font-bold">{selectedItem.name}</h2>
-              <button onClick={() => setSelectedItem(null)}>
+              <button type="button" onClick={() => setSelectedItem(null)}>
                 <X className="w-6 h-6" />
               </button>
             </div>
@@ -514,7 +514,7 @@ export default function CoffeeShopDetailPage() {
                             : selectedOptions[option.id] === choice.id
 
                           return (
-                            <button
+                            <button type="button"
                               key={choice.id}
                               onClick={() => {
                                 if (option.type === 'extra') {
@@ -560,14 +560,14 @@ export default function CoffeeShopDetailPage() {
               <div>
                 <h3 className="font-medium mb-3">Adet</h3>
                 <div className="flex items-center gap-4 justify-center">
-                  <button
+                  <button type="button"
                     onClick={() => setQuantity(q => Math.max(1, q - 1))}
                     className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center"
                   >
                     <Minus className="w-5 h-5" />
                   </button>
                   <span className="text-2xl font-bold w-12 text-center">{quantity}</span>
-                  <button
+                  <button type="button"
                     onClick={() => setQuantity(q => q + 1)}
                     className="w-12 h-12 rounded-full bg-amber-500 flex items-center justify-center"
                   >
@@ -579,7 +579,7 @@ export default function CoffeeShopDetailPage() {
 
             {/* Add to Cart */}
             <div className="sticky bottom-0 p-4 bg-[#1a1a1a] border-t border-white/5">
-              <button
+              <button type="button"
                 onClick={addToCart}
                 className="w-full py-4 bg-amber-500 rounded-xl font-bold flex items-center justify-center gap-2"
               >
@@ -594,7 +594,7 @@ export default function CoffeeShopDetailPage() {
       {/* Cart Button */}
       {cart.length > 0 && (
         <div className="fixed bottom-6 left-4 right-4 z-40">
-          <button
+          <button type="button"
             onClick={() => setShowCart(true)}
             className="w-full py-4 bg-amber-500 rounded-2xl font-bold flex items-center justify-between px-6 shadow-lg shadow-amber-500/30"
           >
@@ -615,7 +615,7 @@ export default function CoffeeShopDetailPage() {
           <div className="bg-[#1a1a1a] w-full rounded-t-3xl max-h-[80vh] overflow-y-auto">
             <div className="sticky top-0 bg-[#1a1a1a] p-4 border-b border-white/5 flex items-center justify-between">
               <h2 className="text-lg font-bold">Sepetim ({cartItemCount})</h2>
-              <button onClick={() => setShowCart(false)}>
+              <button type="button" onClick={() => setShowCart(false)}>
                 <X className="w-6 h-6" />
               </button>
             </div>
@@ -637,7 +637,7 @@ export default function CoffeeShopDetailPage() {
                 <span>Toplam</span>
                 <span className="font-bold text-amber-400">₺{cartTotal}</span>
               </div>
-              <button
+              <button type="button"
                 onClick={handleOrder}
                 className="w-full py-4 bg-green-500 rounded-xl font-bold flex items-center justify-center gap-2"
               >

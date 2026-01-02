@@ -23,7 +23,7 @@ export default function LanguageSelector() {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <button
+      <button type="button"
         onClick={() => setIsOpen(!isOpen)}
         className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-white/20 transition-colors"
         title="Dil Seç"
@@ -35,7 +35,7 @@ export default function LanguageSelector() {
         <div className="absolute right-0 top-12 w-48 bg-[#1a1a1a] border border-white/10 rounded-2xl shadow-xl overflow-hidden z-50">
           <div className="p-2">
             {languages.map((lang) => (
-              <button
+              <button type="button"
                 key={lang.code}
                 onClick={() => {
                   setLocale(lang.code)

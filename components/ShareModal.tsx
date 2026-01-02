@@ -74,7 +74,7 @@ export default function ShareModal({ venue, onClose }: ShareModalProps) {
               <p className="text-sm text-gray-400">{venue.name}</p>
             </div>
           </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-full bg-[#242424] flex items-center justify-center">
+          <button type="button" onClick={onClose} className="w-8 h-8 rounded-full bg-[#242424] flex items-center justify-center">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -90,7 +90,7 @@ export default function ShareModal({ venue, onClose }: ShareModalProps) {
 
           {/* Share Options */}
           <div className="grid grid-cols-4 gap-3 mb-4">
-            <button
+            <button type="button"
               onClick={handleInstagramShare}
               className="flex flex-col items-center gap-2 p-3 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-xl hover:from-purple-500/30 hover:to-pink-500/30 transition-colors"
             >
@@ -98,7 +98,7 @@ export default function ShareModal({ venue, onClose }: ShareModalProps) {
               <span className="text-xs">Instagram</span>
             </button>
 
-            <button
+            <button type="button"
               onClick={handleFacebookShare}
               className="flex flex-col items-center gap-2 p-3 bg-blue-500/20 rounded-xl hover:bg-blue-500/30 transition-colors"
             >
@@ -106,7 +106,7 @@ export default function ShareModal({ venue, onClose }: ShareModalProps) {
               <span className="text-xs">Facebook</span>
             </button>
 
-            <button
+            <button type="button"
               onClick={handleTwitterShare}
               className="flex flex-col items-center gap-2 p-3 bg-gray-500/20 rounded-xl hover:bg-gray-500/30 transition-colors"
             >
@@ -114,7 +114,7 @@ export default function ShareModal({ venue, onClose }: ShareModalProps) {
               <span className="text-xs">X</span>
             </button>
 
-            <button
+            <button type="button"
               onClick={handleCopyLink}
               className="flex flex-col items-center gap-2 p-3 bg-green-500/20 rounded-xl hover:bg-green-500/30 transition-colors"
             >
@@ -129,7 +129,7 @@ export default function ShareModal({ venue, onClose }: ShareModalProps) {
 
           {/* Native Share (Mobile) */}
           {typeof navigator !== 'undefined' && typeof navigator.share === 'function' && (
-            <button
+            <button type="button"
               onClick={handleNativeShare}
               className="w-full py-3 bg-orange-500 hover:bg-orange-600 rounded-xl font-semibold flex items-center justify-center gap-2 transition-colors"
             >

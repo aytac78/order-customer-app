@@ -101,7 +101,7 @@ export default function AddressesPage() {
           <MapPin className="w-16 h-16 text-gray-600 mx-auto mb-4" />
           <h2 className="text-xl font-bold mb-2">{t.auth?.loginRequired || 'Giriş Yapın'}</h2>
           <p className="text-gray-400 mb-4">{t.addresses?.loginToManage || 'Adreslerinizi yönetmek için giriş yapın'}</p>
-          <button onClick={() => router.push('/auth')} className="px-6 py-3 bg-orange-500 rounded-xl font-medium">
+          <button type="button" onClick={() => router.push('/auth')} className="px-6 py-3 bg-orange-500 rounded-xl font-medium">
             {t.auth?.login || 'Giriş Yap'}
           </button>
         </div>
@@ -114,12 +114,12 @@ export default function AddressesPage() {
       <header className="sticky top-0 z-40 bg-[#0a0a0a]/95 backdrop-blur border-b border-white/5 px-4 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <button onClick={() => router.back()} className="w-10 h-10 rounded-full bg-[#1a1a1a] flex items-center justify-center">
+            <button type="button" onClick={() => router.back()} className="w-10 h-10 rounded-full bg-[#1a1a1a] flex items-center justify-center">
               <ArrowLeft className="w-5 h-5" />
             </button>
             <h1 className="text-xl font-bold">{t.addresses?.title || 'Adreslerim'}</h1>
           </div>
-          <button onClick={() => { setEditingAddress(null); setShowAddModal(true) }} className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center">
+          <button type="button" onClick={() => { setEditingAddress(null); setShowAddModal(true) }} className="w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center">
             <Plus className="w-5 h-5" />
           </button>
         </div>
@@ -135,7 +135,7 @@ export default function AddressesPage() {
             <MapPin className="w-16 h-16 text-gray-600 mx-auto mb-4" />
             <h2 className="text-xl font-bold mb-2">{t.addresses?.noAddresses || 'Kayıtlı Adres Yok'}</h2>
             <p className="text-gray-400 mb-6">{t.addresses?.addFirstAddress || 'Teslimat için ilk adresinizi ekleyin'}</p>
-            <button onClick={() => setShowAddModal(true)} className="px-6 py-3 bg-orange-500 rounded-xl font-medium inline-flex items-center gap-2">
+            <button type="button" onClick={() => setShowAddModal(true)} className="px-6 py-3 bg-orange-500 rounded-xl font-medium inline-flex items-center gap-2">
               <Plus className="w-5 h-5" />
               {t.addresses?.addAddress || 'Adres Ekle'}
             </button>
@@ -166,15 +166,15 @@ export default function AddressesPage() {
 
                 <div className="flex items-center gap-2 mt-4 pt-4 border-t border-white/5">
                   {!address.is_default && (
-                    <button onClick={() => handleSetDefault(address.id)} className="flex-1 py-2 bg-[#242424] rounded-xl text-sm font-medium flex items-center justify-center gap-2 hover:bg-[#2a2a2a]">
+                    <button type="button" onClick={() => handleSetDefault(address.id)} className="flex-1 py-2 bg-[#242424] rounded-xl text-sm font-medium flex items-center justify-center gap-2 hover:bg-[#2a2a2a]">
                       <Star className="w-4 h-4" />
                       {t.addresses?.setDefault || 'Varsayılan Yap'}
                     </button>
                   )}
-                  <button onClick={() => { setEditingAddress(address); setShowAddModal(true) }} className="p-2 bg-[#242424] rounded-xl hover:bg-[#2a2a2a]">
+                  <button type="button" onClick={() => { setEditingAddress(address); setShowAddModal(true) }} className="p-2 bg-[#242424] rounded-xl hover:bg-[#2a2a2a]">
                     <Edit2 className="w-4 h-4" />
                   </button>
-                  <button onClick={() => handleDelete(address.id)} className="p-2 bg-red-500/20 rounded-xl hover:bg-red-500/30 text-red-500">
+                  <button type="button" onClick={() => handleDelete(address.id)} className="p-2 bg-red-500/20 rounded-xl hover:bg-red-500/30 text-red-500">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
@@ -256,7 +256,7 @@ function AddressModal({ address, onClose, onSave }: { address: any; onClose: () 
       <div className="w-full bg-[#1a1a1a] rounded-t-3xl max-h-[90vh] overflow-hidden flex flex-col">
         <div className="p-4 border-b border-white/10 flex items-center justify-between flex-shrink-0">
           <h2 className="text-lg font-bold">{address ? (t.addresses?.editAddress || 'Adresi Düzenle') : (t.addresses?.addAddress || 'Adres Ekle')}</h2>
-          <button onClick={onClose} className="text-gray-400">{t.common?.close || 'Kapat'}</button>
+          <button type="button" onClick={onClose} className="text-gray-400">{t.common?.close || 'Kapat'}</button>
         </div>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -264,7 +264,7 @@ function AddressModal({ address, onClose, onSave }: { address: any; onClose: () 
             <label className="text-sm text-gray-400 mb-2 block">{t.addresses?.addressType || 'Adres Tipi'}</label>
             <div className="flex gap-2">
               {quickTitles.map(item => (
-                <button key={item.id} onClick={() => setTitle(item.label)} className={`flex-1 py-3 rounded-xl flex items-center justify-center gap-2 transition-colors ${title === item.label ? 'bg-orange-500 text-white' : 'bg-[#242424] text-gray-400'}`}>
+                <button type="button" key={item.id} onClick={() => setTitle(item.label)} className={`flex-1 py-3 rounded-xl flex items-center justify-center gap-2 transition-colors ${title === item.label ? 'bg-orange-500 text-white' : 'bg-[#242424] text-gray-400'}`}>
                   <item.icon className="w-4 h-4" />
                   <span className="text-sm font-medium">{item.label}</span>
                 </button>
@@ -272,7 +272,7 @@ function AddressModal({ address, onClose, onSave }: { address: any; onClose: () 
             </div>
           </div>
 
-          <button onClick={handleDetectLocation} disabled={detectingLocation} className="w-full py-3 bg-blue-500/20 text-blue-400 rounded-xl flex items-center justify-center gap-2">
+          <button type="button" onClick={handleDetectLocation} disabled={detectingLocation} className="w-full py-3 bg-blue-500/20 text-blue-400 rounded-xl flex items-center justify-center gap-2">
             {detectingLocation ? <Loader2 className="w-5 h-5 animate-spin" /> : <Navigation className="w-5 h-5" />}
             {t.addresses?.detectLocation || 'Konumumu Kullan'}
           </button>
@@ -298,7 +298,7 @@ function AddressModal({ address, onClose, onSave }: { address: any; onClose: () 
             <input type="text" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={t.addresses?.notesPlaceholder || 'Kapıda kod: 1234, 3. kat...'} className="w-full bg-[#242424] border border-white/10 rounded-xl py-3 px-4 text-white" />
           </div>
 
-          <button onClick={() => setIsDefault(!isDefault)} className="w-full p-4 bg-[#242424] rounded-xl flex items-center justify-between">
+          <button type="button" onClick={() => setIsDefault(!isDefault)} className="w-full p-4 bg-[#242424] rounded-xl flex items-center justify-between">
             <span>{t.addresses?.setAsDefault || 'Varsayılan adres olarak ayarla'}</span>
             <div className={`w-12 h-7 rounded-full relative transition-colors ${isDefault ? 'bg-orange-500' : 'bg-gray-600'}`}>
               <div className={`absolute top-1 w-5 h-5 bg-white rounded-full transition-all ${isDefault ? 'right-1' : 'left-1'}`} />
@@ -307,7 +307,7 @@ function AddressModal({ address, onClose, onSave }: { address: any; onClose: () 
         </div>
 
         <div className="p-4 border-t border-white/10 flex-shrink-0">
-          <button onClick={handleSave} disabled={loading || !title || !fullAddress || !district || !city} className="w-full py-4 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-700 rounded-xl font-bold flex items-center justify-center gap-2">
+          <button type="button" onClick={handleSave} disabled={loading || !title || !fullAddress || !district || !city} className="w-full py-4 bg-orange-500 hover:bg-orange-600 disabled:bg-gray-700 rounded-xl font-bold flex items-center justify-center gap-2">
             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Check className="w-5 h-5" />{t.common?.save || 'Kaydet'}</>}
           </button>
         </div>

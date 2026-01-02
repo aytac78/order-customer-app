@@ -176,7 +176,7 @@ export default function CoffeestarPage() {
       <div className="sticky top-0 z-40 bg-gradient-to-b from-[#0a0a0a] via-[#0a0a0a] to-transparent pb-4">
         <div className="px-4 pt-4">
           <div className="flex items-center justify-between mb-4">
-            <button 
+            <button type="button" 
               onClick={() => router.back()}
               className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center"
             >
@@ -193,7 +193,7 @@ export default function CoffeestarPage() {
               </div>
             </div>
             
-            <button 
+            <button type="button" 
               onClick={() => router.push('/coffeestar/stats')}
               className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center"
             >
@@ -221,7 +221,7 @@ export default function CoffeestarPage() {
                 </div>
               </div>
               
-              <button 
+              <button type="button" 
                 onClick={() => router.push('/coffeestar/stats')}
                 className="flex items-center gap-1 px-3 py-1.5 bg-amber-500/20 rounded-full text-amber-400 text-sm"
               >
@@ -257,7 +257,7 @@ export default function CoffeestarPage() {
               className="w-full pl-12 pr-12 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 outline-none focus:border-amber-500/50"
             />
             {searchQuery && (
-              <button 
+              <button type="button" 
                 onClick={() => setSearchQuery('')}
                 className="absolute right-4 top-1/2 -translate-y-1/2"
               >
@@ -269,7 +269,7 @@ export default function CoffeestarPage() {
           {/* Filters */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-hide">
-              <button
+              <button type="button"
                 onClick={() => setFilters(f => ({ ...f, isOpen: !f.isOpen }))}
                 className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm whitespace-nowrap transition-colors ${
                   filters.isOpen ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-white/5 text-gray-400'
@@ -279,7 +279,7 @@ export default function CoffeestarPage() {
                 Açık
               </button>
               
-              <button
+              <button type="button"
                 onClick={() => setFilters(f => ({ ...f, hasWifi: !f.hasWifi }))}
                 className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm whitespace-nowrap transition-colors ${
                   filters.hasWifi ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' : 'bg-white/5 text-gray-400'
@@ -289,7 +289,7 @@ export default function CoffeestarPage() {
                 WiFi
               </button>
               
-              <button
+              <button type="button"
                 onClick={() => setFilters(f => ({ ...f, minRating: f.minRating === 4 ? 0 : 4 }))}
                 className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm whitespace-nowrap transition-colors ${
                   filters.minRating > 0 ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-white/5 text-gray-400'
@@ -301,13 +301,13 @@ export default function CoffeestarPage() {
             </div>
             
             <div className="flex items-center bg-white/5 rounded-lg p-1 ml-2">
-              <button
+              <button type="button"
                 onClick={() => setViewMode('list')}
                 className={`p-2 rounded-md transition-colors ${viewMode === 'list' ? 'bg-amber-500 text-white' : 'text-gray-400'}`}
               >
                 <List className="w-4 h-4" />
               </button>
-              <button
+              <button type="button"
                 onClick={() => setViewMode('map')}
                 className={`p-2 rounded-md transition-colors ${viewMode === 'map' ? 'bg-amber-500 text-white' : 'text-gray-400'}`}
               >
@@ -354,7 +354,7 @@ export default function CoffeestarPage() {
         {!loading && viewMode === 'list' && (
           <div className="space-y-4">
             {filteredShops.map((shop) => (
-              <button
+              <button type="button"
                 key={shop.id}
                 onClick={() => router.push(`/coffeestar/${shop.place_id}`)}
                 className="w-full bg-white/5 rounded-2xl p-4 border border-white/5 hover:border-amber-500/30 transition-all text-left group"
@@ -377,7 +377,7 @@ export default function CoffeestarPage() {
                       <h3 className="font-semibold text-white group-hover:text-amber-400 transition-colors truncate pr-2">
                         {shop.name}
                       </h3>
-                      <button
+                      <button type="button"
                         onClick={(e) => {
                           e.stopPropagation()
                           toggleFavorite(shop.id)

@@ -23,7 +23,7 @@ export default function OrderTypeModal({ venueName, onSelect, deliveryEnabled = 
         {/* Options */}
         <div className="space-y-3">
           {/* Paket Al */}
-          <button
+          <button type="button"
             onClick={() => onSelect('takeaway')}
             className="w-full p-4 bg-[#242424] hover:bg-[#2a2a2a] rounded-2xl flex items-center gap-4 transition-all group"
           >
@@ -37,7 +37,7 @@ export default function OrderTypeModal({ venueName, onSelect, deliveryEnabled = 
           </button>
 
           {/* Eve Servis */}
-          <button
+          <button type="button"
             onClick={() => deliveryEnabled ? onSelect('delivery') : null}
             disabled={!deliveryEnabled}
             className={`w-full p-4 rounded-2xl flex items-center gap-4 transition-all ${
@@ -67,7 +67,7 @@ export default function OrderTypeModal({ venueName, onSelect, deliveryEnabled = 
           </button>
 
           {/* Sadece Bak */}
-          <button
+          <button type="button"
             onClick={() => onSelect('browse')}
             className="w-full p-4 bg-transparent hover:bg-[#242424] rounded-2xl flex items-center gap-4 transition-all border border-white/10 group"
           >

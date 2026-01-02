@@ -159,7 +159,7 @@ export default function MyReservationsPage() {
         <Calendar className="w-16 h-16 text-gray-600 mb-4" />
         <h2 className="text-xl font-bold mb-2">Giriş Yapın</h2>
         <p className="text-gray-400 text-center mb-4">Rezervasyonlarınızı görmek için giriş yapın.</p>
-        <button onClick={() => router.push('/login')} className="px-6 py-3 bg-orange-500 rounded-xl font-medium">
+        <button type="button" onClick={() => router.push('/login')} className="px-6 py-3 bg-orange-500 rounded-xl font-medium">
           Giriş Yap
         </button>
       </div>
@@ -176,7 +176,7 @@ export default function MyReservationsPage() {
       <div className="min-h-screen bg-[#0a0a0a] text-white pb-24">
         <div className="sticky top-0 z-10 bg-[#0a0a0a] border-b border-white/10 p-4">
           <div className="flex items-center gap-4">
-            <button onClick={() => setSelectedReservation(null)}><ArrowLeft className="w-6 h-6" /></button>
+            <button type="button" onClick={() => setSelectedReservation(null)}><ArrowLeft className="w-6 h-6" /></button>
             <h1 className="font-bold text-lg">Rezervasyon Detayı</h1>
           </div>
         </div>
@@ -276,7 +276,7 @@ export default function MyReservationsPage() {
 
           {/* Cancel Button */}
           {canCancel && (
-            <button
+            <button type="button"
               onClick={() => setShowCancelModal(true)}
               className="w-full py-4 border border-red-500 text-red-500 rounded-xl font-medium hover:bg-red-500/10"
             >
@@ -304,14 +304,14 @@ export default function MyReservationsPage() {
           </div>
 
           <div className="flex gap-3">
-            <button
+            <button type="button"
               onClick={() => setShowCancelModal(false)}
               disabled={cancelling}
               className="flex-1 py-3 border border-white/20 rounded-xl font-medium"
             >
               Vazgeç
             </button>
-            <button
+            <button type="button"
               onClick={cancelReservation}
               disabled={cancelling}
               className="flex-1 py-3 bg-red-500 rounded-xl font-medium flex items-center justify-center gap-2"
@@ -330,14 +330,14 @@ export default function MyReservationsPage() {
       {/* Header */}
       <div className="sticky top-0 z-10 bg-[#0a0a0a] border-b border-white/10">
         <div className="flex items-center gap-4 p-4">
-          <button onClick={() => router.back()}><ArrowLeft className="w-6 h-6" /></button>
+          <button type="button" onClick={() => router.back()}><ArrowLeft className="w-6 h-6" /></button>
           <div className="flex-1">
             <h1 className="font-bold text-lg">Rezervasyonlarım</h1>
             {upcomingCount > 0 && (
               <p className="text-xs text-orange-400">{upcomingCount} aktif rezervasyon</p>
             )}
           </div>
-          <button
+          <button type="button"
             onClick={() => router.push('/reservations/new')}
             className="p-2 bg-orange-500 rounded-full"
           >
@@ -348,7 +348,7 @@ export default function MyReservationsPage() {
         {/* Filter Tabs */}
         <div className="flex px-4 pb-4 gap-2">
           {(['upcoming', 'past', 'all'] as FilterType[]).map(f => (
-            <button
+            <button type="button"
               key={f}
               onClick={() => setFilter(f)}
               className={`flex-1 py-2 rounded-xl font-medium text-sm ${
@@ -378,7 +378,7 @@ export default function MyReservationsPage() {
                 ? 'Henüz aktif bir rezervasyonunuz bulunmuyor.'
                 : 'Bu kategoride rezervasyon yok.'}
             </p>
-            <button
+            <button type="button"
               onClick={() => router.push('/reservations/new')}
               className="px-6 py-3 bg-orange-500 rounded-xl font-medium flex items-center gap-2"
             >
@@ -392,7 +392,7 @@ export default function MyReservationsPage() {
             const StatusIcon = status.icon
 
             return (
-              <button
+              <button type="button"
                 key={reservation.id}
                 onClick={() => setSelectedReservation(reservation)}
                 className="w-full bg-[#1a1a1a] rounded-2xl p-4 text-left hover:bg-[#222] transition-colors"

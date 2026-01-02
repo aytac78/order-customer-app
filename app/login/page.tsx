@@ -60,7 +60,7 @@ function LoginContent() {
           <p className="text-gray-400 text-center mt-2">Sipariş ver, keyfini çıkar</p>
         </div>
         <div className="w-full max-w-sm space-y-4">
-          <button
+          <button type="button"
             onClick={handleGoogleLogin}
             disabled={loading}
             className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-white text-gray-900 rounded-2xl font-semibold hover:bg-gray-100 transition-colors disabled:opacity-50"

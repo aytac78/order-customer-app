@@ -66,7 +66,7 @@ export default function CoffeestarStatsPage() {
       <div className="bg-gradient-to-b from-amber-900/30 to-transparent pt-4 pb-8">
         <div className="px-4">
           <div className="flex items-center justify-between mb-6">
-            <button 
+            <button type="button" 
               onClick={() => router.back()}
               className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center"
             >
@@ -156,7 +156,7 @@ export default function CoffeestarStatsPage() {
       <div className="px-4 mt-6">
         <div className="flex bg-white/5 rounded-xl p-1">
           {(['overview', 'badges', 'history'] as const).map((tab) => (
-            <button
+            <button type="button"
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`flex-1 py-2.5 rounded-lg text-sm font-medium transition-colors ${

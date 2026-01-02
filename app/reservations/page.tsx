@@ -109,7 +109,7 @@ export default function ReservationsPage() {
           <Calendar className="w-16 h-16 text-gray-600 mx-auto mb-4" />
           <h2 className="text-xl font-bold mb-2">{t.auth.login}</h2>
           <p className="text-gray-400 mb-4">{t.reservations.loginToSee || 'Rezervasyonlarınızı görmek için giriş yapın'}</p>
-          <button onClick={() => router.push('/auth')} className="px-6 py-3 bg-orange-500 rounded-xl font-medium">
+          <button type="button" onClick={() => router.push('/auth')} className="px-6 py-3 bg-orange-500 rounded-xl font-medium">
             {t.auth.login}
           </button>
         </div>
@@ -124,12 +124,12 @@ export default function ReservationsPage() {
       <header className="sticky top-0 z-40 bg-[#0a0a0a] border-b border-white/5 px-4 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <button onClick={() => router.back()} className="w-10 h-10 rounded-full bg-[#1a1a1a] flex items-center justify-center">
+            <button type="button" onClick={() => router.back()} className="w-10 h-10 rounded-full bg-[#1a1a1a] flex items-center justify-center">
               <ArrowLeft className="w-5 h-5" />
             </button>
             <h1 className="text-xl font-bold">{t.reservations.myReservations}</h1>
           </div>
-          <button className="w-10 h-10 rounded-full bg-[#1a1a1a] flex items-center justify-center">
+          <button type="button" className="w-10 h-10 rounded-full bg-[#1a1a1a] flex items-center justify-center">
             <Bell className="w-5 h-5 text-gray-400" />
           </button>
         </div>
@@ -137,13 +137,13 @@ export default function ReservationsPage() {
 
       {/* Tabs */}
       <div className="flex p-4 gap-2">
-        <button
+        <button type="button"
           onClick={() => setActiveTab('upcoming')}
           className={`flex-1 py-3 rounded-xl font-medium transition ${activeTab === 'upcoming' ? 'bg-orange-500 text-white' : 'bg-[#1a1a1a] text-gray-400'}`}
         >
           {t.reservations.upcoming || 'Yaklaşan'} ({upcoming.length})
         </button>
-        <button
+        <button type="button"
           onClick={() => setActiveTab('past')}
           className={`flex-1 py-3 rounded-xl font-medium transition ${activeTab === 'past' ? 'bg-orange-500 text-white' : 'bg-[#1a1a1a] text-gray-400'}`}
         >
@@ -159,7 +159,7 @@ export default function ReservationsPage() {
               {activeTab === 'upcoming' ? t.reservations.noUpcoming || 'Yaklaşan rezervasyon yok' : t.reservations.noPast || 'Geçmiş rezervasyon yok'}
             </h2>
             {activeTab === 'upcoming' && (
-              <button onClick={() => router.push('/discover')} className="mt-4 px-6 py-3 bg-orange-500 rounded-xl font-medium">
+              <button type="button" onClick={() => router.push('/discover')} className="mt-4 px-6 py-3 bg-orange-500 rounded-xl font-medium">
                 {t.nav.discover}
               </button>
             )}
@@ -202,7 +202,7 @@ export default function ReservationsPage() {
               )}
 
               {activeTab === 'upcoming' && res.status !== 'cancelled' && (
-                <button
+                <button type="button"
                   onClick={() => cancelReservation(res.id)}
                   className="mt-3 w-full py-2 border border-red-500/50 text-red-500 rounded-lg flex items-center justify-center gap-2"
                 >

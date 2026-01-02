@@ -189,11 +189,11 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
               <h2 className="text-lg font-bold text-white">{t.notifications.title}</h2>
               <div className="flex items-center gap-2">
                 {unreadCount > 0 && (
-                  <button onClick={markAllAsRead} className="text-xs text-orange-500">
+                  <button type="button" onClick={markAllAsRead} className="text-xs text-orange-500">
                     {t.notifications.markAllRead}
                   </button>
                 )}
-                <button onClick={() => setShowPanel(false)} className="w-8 h-8 rounded-full bg-[#1a1a1a] flex items-center justify-center">
+                <button type="button" onClick={() => setShowPanel(false)} className="w-8 h-8 rounded-full bg-[#1a1a1a] flex items-center justify-center">
                   <X className="w-4 h-4 text-white" />
                 </button>
               </div>

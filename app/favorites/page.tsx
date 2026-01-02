@@ -38,7 +38,7 @@ export default function FavoritesPage() {
             <h1 className="text-xl font-bold">Favorilerim</h1>
             <p className="text-sm text-gray-400">{favorites.length} mekan</p>
           </div>
-          <button onClick={refresh} className="p-2 hover:bg-white/10 rounded-full">
+          <button type="button" onClick={refresh} className="p-2 hover:bg-white/10 rounded-full">
             <RefreshCw className="w-5 h-5 text-gray-400" />
           </button>
         </div>
@@ -50,7 +50,7 @@ export default function FavoritesPage() {
             <div className="flex-1">
               <p className="text-sm text-orange-200">Giriş yaparak favorilerinizi kaydedin</p>
             </div>
-            <button 
+            <button type="button" 
               onClick={() => router.push('/login')}
               className="px-3 py-1 bg-orange-500 rounded-lg text-sm font-medium"
             >
@@ -69,7 +69,7 @@ export default function FavoritesPage() {
             </div>
             <p className="text-gray-400 text-center">Henüz favori mekanınız yok</p>
             <p className="text-sm text-gray-500 text-center mt-1">Beğendiğiniz mekanları kalp ikonuna tıklayarak ekleyin</p>
-            <button
+            <button type="button"
               onClick={() => router.push('/discover')}
               className="mt-6 px-6 py-3 bg-orange-500 rounded-xl font-medium"
             >
@@ -122,7 +122,7 @@ export default function FavoritesPage() {
                 </div>
 
                 {/* Remove Button */}
-                <button
+                <button type="button"
                   onClick={() => handleRemove(fav.venue_id)}
                   className="p-4 self-center"
                 >

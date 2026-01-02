@@ -142,7 +142,7 @@ export default function NotificationsPage() {
     <div className="min-h-screen bg-[#0a0a0a] text-white pb-24">
       <header className="sticky top-0 z-40 bg-[#0a0a0a]/95 backdrop-blur border-b border-white/5 px-4 py-4">
         <div className="flex items-center gap-3">
-          <button onClick={() => router.back()} className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-white/10 flex items-center justify-center">
+          <button type="button" onClick={() => router.back()} className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-white/10 flex items-center justify-center">
             <ChevronLeft className="w-5 h-5" />
           </button>
           <div className="flex-1">
@@ -150,7 +150,7 @@ export default function NotificationsPage() {
             {unreadCount > 0 && <p className="text-gray-400 text-sm">{unreadCount} {t.notifications.unread || 'okunmamış'}</p>}
           </div>
           {unreadCount > 0 && (
-            <button onClick={markAllRead} className="text-orange-500 text-sm font-medium">
+            <button type="button" onClick={markAllRead} className="text-orange-500 text-sm font-medium">
               {t.notifications.markAllRead}
             </button>
           )}
@@ -202,7 +202,7 @@ export default function NotificationsPage() {
           <div className="bg-[#121212] rounded-2xl w-full max-w-sm overflow-hidden">
             <div className="bg-gradient-to-br from-orange-500 to-orange-600 p-4 flex items-center justify-between">
               <h2 className="text-lg font-bold">{selectedItem.title}</h2>
-              <button onClick={() => setSelectedItem(null)} className="w-8 h-8 rounded-full bg-black/20 flex items-center justify-center">
+              <button type="button" onClick={() => setSelectedItem(null)} className="w-8 h-8 rounded-full bg-black/20 flex items-center justify-center">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -235,12 +235,12 @@ export default function NotificationsPage() {
             </div>
             <div className="p-4 border-t border-white/5 space-y-2">
               {(selectedItem.type === 'reservation_confirmed' || selectedItem.type === 'reservation') && selectedItem.data && (
-                <button onClick={() => addToCalendar(selectedItem)} className="w-full py-3 bg-green-600 rounded-xl font-medium flex items-center justify-center gap-2">
+                <button type="button" onClick={() => addToCalendar(selectedItem)} className="w-full py-3 bg-green-600 rounded-xl font-medium flex items-center justify-center gap-2">
                   <CalendarPlus className="w-5 h-5" />
                   {t.notifications.addToCalendar || 'Takvime Ekle'}
                 </button>
               )}
-              <button onClick={() => setSelectedItem(null)} className="w-full py-3 bg-orange-500 rounded-xl font-medium">
+              <button type="button" onClick={() => setSelectedItem(null)} className="w-full py-3 bg-orange-500 rounded-xl font-medium">
                 {t.common.ok}
               </button>
             </div>

@@ -284,7 +284,7 @@ function ScanPageContent() {
       <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col">
         {/* Header with back button */}
         <header className="p-4 flex items-center gap-4">
-          <button 
+          <button type="button" 
             onClick={() => router.back()} 
             className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-white/10 flex items-center justify-center"
           >
@@ -300,7 +300,7 @@ function ScanPageContent() {
                 id="qr-reader" 
                 className="w-full aspect-square rounded-2xl overflow-hidden mb-4 bg-black"
               />
-              <button 
+              <button type="button" 
                 onClick={stopScanner}
                 className="w-full py-4 bg-red-500/20 border border-red-500/30 rounded-xl text-red-500 font-medium"
               >
@@ -322,7 +322,7 @@ function ScanPageContent() {
                 </div>
               )}
               
-              <button 
+              <button type="button" 
                 onClick={startScanner}
                 className="w-full max-w-sm py-4 bg-orange-500 rounded-xl font-semibold flex items-center justify-center gap-2 mb-4"
               >
@@ -330,7 +330,7 @@ function ScanPageContent() {
                 Kamerayı Aç
               </button>
               
-              <button 
+              <button type="button" 
                 onClick={() => router.push('/discover')} 
                 className="w-full max-w-sm py-4 bg-[#1a1a1a] border border-white/10 rounded-xl font-medium"
               >
@@ -357,7 +357,7 @@ function ScanPageContent() {
         <AlertCircle className="w-16 h-16 text-red-500 mb-4" />
         <h2 className="text-xl font-bold mb-2">Mekan Bulunamadı</h2>
         <p className="text-gray-400 mb-6">QR kod geçersiz veya mekan artık aktif değil.</p>
-        <button 
+        <button type="button" 
           onClick={() => router.push('/scan')} 
           className="px-6 py-3 bg-orange-500 rounded-xl font-medium"
         >
@@ -378,10 +378,10 @@ function ScanPageContent() {
         <p className="text-gray-400 mb-6">Masa {tableNumber}</p>
         <p className="text-orange-500 font-mono mb-8">#{placedOrderId.slice(0, 8)}</p>
         <div className="w-full max-w-sm space-y-3">
-          <button onClick={() => setOrderPlaced(false)} className="w-full py-4 bg-orange-500 rounded-xl font-semibold">
+          <button type="button" onClick={() => setOrderPlaced(false)} className="w-full py-4 bg-orange-500 rounded-xl font-semibold">
             Yeni Sipariş Ver
           </button>
-          <button onClick={() => router.push('/orders')} className="w-full py-4 bg-[#1a1a1a] border border-white/10 rounded-xl">
+          <button type="button" onClick={() => router.push('/orders')} className="w-full py-4 bg-[#1a1a1a] border border-white/10 rounded-xl">
             Siparişlerimi Gör
           </button>
         </div>
@@ -394,7 +394,7 @@ function ScanPageContent() {
       <header className="sticky top-0 z-40 bg-[#0a0a0a]/95 backdrop-blur border-b border-white/5 px-4 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <button onClick={() => router.push('/')} className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-white/10 flex items-center justify-center">
+            <button type="button" onClick={() => router.push('/')} className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-white/10 flex items-center justify-center">
               <ChevronLeft className="w-5 h-5" />
             </button>
             <div>
@@ -403,7 +403,7 @@ function ScanPageContent() {
             </div>
           </div>
           {canOrder && (
-            <button onClick={() => setShowCart(true)} className="relative w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center">
+            <button type="button" onClick={() => setShowCart(true)} className="relative w-10 h-10 rounded-full bg-orange-500 flex items-center justify-center">
               <ShoppingCart className="w-5 h-5" />
               {cartCount > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full text-xs flex items-center justify-center">{cartCount}</span>}
             </button>
@@ -421,7 +421,7 @@ function ScanPageContent() {
       <div className="sticky top-[73px] z-30 bg-[#0a0a0a] border-b border-white/5">
         <div className="flex overflow-x-auto py-3 px-4 gap-2 no-scrollbar">
           {categories.map(cat => (
-            <button
+            <button type="button"
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id)}
               className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-medium ${selectedCategory === cat.id ? 'bg-orange-500 text-white' : 'bg-[#1a1a1a] text-gray-400'}`}
@@ -451,12 +451,12 @@ function ScanPageContent() {
                     {canOrder ? (
                       qty > 0 ? (
                         <div className="flex items-center gap-2">
-                          <button onClick={() => removeFromCart(item.id)} className="w-8 h-8 rounded-full bg-[#242424] flex items-center justify-center"><Minus className="w-4 h-4" /></button>
+                          <button type="button" onClick={() => removeFromCart(item.id)} className="w-8 h-8 rounded-full bg-[#242424] flex items-center justify-center"><Minus className="w-4 h-4" /></button>
                           <span className="w-6 text-center">{qty}</span>
-                          <button onClick={() => addToCart(item)} className="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center"><Plus className="w-4 h-4" /></button>
+                          <button type="button" onClick={() => addToCart(item)} className="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center"><Plus className="w-4 h-4" /></button>
                         </div>
                       ) : (
-                        <button onClick={() => addToCart(item)} className="px-4 py-2 bg-orange-500 rounded-lg text-sm font-medium">Ekle</button>
+                        <button type="button" onClick={() => addToCart(item)} className="px-4 py-2 bg-orange-500 rounded-lg text-sm font-medium">Ekle</button>
                       )
                     ) : (
                       <Lock className="w-5 h-5 text-gray-600" />
@@ -471,7 +471,7 @@ function ScanPageContent() {
 
       {canOrder && cartCount > 0 && !showCart && (
         <div className="fixed bottom-20 left-4 right-4 z-50">
-          <button onClick={() => setShowCart(true)} className="w-full py-4 bg-orange-500 rounded-xl font-semibold flex items-center justify-center gap-3 shadow-lg">
+          <button type="button" onClick={() => setShowCart(true)} className="w-full py-4 bg-orange-500 rounded-xl font-semibold flex items-center justify-center gap-3 shadow-lg">
             <ShoppingCart className="w-5 h-5" />
             Sepeti Gör ({cartCount}) - ₺{cartTotal}
           </button>
@@ -483,7 +483,7 @@ function ScanPageContent() {
           <div className="w-full max-h-[80vh] bg-[#1a1a1a] rounded-t-3xl flex flex-col">
             <div className="flex items-center justify-between p-4 border-b border-white/5">
               <h2 className="text-xl font-bold">Sepetim</h2>
-              <button onClick={() => setShowCart(false)} className="w-8 h-8 rounded-full bg-[#242424] flex items-center justify-center"><X className="w-5 h-5" /></button>
+              <button type="button" onClick={() => setShowCart(false)} className="w-8 h-8 rounded-full bg-[#242424] flex items-center justify-center"><X className="w-5 h-5" /></button>
             </div>
             <div className="flex-1 overflow-auto p-4 space-y-3">
               {cart.map(item => (
@@ -493,9 +493,9 @@ function ScanPageContent() {
                     <p className="text-orange-500">₺{item.price} x {item.quantity}</p>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button onClick={() => removeFromCart(item.id)} className="w-8 h-8 rounded-full bg-[#1a1a1a] flex items-center justify-center"><Minus className="w-4 h-4" /></button>
+                    <button type="button" onClick={() => removeFromCart(item.id)} className="w-8 h-8 rounded-full bg-[#1a1a1a] flex items-center justify-center"><Minus className="w-4 h-4" /></button>
                     <span className="w-6 text-center">{item.quantity}</span>
-                    <button onClick={() => addToCart({ id: item.id, name: item.name, price: item.price, description: '', category_id: '' })} className="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center"><Plus className="w-4 h-4" /></button>
+                    <button type="button" onClick={() => addToCart({ id: item.id, name: item.name, price: item.price, description: '', category_id: '' })} className="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center"><Plus className="w-4 h-4" /></button>
                   </div>
                 </div>
               ))}
@@ -507,7 +507,7 @@ function ScanPageContent() {
                 <span className="text-gray-400">Toplam</span>
                 <span className="text-2xl font-bold">₺{cartTotal}</span>
               </div>
-              <button onClick={handlePlaceOrder} disabled={ordering} className="w-full py-4 bg-orange-500 rounded-xl font-semibold flex items-center justify-center gap-2 disabled:opacity-50">
+              <button type="button" onClick={handlePlaceOrder} disabled={ordering} className="w-full py-4 bg-orange-500 rounded-xl font-semibold flex items-center justify-center gap-2 disabled:opacity-50">
                 {ordering ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" /> : <><Send className="w-5 h-5" />Siparişi Gönder</>}
               </button>
             </div>

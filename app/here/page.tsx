@@ -418,7 +418,7 @@ export default function HerePage() {
         </div>
         <h1 className="text-2xl font-bold mb-2">{t('here.title')}</h1>
         <p className="text-gray-400 text-center mb-8">{t('here.subtitle')}</p>
-        <button 
+        <button type="button" 
           onClick={() => router.push('/auth')}
           className="w-full max-w-sm py-4 bg-gradient-to-r from-pink-500 to-orange-500 rounded-2xl font-bold"
         >
@@ -433,7 +433,7 @@ export default function HerePage() {
     return (
       <div className="min-h-screen bg-[#0a0a0a] text-white pb-24">
         <div className="p-4 border-b border-white/10 flex items-center gap-4">
-          <button onClick={() => hasProfile ? setActiveTab('venue') : router.back()}>
+          <button type="button" onClick={() => hasProfile ? setActiveTab('venue') : router.back()}>
             <ArrowLeft className="w-6 h-6" />
           </button>
           <h1 className="font-bold text-lg">{hasProfile ? t('here.editProfile') : t('here.createProfile')}</h1>
@@ -465,7 +465,7 @@ export default function HerePage() {
                     </div>
                   )}
                   {avatarUrl && !uploading && (
-                    <button onClick={removePhoto} className="absolute -top-2 -right-2 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
+                    <button type="button" onClick={removePhoto} className="absolute -top-2 -right-2 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   )}
@@ -474,7 +474,7 @@ export default function HerePage() {
                 <input ref={fileInputRef} type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
 
                 <div className="flex gap-2">
-                  <button onClick={() => fileInputRef.current?.click()} disabled={uploading}
+                  <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading}
                     className="flex items-center gap-2 px-4 py-2 bg-pink-500 rounded-xl font-medium disabled:opacity-50">
                     <Camera className="w-4 h-4" />
                     {avatarUrl ? t('here.changePhoto') : t('here.addPhoto')}
@@ -484,7 +484,7 @@ export default function HerePage() {
               </div>
 
               {/* Avatar Blur Toggle */}
-              <button onClick={() => setAvatarBlur(!avatarBlur)}
+              <button type="button" onClick={() => setAvatarBlur(!avatarBlur)}
                 className={`w-full flex items-center justify-between p-4 rounded-xl ${avatarBlur ? 'bg-pink-500/20 border border-pink-500' : 'bg-[#1a1a1a]'}`}>
                 <div className="flex items-center gap-3">
                   {avatarBlur ? <EyeOff className="w-5 h-5 text-pink-500" /> : <Eye className="w-5 h-5" />}
@@ -532,7 +532,7 @@ export default function HerePage() {
                 </select>
               </div>
 
-              <button onClick={() => setSetupStep(2)} disabled={!nickname || !birthYear || calculateAge(birthYear)! < 18}
+              <button type="button" onClick={() => setSetupStep(2)} disabled={!nickname || !birthYear || calculateAge(birthYear)! < 18}
                 className="w-full py-4 bg-gradient-to-r from-pink-500 to-orange-500 rounded-xl font-bold disabled:opacity-50">
                 {t('here.continue')}
               </button>
@@ -558,7 +558,7 @@ export default function HerePage() {
                 <label className="block text-sm font-medium text-gray-400 mb-2">{t('here.genderTitle')} *</label>
                 <div className="grid grid-cols-2 gap-2">
                   {genderOptions.map(opt => (
-                    <button key={opt.id} onClick={() => setGender(opt.id)}
+                    <button type="button" key={opt.id} onClick={() => setGender(opt.id)}
                       className={`py-3 px-4 rounded-xl text-sm font-medium ${gender === opt.id ? 'bg-pink-500 text-white' : 'bg-[#1a1a1a] text-gray-300'}`}>
                       {opt.label}
                     </button>
@@ -570,7 +570,7 @@ export default function HerePage() {
                 <label className="block text-sm font-medium text-gray-400 mb-2">{t('here.orientationTitle')}</label>
                 <div className="grid grid-cols-2 gap-2">
                   {orientationOptions.map(opt => (
-                    <button key={opt.id} onClick={() => setOrientation(opt.id)}
+                    <button type="button" key={opt.id} onClick={() => setOrientation(opt.id)}
                       className={`py-3 px-4 rounded-xl text-sm font-medium ${orientation === opt.id ? 'bg-pink-500 text-white' : 'bg-[#1a1a1a] text-gray-300'}`}>
                       {opt.label}
                     </button>
@@ -579,8 +579,8 @@ export default function HerePage() {
               </div>
 
               <div className="flex gap-3">
-                <button onClick={() => setSetupStep(1)} className="flex-1 py-4 border border-white/20 rounded-xl font-medium">{t('here.back')}</button>
-                <button onClick={() => setSetupStep(3)} disabled={!gender}
+                <button type="button" onClick={() => setSetupStep(1)} className="flex-1 py-4 border border-white/20 rounded-xl font-medium">{t('here.back')}</button>
+                <button type="button" onClick={() => setSetupStep(3)} disabled={!gender}
                   className="flex-1 py-4 bg-gradient-to-r from-pink-500 to-orange-500 rounded-xl font-bold disabled:opacity-50">{t('here.continue')}</button>
               </div>
             </div>
@@ -598,7 +598,7 @@ export default function HerePage() {
                 <label className="block text-sm font-medium text-gray-400 mb-2">{t('here.lookingForTitle')}</label>
                 <div className="grid grid-cols-3 gap-2">
                   {lookingForOptions.map(opt => (
-                    <button key={opt.id} onClick={() => setLookingFor(opt.id)}
+                    <button type="button" key={opt.id} onClick={() => setLookingFor(opt.id)}
                       className={`py-3 px-4 rounded-xl text-sm font-medium ${lookingFor === opt.id ? 'bg-pink-500 text-white' : 'bg-[#1a1a1a] text-gray-300'}`}>
                       {opt.label}
                     </button>
@@ -610,13 +610,13 @@ export default function HerePage() {
                 <label className="block text-sm font-medium text-gray-400 mb-2">{t('here.ageRangeTitle')}</label>
                 <div className="grid grid-cols-2 gap-2">
                   {ageRanges.map(range => (
-                    <button key={range.label} onClick={() => { setAgeRangeMin(range.min); setAgeRangeMax(range.max); }}
+                    <button type="button" key={range.label} onClick={() => { setAgeRangeMin(range.min); setAgeRangeMax(range.max); }}
                       className={`py-3 px-4 rounded-xl text-sm font-medium ${ageRangeMin === range.min && ageRangeMax === range.max ? 'bg-pink-500 text-white' : 'bg-[#1a1a1a] text-gray-300'}`}>
                       {range.label}
                     </button>
                   ))}
                 </div>
-                <button onClick={() => { setAgeRangeMin(18); setAgeRangeMax(99); }}
+                <button type="button" onClick={() => { setAgeRangeMin(18); setAgeRangeMax(99); }}
                   className={`w-full mt-2 py-3 rounded-xl text-sm font-medium ${ageRangeMin === 18 && ageRangeMax === 99 ? 'bg-pink-500 text-white' : 'bg-[#1a1a1a] text-gray-300'}`}>
                   {t('here.allAges')}
                 </button>
@@ -630,8 +630,8 @@ export default function HerePage() {
               </div>
 
               <div className="flex gap-3">
-                <button onClick={() => setSetupStep(2)} className="flex-1 py-4 border border-white/20 rounded-xl font-medium">{t('here.back')}</button>
-                <button onClick={saveProfile} className="flex-1 py-4 bg-gradient-to-r from-pink-500 to-orange-500 rounded-xl font-bold">
+                <button type="button" onClick={() => setSetupStep(2)} className="flex-1 py-4 border border-white/20 rounded-xl font-medium">{t('here.back')}</button>
+                <button type="button" onClick={saveProfile} className="flex-1 py-4 bg-gradient-to-r from-pink-500 to-orange-500 rounded-xl font-bold">
                   {hasProfile ? t('here.save') : t('here.createProfile')}
                 </button>
               </div>
@@ -647,7 +647,7 @@ export default function HerePage() {
     return (
       <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col">
         <div className="sticky top-0 z-10 bg-[#1a1a1a] border-b border-white/10 p-4 flex items-center gap-4">
-          <button onClick={() => { setActiveTab('messages'); setSelectedMatch(null); }}>
+          <button type="button" onClick={() => { setActiveTab('messages'); setSelectedMatch(null); }}>
             <ChevronLeft className="w-6 h-6" />
           </button>
           <AvatarImage src={selectedMatch.user.avatar_url} blur={selectedMatch.user.avatar_blur} size="sm" />
@@ -655,7 +655,7 @@ export default function HerePage() {
             <h2 className="font-semibold">{selectedMatch.user.nickname}</h2>
             <p className="text-xs text-gray-400">{t('here.chatWithNickname')}</p>
           </div>
-          <button onClick={() => setShowTitChatModal(true)} className="p-2 bg-green-500/20 rounded-full">
+          <button type="button" onClick={() => setShowTitChatModal(true)} className="p-2 bg-green-500/20 rounded-full">
             <ExternalLink className="w-5 h-5 text-green-500" />
           </button>
         </div>
@@ -679,7 +679,7 @@ export default function HerePage() {
           <div className="flex gap-2">
             <input type="text" value={newMessage} onChange={(e) => setNewMessage(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
               placeholder={t('here.typeMessage')} className="flex-1 px-4 py-3 bg-[#2a2a2a] rounded-full focus:outline-none focus:ring-2 focus:ring-pink-500" />
-            <button onClick={handleSendMessage} disabled={!newMessage.trim()} className="p-3 bg-gradient-to-r from-pink-500 to-orange-500 rounded-full disabled:opacity-50">
+            <button type="button" onClick={handleSendMessage} disabled={!newMessage.trim()} className="p-3 bg-gradient-to-r from-pink-500 to-orange-500 rounded-full disabled:opacity-50">
               <Send className="w-5 h-5" />
             </button>
           </div>
@@ -699,8 +699,8 @@ export default function HerePage() {
                 <p className="text-xs text-yellow-400 text-center">{t('here.bothMustApprove')}</p>
               </div>
               <div className="flex gap-3">
-                <button onClick={() => setShowTitChatModal(false)} className="flex-1 py-3 border border-white/20 rounded-xl font-medium">{t('here.stayHere')}</button>
-                <button onClick={moveToTitChat} className="flex-1 py-3 bg-green-500 rounded-xl font-medium">{t('here.approve')}</button>
+                <button type="button" onClick={() => setShowTitChatModal(false)} className="flex-1 py-3 border border-white/20 rounded-xl font-medium">{t('here.stayHere')}</button>
+                <button type="button" onClick={moveToTitChat} className="flex-1 py-3 bg-green-500 rounded-xl font-medium">{t('here.approve')}</button>
               </div>
             </div>
           </div>
@@ -714,7 +714,7 @@ export default function HerePage() {
     return (
       <div className="min-h-screen bg-[#0a0a0a] text-white pb-24">
         <div className="p-4 border-b border-white/10 flex items-center gap-4">
-          <button onClick={() => setActiveTab('venue')}><ArrowLeft className="w-6 h-6" /></button>
+          <button type="button" onClick={() => setActiveTab('venue')}><ArrowLeft className="w-6 h-6" /></button>
           <h1 className="font-bold text-lg">{t('here.profileSettings')}</h1>
         </div>
 
@@ -735,7 +735,7 @@ export default function HerePage() {
             </div>
           </div>
 
-          <button onClick={() => { setSetupStep(1); setActiveTab('setup'); }}
+          <button type="button" onClick={() => { setSetupStep(1); setActiveTab('setup'); }}
             className="w-full bg-[#1a1a1a] rounded-xl p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <User className="w-5 h-5 text-gray-400" />
@@ -744,7 +744,7 @@ export default function HerePage() {
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </button>
 
-          <button onClick={handleToggleInvisible} className="w-full bg-[#1a1a1a] rounded-xl p-4 flex items-center justify-between">
+          <button type="button" onClick={handleToggleInvisible} className="w-full bg-[#1a1a1a] rounded-xl p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <EyeOff className="w-5 h-5 text-gray-400" />
               <div className="text-left">
@@ -757,7 +757,7 @@ export default function HerePage() {
             </div>
           </button>
 
-          <button className="w-full bg-[#1a1a1a] rounded-xl p-4 flex items-center justify-between">
+          <button type="button" className="w-full bg-[#1a1a1a] rounded-xl p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Ban className="w-5 h-5 text-gray-400" />
               <span>{t('here.blockedUsers')}</span>
@@ -765,7 +765,7 @@ export default function HerePage() {
             <ChevronRight className="w-5 h-5 text-gray-400" />
           </button>
 
-          <button onClick={handleDeleteProfile}
+          <button type="button" onClick={handleDeleteProfile}
             className="w-full bg-red-500/20 text-red-400 rounded-xl p-4 flex items-center justify-center gap-2">
             <LogOut className="w-5 h-5" />
             {t('here.deleteProfile')}
@@ -840,13 +840,13 @@ export default function HerePage() {
       </div>
       
       <div className="flex justify-center gap-6 mt-6">
-        <button onClick={() => handlePass(user.id)} className="w-16 h-16 bg-[#1a1a1a] border-2 border-red-500 rounded-full flex items-center justify-center hover:bg-red-500/20">
+        <button type="button" onClick={() => handlePass(user.id)} className="w-16 h-16 bg-[#1a1a1a] border-2 border-red-500 rounded-full flex items-center justify-center hover:bg-red-500/20">
           <X className="w-8 h-8 text-red-500" />
         </button>
-        <button onClick={() => handleLike(user)} className="w-20 h-20 bg-gradient-to-r from-pink-500 to-orange-500 rounded-full flex items-center justify-center shadow-lg shadow-pink-500/30 hover:scale-105">
+        <button type="button" onClick={() => handleLike(user)} className="w-20 h-20 bg-gradient-to-r from-pink-500 to-orange-500 rounded-full flex items-center justify-center shadow-lg shadow-pink-500/30 hover:scale-105">
           <Heart className="w-10 h-10" />
         </button>
-        <button onClick={() => handleSuperLike(user)} className="w-16 h-16 bg-[#1a1a1a] border-2 border-blue-500 rounded-full flex items-center justify-center hover:bg-blue-500/20">
+        <button type="button" onClick={() => handleSuperLike(user)} className="w-16 h-16 bg-[#1a1a1a] border-2 border-blue-500 rounded-full flex items-center justify-center hover:bg-blue-500/20">
           <Zap className="w-8 h-8 text-blue-500" />
         </button>
       </div>
@@ -869,30 +869,30 @@ export default function HerePage() {
     <div className="min-h-screen bg-[#0a0a0a] text-white pb-24">
       <div className="sticky top-0 z-10 bg-[#0a0a0a] border-b border-white/10">
         <div className="flex items-center gap-4 p-4">
-          <button onClick={() => router.back()}><ArrowLeft className="w-6 h-6" /></button>
+          <button type="button" onClick={() => router.back()}><ArrowLeft className="w-6 h-6" /></button>
           <div className="flex-1">
             <h1 className="font-bold text-lg flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-pink-500" />{t('here.title')}
             </h1>
           </div>
-          <button onClick={() => setShowFilters(true)} className="p-2 hover:bg-white/10 rounded-full">
+          <button type="button" onClick={() => setShowFilters(true)} className="p-2 hover:bg-white/10 rounded-full">
             <Filter className="w-5 h-5 text-gray-400" />
           </button>
-          <button onClick={() => setActiveTab('profile')} className="p-2 hover:bg-white/10 rounded-full">
+          <button type="button" onClick={() => setActiveTab('profile')} className="p-2 hover:bg-white/10 rounded-full">
             <Settings className="w-5 h-5 text-gray-400" />
           </button>
         </div>
 
         <div className="flex px-4 pb-4 gap-2">
-          <button onClick={() => setActiveTab('venue')}
+          <button type="button" onClick={() => setActiveTab('venue')}
             className={`flex-1 py-3 rounded-xl font-medium flex items-center justify-center gap-2 ${activeTab === 'venue' ? 'bg-gradient-to-r from-pink-500 to-orange-500' : 'bg-[#1a1a1a] text-gray-400'}`}>
             <Building2 className="w-4 h-4" />{t('here.tabVenue')}
           </button>
-          <button onClick={() => setActiveTab('nearby')}
+          <button type="button" onClick={() => setActiveTab('nearby')}
             className={`flex-1 py-3 rounded-xl font-medium flex items-center justify-center gap-2 ${activeTab === 'nearby' ? 'bg-gradient-to-r from-pink-500 to-orange-500' : 'bg-[#1a1a1a] text-gray-400'}`}>
             <Navigation className="w-4 h-4" />{t('here.tabNearby')}
           </button>
-          <button onClick={() => setActiveTab('messages')}
+          <button type="button" onClick={() => setActiveTab('messages')}
             className={`flex-1 py-3 rounded-xl font-medium flex items-center justify-center gap-2 relative ${activeTab === 'messages' ? 'bg-gradient-to-r from-pink-500 to-orange-500' : 'bg-[#1a1a1a] text-gray-400'}`}>
             <MessageCircle className="w-4 h-4" />{t('here.tabMessages')}
             {matches.filter(m => m.unreadCount > 0).length > 0 && (
@@ -927,7 +927,7 @@ export default function HerePage() {
                   </div>
                 </div>
               </div>
-              <button onClick={handleCheckIn} className="w-full max-w-sm py-4 bg-gradient-to-r from-pink-500 to-orange-500 rounded-2xl font-bold text-lg flex items-center justify-center gap-2">
+              <button type="button" onClick={handleCheckIn} className="w-full max-w-sm py-4 bg-gradient-to-r from-pink-500 to-orange-500 rounded-2xl font-bold text-lg flex items-center justify-center gap-2">
                 <CheckCircle className="w-5 h-5" />{t('here.checkIn')}
               </button>
               <p className="text-xs text-gray-500 mt-4 max-w-xs">{t('here.autoCheckoutNote')}</p>
@@ -943,7 +943,7 @@ export default function HerePage() {
                     <p className="text-xs text-pink-400">{t('here.checkedIn')}</p>
                     <h3 className="font-bold">{checkin?.venue_name || currentVenue.name}</h3>
                   </div>
-                  <button onClick={handleCheckOut} className="p-2 hover:bg-white/10 rounded-full">
+                  <button type="button" onClick={handleCheckOut} className="p-2 hover:bg-white/10 rounded-full">
                     <LogOut className="w-5 h-5 text-gray-400" />
                   </button>
                 </div>
@@ -995,7 +995,7 @@ export default function HerePage() {
             <>
               <h3 className="text-sm font-medium text-gray-400">{t('here.matchesTitle')} ({matches.length})</h3>
               {matches.map(match => (
-                <button key={match.id} onClick={() => openChat(match)}
+                <button type="button" key={match.id} onClick={() => openChat(match)}
                   className="w-full bg-[#1a1a1a] rounded-2xl p-4 flex items-center gap-4 text-left hover:bg-[#222]">
                   <div className="relative">
                     <AvatarImage src={match.user.avatar_url} blur={match.user.avatar_blur} size="md" />
@@ -1032,7 +1032,7 @@ export default function HerePage() {
           <div className="absolute inset-x-0 bottom-0 bg-[#1a1a1a] rounded-t-3xl p-4" style={{ maxHeight: '60vh' }}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold">{t('here.filtersTitle')}</h2>
-              <button onClick={() => setShowFilters(false)}><X className="w-6 h-6" /></button>
+              <button type="button" onClick={() => setShowFilters(false)}><X className="w-6 h-6" /></button>
             </div>
 
             <div className="space-y-4">
@@ -1040,7 +1040,7 @@ export default function HerePage() {
                 <label className="block text-sm font-medium text-gray-400 mb-2">{t('here.genderTitle')}</label>
                 <div className="flex flex-wrap gap-2">
                   {genderOptions.map(opt => (
-                    <button key={opt.id} onClick={() => setFilterGender(prev => prev.includes(opt.id) ? prev.filter(g => g !== opt.id) : [...prev, opt.id])}
+                    <button type="button" key={opt.id} onClick={() => setFilterGender(prev => prev.includes(opt.id) ? prev.filter(g => g !== opt.id) : [...prev, opt.id])}
                       className={`px-4 py-2 rounded-xl text-sm ${filterGender.includes(opt.id) ? 'bg-pink-500' : 'bg-[#242424]'}`}>
                       {opt.label}
                     </button>
@@ -1052,7 +1052,7 @@ export default function HerePage() {
                 <label className="block text-sm font-medium text-gray-400 mb-2">{t('here.ageRangeTitle')}</label>
                 <div className="flex flex-wrap gap-2">
                   {ageRanges.map(range => (
-                    <button key={range.label} onClick={() => setFilterAgeRange(filterAgeRange?.min === range.min ? null : range)}
+                    <button type="button" key={range.label} onClick={() => setFilterAgeRange(filterAgeRange?.min === range.min ? null : range)}
                       className={`px-4 py-2 rounded-xl text-sm ${filterAgeRange?.min === range.min ? 'bg-pink-500' : 'bg-[#242424]'}`}>
                       {range.label}
                     </button>
@@ -1060,7 +1060,7 @@ export default function HerePage() {
                 </div>
               </div>
 
-              <button onClick={() => { setFilterGender([]); setFilterAgeRange(null); setShowFilters(false); }}
+              <button type="button" onClick={() => { setFilterGender([]); setFilterAgeRange(null); setShowFilters(false); }}
                 className="w-full py-3 bg-gradient-to-r from-pink-500 to-orange-500 rounded-xl font-medium">
                 {t('here.apply')}
               </button>
@@ -1086,8 +1086,8 @@ export default function HerePage() {
             <p className="text-gray-400 mb-2">{t('here.youBothLiked', { name: newMatchUser.nickname })}</p>
             <p className="text-sm text-gray-500 mb-8">{t('here.namesStillHidden')}</p>
             <div className="flex gap-4">
-              <button onClick={() => { setShowMatch(false); setNewMatchUser(null); }} className="flex-1 py-3 border border-white/20 rounded-xl font-medium">{t('here.keepSwiping')}</button>
-              <button onClick={() => {
+              <button type="button" onClick={() => { setShowMatch(false); setNewMatchUser(null); }} className="flex-1 py-3 border border-white/20 rounded-xl font-medium">{t('here.keepSwiping')}</button>
+              <button type="button" onClick={() => {
                 setShowMatch(false)
                 const match = matches.find(m => m.user.id === newMatchUser.id)
                 if (match) openChat(match)

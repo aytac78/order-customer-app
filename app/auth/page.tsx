@@ -48,7 +48,7 @@ export default function AuthPage() {
       <p className="text-gray-400 mb-8">Kesfet, Siparis Ver, Tadini Cikar</p>
 
       <div className="w-full max-w-sm space-y-4">
-        <button
+        <button type="button"
           onClick={handleGoogleLogin}
           disabled={loading}
           className="w-full py-4 bg-white text-gray-900 rounded-xl font-semibold flex items-center justify-center gap-3 disabled:opacity-50"
@@ -76,12 +76,12 @@ export default function AuthPage() {
             placeholder="5XX XXX XX XX"
             className="w-full px-4 py-3 bg-[#1a1a1a] rounded-xl border border-white/10 outline-none"
           />
-          <button className="w-full py-4 bg-orange-500 rounded-xl font-semibold">
+          <button type="button" className="w-full py-4 bg-orange-500 rounded-xl font-semibold">
             Telefon ile Devam Et
           </button>
         </div>
 
-        <button
+        <button type="button"
           onClick={handleDemoLogin}
           className="w-full py-3 border border-gray-700 rounded-xl text-gray-400 hover:bg-gray-800 text-sm"
         >
