@@ -167,8 +167,9 @@ export default function CartPage() {
       split_count: splitCount > 1 ? splitCount : null,
       items: items.map(item => ({
         id: item.id,
-        name: item.name,
-        price: item.price,
+        product_name: item.name,
+        unit_price: item.price,
+        total_price: item.price * item.quantity,
         quantity: item.quantity,
         options: item.options || [],
         status: 'pending'
